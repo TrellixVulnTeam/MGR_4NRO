@@ -10,6 +10,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Input;
 using MathNet.Numerics.LinearAlgebra.Double;
+using System.Windows.Threading;
+using System.Collections.Generic;
 
 namespace Elipsoida
 {
@@ -26,17 +28,36 @@ namespace Elipsoida
         private int _uScaleMatrixLocation;
 
         float[] vertices;
-        Timer timer;
+        DispatcherTimer timer;
         Matrix4 _translateMatrix;
         Matrix4 _scaleMatrix;
         int shaderProgram;
         WriteableBitmap writeableBitmap;
 
+        double scale = 1;
+        System.Windows.Point moveStartPoint;
+        System.Windows.Point rotateStartPoint;
+        Matrix<double> M;
+
+        Vector<double> OX = DenseVector.OfArray(new double[] { 1, 0, 0, 0 });
+        Vector<double> OY = DenseVector.OfArray(new double[] { 0, 1, 0, 0 });
+        Vector<double> OZ = DenseVector.OfArray(new double[] { 0, 0, 1, 0 });
+
+        double moveX = -400;
+        double moveY = -400;
+        double moveZ = 0;
+
+        double rotateX = 0;
+        double rotateY = 0;
+        double rotateZ = 0;
+
         public MainWindow()
         {
             InitializeComponent();
-            timer = new Timer();
-            timer.Interval = 10000.0;
+            timer = new DispatcherTimer();
+            timer.Interval = new TimeSpan(0, 0, 0, 0, 1000 / 60);
+            timer.Tick += Timer_Tick;
+            timer.Start();
 
             RenderOptions.SetBitmapScalingMode(i, BitmapScalingMode.NearestNeighbor);
             RenderOptions.SetEdgeMode(i, EdgeMode.Aliased);
@@ -64,33 +85,63 @@ namespace Elipsoida
 
             window.MouseWheel += new MouseWheelEventHandler(w_MouseWheel);
 
-            Matrix<double> mx = DiagonalMatrix.OfArray(new double[,] {
-        {0.0001,0,0,0},
-        {0,0.00002,0,0},
-        {0,0,0.000005,0},
-        {0,0,0,-1}
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            M = GetTransformations();
+            var M_inv = M.Inverse();
+
+            var xRad = xRadiusSlider.Value;
+            var yRad = yRadiusSlider.Value;
+            var zRad = zRadiusSlider.Value;
+
+            Matrix<double> D = DiagonalMatrix.OfArray(new double[,] {
+                {1/(xRad*xRad),0,0,0},
+                {0,1/(yRad*yRad),0,0},
+                {0,0,1/(zRad*zRad),0},
+                {0,0,0,-1}
             });
+
+            var DM = M_inv.Transpose() * D * M_inv;
 
             try
             {
-                // Reserve the back buffer for updates.
                 writeableBitmap.Lock();
 
                 unsafe
                 {
 
-                    // Compute the pixel's color.
-                    int color_data = 255 << 16; // R
-                    color_data |= 255 << 8;   // G
-                    color_data |= 0 << 0;   // B
+                    byte[] black = { 0, 0, 0, 0 }; // B G R
+
+
+                  //  color_data &= 11 << 24;   // G
+
+                    double obsX = writeableBitmap.PixelWidth / 2;
+                    double obsY = writeableBitmap.PixelHeight / 2;
+                    double obsZ = 1240;
 
                     for (int i = 0; i < writeableBitmap.PixelHeight; ++i)
                     {
                         for (int j = 0; j < writeableBitmap.PixelWidth; ++j)
                         {
-
-                            if (FindZ(mx,j,i).HasValue)
+                            var z = FindZ(DM, j, i);
+                            if (z.Item1.HasValue)
                             {
+                                var toObsV = DenseVector.OfArray(new double[] { j - obsX, i - obsY, z.Item1.Value - obsZ}).Normalize(2);
+
+                                var I = toObsV.DotProduct(z.Item2);
+                                if(I>1 || I<0)
+                                {
+                                    var a = 1;
+                                }
+                                int intens = (int)(255.0 * I);
+
+                                int
+                                color_data = intens << 16; // R
+                                color_data |= intens << 8;   // G
+                                color_data |= 0 << 0;   // B
+
                                 IntPtr pBackBuffer = writeableBitmap.BackBuffer;
 
                                 pBackBuffer += i * writeableBitmap.BackBufferStride;
@@ -98,17 +149,61 @@ namespace Elipsoida
                                 *((int*)pBackBuffer) = color_data;
                                 writeableBitmap.AddDirtyRect(new Int32Rect(j, i, 1, 1));
                             }
+                            else
+                            {
+                                Int32Rect rect = new Int32Rect(j, i, 1, 1);
+                                writeableBitmap.WritePixels(rect, black, 4, 0);
+                            }
                         }
-
                     }
-
                 }
             }
             finally
             {
-                // Release the back buffer and make it available for display.
                 writeableBitmap.Unlock();
             }
+        }
+
+        private Matrix<double> GetTransformations()
+        {
+            var sinX = Math.Sin(rotateX);
+            var cosX = Math.Cos(rotateX);
+            var sinY = Math.Sin(rotateY);
+            var cosY = Math.Cos(rotateY);
+            var sinZ = Math.Sin(rotateZ);
+            var cosZ = Math.Cos(rotateZ);
+
+
+            var rotX = DenseMatrix.OfArray(new double[,] {
+        {1,0,0,0},
+        {0,cosX,-sinX,0},
+        {0,sinX,cosX,0},
+        {0,0,0,1}
+            });
+
+            var rotY = DenseMatrix.OfArray(new double[,] {
+        {cosX,0,sinX,0},
+        {0,1,0,0},
+        {-sinX,0,cosX,0},
+        {0,0,0,1}
+            });
+
+            var rotZ = DenseMatrix.OfArray(new double[,] {
+        {cosX,-sinX,0,0},
+        {sinX,cosX,0,0},
+        {0,0,1,0},
+        {0,0,0,1}
+            });
+            var scaleM = DiagonalMatrix.OfDiagonal(4, 4, new List<double>() { scale, scale, scale, 1 });
+
+            var move = DenseMatrix.OfArray(new double[,] {
+        {1,0,0,moveX},
+        {0,1,0,moveY},
+        {0,0,1,moveZ},
+        {0,0,0,-1}
+            });
+
+            return move * scaleM * rotZ * rotY * rotX;
         }
 
         private void DrawPixel(MouseEventArgs e)
@@ -164,48 +259,29 @@ namespace Elipsoida
 
         private void i_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            ErasePixel(e);
+            rotateStartPoint = e.GetPosition(i);
         }
 
         private void i_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            DrawPixel(e);
+            moveStartPoint = e.GetPosition(i);
         }
 
         private void i_MouseMove(object sender, MouseEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                DrawPixel(e);
-            }
-            else if (e.RightButton == MouseButtonState.Pressed)
-            {
-                ErasePixel(e);
-            }
+
         }
 
         private void w_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            System.Windows.Media.Matrix m = i.RenderTransform.Value;
-
             if (e.Delta > 0)
             {
-                m.ScaleAt(
-                    1.5,
-                    1.5,
-                    e.GetPosition(i).X,
-                    e.GetPosition(i).Y);
+                scale *= 1.1;
             }
             else
             {
-                m.ScaleAt(
-                    1.0 / 1.5,
-                    1.0 / 1.5,
-                    e.GetPosition(i).X,
-                    e.GetPosition(i).Y);
+                scale /= 1.1;
             }
-
-            i.RenderTransform = new MatrixTransform(m);
         }
         /*
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
@@ -410,7 +486,7 @@ namespace Elipsoida
         }
         */
 
-        private double? FindZ(Matrix<double> matrix, double x, double y)
+        private (double?, Vector<double>) FindZ(Matrix<double> matrix, double x, double y)
         {
             double a = matrix[0, 0];
             double b = matrix[0, 1];
@@ -440,18 +516,123 @@ namespace Elipsoida
 
             var a2 = 2 * coeff_a;
 
-            if (delta < 0) return null;
+            if (delta < 0) return (null, null);
 
-            if (delta < 1e-9) return -coeff_b / a2;
+            double z;
 
-            var sqrt = Math.Sqrt(delta);
+            if (delta < 1e-9) z = -coeff_b / a2;
+            else
+            {
+                var sqrt = Math.Sqrt(delta);
 
-            var s1 = (-coeff_b - sqrt) / a2;
-            var s2 = (-coeff_b + sqrt) / a2;
+                var s1 = (-coeff_b - sqrt) / a2;
+                var s2 = (-coeff_b + sqrt) / a2;
 
-            if (s1 < s2) return s1;
-            return s2;
+                if (s1 < s2) z = s1;
+                else z = s2;
+            }
+
+            Vector<double> nabla = DenseVector.OfArray(
+                new double[]{
+                    2*a*x+e*y+i*z+m+b*y+c*z+d,
+                    e*x+b*x+2*f*y+j*z+n+g*z+h,
+                    i*x+j*y+c*x+g*y+2*k*z+o+l}
+                );
+
+            nabla = nabla.Normalize(2);
+
+            return (z, nabla);
+
         }
 
+        private void i_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            var curPos = e.GetPosition(i);
+            var xDiff = moveStartPoint.X - curPos.X;
+            var yDiff = moveStartPoint.Y - curPos.Y;
+
+            {
+                var xABS = Math.Abs(OX[0]);
+                var yABS = Math.Abs(OY[0]);
+                var zABS = Math.Abs(OZ[0]);
+
+                if (xABS >= yABS && xABS >= zABS)
+                {
+                    moveX += xDiff / 10;
+                }
+                else if (yABS >= zABS)
+                {
+                    moveY += xDiff / 10;
+                }
+                else
+                {
+                    moveZ += xDiff / 10;
+                }
+            }
+
+            {
+                var xABS = Math.Abs(OX[1]);
+                var yABS = Math.Abs(OY[1]);
+                var zABS = Math.Abs(OZ[1]);
+
+                if (xABS >= yABS && xABS >= zABS)
+                {
+                    moveX += yDiff / 10;
+                }
+                else if (yABS >= zABS)
+                {
+                    moveY += yDiff / 10;
+                }
+                else
+                {
+                    moveZ += yDiff / 10;
+                }
+            }
+        }
+
+        private void i_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            var curPos = e.GetPosition(i);
+            var xDiff = moveStartPoint.X - curPos.X;
+            var yDiff = moveStartPoint.Y - curPos.Y;
+
+            {
+                var xABS = Math.Abs(OX[1]);
+                var yABS = Math.Abs(OY[1]);
+                var zABS = Math.Abs(OZ[1]);
+
+                if (xABS >= yABS && xABS >= zABS)
+                {
+                    rotateX += xDiff / 10;
+                }
+                else if (yABS >= zABS)
+                {
+                    rotateY += xDiff / 10;
+                }
+                else
+                {
+                    rotateZ += xDiff / 10;
+                }
+            }
+
+            {
+                var xABS = Math.Abs(OX[0]);
+                var yABS = Math.Abs(OY[0]);
+                var zABS = Math.Abs(OZ[0]);
+
+                if (xABS >= yABS && xABS >= zABS)
+                {
+                    rotateX += yDiff / 10;
+                }
+                else if (yABS >= zABS)
+                {
+                    rotateY += yDiff / 10;
+                }
+                else
+                {
+                    rotateZ += yDiff / 10;
+                }
+            }
+        }
     }
 }

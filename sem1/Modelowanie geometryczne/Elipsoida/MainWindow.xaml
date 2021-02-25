@@ -13,10 +13,12 @@
     <Grid>
         <DockPanel LastChildFill="True">
             <StackPanel DockPanel.Dock="Right">
-                <Button x:Name="buttonSetBGColor" Content="Set BG Color" Margin="5" ></Button>
+                <Slider x:Name="xRadiusSlider" Maximum="100" Value="60"></Slider>
+                <Slider x:Name="yRadiusSlider" Maximum="100" Value="50"></Slider>
+                <Slider x:Name="zRadiusSlider" Maximum="100" Value="40"></Slider>
                 <Button x:Name="buttonSetTRColor" Content="Set TR Color" Margin="5" ></Button>
             </StackPanel>
-            <Image x:Name="i" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="800" Height="800"/>
+            <Image x:Name="i" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="800" Height="800" MouseLeftButtonDown="i_MouseLeftButtonDown" MouseLeftButtonUp="i_MouseLeftButtonUp" MouseRightButtonDown="i_MouseRightButtonDown" MouseRightButtonUp="i_MouseRightButtonUp"/>
         </DockPanel>
     </Grid>
 </Window>
