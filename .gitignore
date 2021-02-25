@@ -1,0 +1,4 @@
+*.ova
+/bin
+/obj
+/.vs
