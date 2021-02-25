@@ -1,5 +1,10 @@
 *.ova
-/bin
-/obj
-/.vs
-/packages
+*.suo
+*.user
+_ReSharper.*
+bin/
+obj/
+packages/
+Debug/
+Release/
+.vs/
