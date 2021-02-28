@@ -4,21 +4,24 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Elipsoida"
-        xmlns:opentk="clr-namespace:OpenTK;assembly=OpenTK.GLControl"
         mc:Ignorable="d"
-        Title="Elipsoida" Height="1000" Width="1000"
+        Title="Elipsoida" Height="750" Width="850"
         Name="window"
         ResizeMode="NoResize"
         >
     <Grid>
         <DockPanel LastChildFill="True">
-            <StackPanel DockPanel.Dock="Right">
-                <Slider x:Name="xRadiusSlider" Maximum="100" Value="60"></Slider>
-                <Slider x:Name="yRadiusSlider" Maximum="100" Value="50"></Slider>
-                <Slider x:Name="zRadiusSlider" Maximum="100" Value="40"></Slider>
-                <Button x:Name="buttonSetTRColor" Content="Set TR Color" Margin="5" ></Button>
+            <StackPanel DockPanel.Dock="Right" Width="100">
+                <Slider x:Name="xRadiusSlider" Maximum="200" Minimum="1" Value="60" ValueChanged="radiusSlider_ValueChanged" Margin="5" ></Slider>
+                <Label x:Name="xLabel"></Label>
+                <Slider x:Name="yRadiusSlider" Maximum="200" Minimum="1" Value="50" ValueChanged="radiusSlider_ValueChanged" Margin="5"></Slider>
+                <Label x:Name="yLabel"></Label>
+                <Slider x:Name="zRadiusSlider" Maximum="200" Minimum="1" Value="40" ValueChanged="radiusSlider_ValueChanged" Margin="5"></Slider>
+                <Label x:Name="zLabel"></Label>
+                <Slider x:Name="mSlider" Maximum="50" Minimum="1" Value="1" ValueChanged="radiusSlider_ValueChanged" Margin="5"></Slider>
+                <Label x:Name="mLabel"></Label>
             </StackPanel>
-            <Image x:Name="i" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="800" Height="800" MouseLeftButtonDown="i_MouseLeftButtonDown" MouseLeftButtonUp="i_MouseLeftButtonUp" MouseRightButtonDown="i_MouseRightButtonDown" MouseRightButtonUp="i_MouseRightButtonUp"/>
+            <Image x:Name="i" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="700" Height="700" MouseLeftButtonDown="i_MouseLeftButtonDown" MouseLeftButtonUp="i_MouseLeftButtonUp" MouseRightButtonDown="i_MouseRightButtonDown" MouseRightButtonUp="i_MouseRightButtonUp"/>
         </DockPanel>
     </Grid>
 </Window>

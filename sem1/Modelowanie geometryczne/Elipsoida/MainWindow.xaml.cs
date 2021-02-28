@@ -20,21 +20,12 @@ namespace Elipsoida
     /// </summary>
     public partial class MainWindow : Window
     {
-        private int _numOfVertices = 0;
-        private int _gameFieldWidth = 20;
-        private int _gameFieldHeight = 20;
-        private int _uColorLocation;
-        private int _uTranslateMatrixLocation;
-        private int _uScaleMatrixLocation;
+        private bool smthChanged = true;
+        DateTime lastFrame;
 
-        float[] vertices;
         DispatcherTimer timer;
-        Matrix4 _translateMatrix;
-        Matrix4 _scaleMatrix;
-        int shaderProgram;
         WriteableBitmap writeableBitmap;
 
-        double scale = 1;
         System.Windows.Point moveStartPoint;
         System.Windows.Point rotateStartPoint;
         Matrix<double> M;
@@ -43,21 +34,26 @@ namespace Elipsoida
         Vector<double> OY = DenseVector.OfArray(new double[] { 0, 1, 0, 0 });
         Vector<double> OZ = DenseVector.OfArray(new double[] { 0, 0, 1, 0 });
 
-        double moveX = -400;
-        double moveY = -400;
-        double moveZ = 0;
-
-        double rotateX = 0;
-        double rotateY = 0;
-        double rotateZ = 0;
+        bool[,] wasYellow;
+        Matrix<double> rotationMatrix = DenseMatrix.OfArray(new double[,] {
+        {1,0,0,0},
+        {0,1,0,0},
+        {0,0,1,0},
+        { 0,0,0,1}
+            });
+        
+        Matrix<double> moveMatrix;
+        
+        Matrix<double> scaleMatrix = DenseMatrix.OfArray(new double[,] {
+        {1,0,0,0},
+        {0,1,0,0},
+        {0,0,1,0},
+        { 0,0,0,1}
+            });
 
         public MainWindow()
         {
             InitializeComponent();
-            timer = new DispatcherTimer();
-            timer.Interval = new TimeSpan(0, 0, 0, 0, 1000 / 60);
-            timer.Tick += Timer_Tick;
-            timer.Start();
 
             RenderOptions.SetBitmapScalingMode(i, BitmapScalingMode.NearestNeighbor);
             RenderOptions.SetEdgeMode(i, EdgeMode.Aliased);
@@ -84,11 +80,30 @@ namespace Elipsoida
                 new MouseButtonEventHandler(i_MouseRightButtonDown);
 
             window.MouseWheel += new MouseWheelEventHandler(w_MouseWheel);
+            lastFrame = DateTime.Now;
 
+            wasYellow = new bool[writeableBitmap.PixelHeight, writeableBitmap.PixelHeight];
+
+            moveMatrix = DenseMatrix.OfArray(new double[,] {
+        {1,0,0,-i.Width / 2},
+        {0,1,0,-i.Height / 2},
+        {0,0,1,0},
+        {0,0,0,-1}
+            });
+
+            timer = new DispatcherTimer();
+            timer.Interval = new TimeSpan(0, 0, 0, 0, 1000 / 60);
+            timer.Tick += Timer_Tick;
+            timer.Start();
+
+            radiusSlider_ValueChanged(null, new RoutedPropertyChangedEventArgs<double>(1, 1));
         }
 
         private void Timer_Tick(object sender, EventArgs e)
         {
+            Title = (DateTime.Now - lastFrame).TotalMilliseconds.ToString();
+            lastFrame = DateTime.Now;
+            // if (!smthChanged) return;
             M = GetTransformations();
             var M_inv = M.Inverse();
 
@@ -115,11 +130,9 @@ namespace Elipsoida
                     byte[] black = { 0, 0, 0, 0 }; // B G R
 
 
-                  //  color_data &= 11 << 24;   // G
-
                     double obsX = writeableBitmap.PixelWidth / 2;
                     double obsY = writeableBitmap.PixelHeight / 2;
-                    double obsZ = 1240;
+                    double obsZ = -500;
 
                     for (int i = 0; i < writeableBitmap.PixelHeight; ++i)
                     {
@@ -128,13 +141,20 @@ namespace Elipsoida
                             var z = FindZ(DM, j, i);
                             if (z.Item1.HasValue)
                             {
-                                var toObsV = DenseVector.OfArray(new double[] { j - obsX, i - obsY, z.Item1.Value - obsZ}).Normalize(2);
+                                var toObsV = DenseVector.OfArray(new double[] { obsX - j, obsY - i, obsZ - z.Item1.Value }).Normalize(2);
 
                                 var I = toObsV.DotProduct(z.Item2);
-                                if(I>1 || I<0)
+                                if (I < 0)
                                 {
-                                    var a = 1;
+                                    I = 0;
                                 }
+                                if (I > 1)
+                                {
+                                    I = 1;
+                                }
+
+                                I = Math.Pow(I, mSlider.Value);
+
                                 int intens = (int)(255.0 * I);
 
                                 int
@@ -147,12 +167,22 @@ namespace Elipsoida
                                 pBackBuffer += i * writeableBitmap.BackBufferStride;
                                 pBackBuffer += j * 4;
                                 *((int*)pBackBuffer) = color_data;
-                                writeableBitmap.AddDirtyRect(new Int32Rect(j, i, 1, 1));
+                                //    writeableBitmap.AddDirtyRect(new Int32Rect(j, i, 1, 1));
+                                wasYellow[i, j] = true;
                             }
-                            else
+                            else if (wasYellow[i, j])
                             {
-                                Int32Rect rect = new Int32Rect(j, i, 1, 1);
-                                writeableBitmap.WritePixels(rect, black, 4, 0);
+                                int
+                                color_data = 0 << 16; // R
+                                color_data |= 0 << 8;   // G
+                                color_data |= 0 << 0;   // B
+                                IntPtr pBackBuffer = writeableBitmap.BackBuffer;
+
+                                pBackBuffer += i * writeableBitmap.BackBufferStride;
+                                pBackBuffer += j * 4;
+                                *((int*)pBackBuffer) = color_data;
+                                //  writeableBitmap.AddDirtyRect(new Int32Rect(j, i, 1, 1));
+                                wasYellow[i, j] = false;
                             }
                         }
                     }
@@ -160,50 +190,15 @@ namespace Elipsoida
             }
             finally
             {
+                writeableBitmap.AddDirtyRect(new Int32Rect(0, 0, writeableBitmap.PixelWidth, writeableBitmap.PixelHeight));
                 writeableBitmap.Unlock();
+                smthChanged = false;
             }
         }
 
         private Matrix<double> GetTransformations()
         {
-            var sinX = Math.Sin(rotateX);
-            var cosX = Math.Cos(rotateX);
-            var sinY = Math.Sin(rotateY);
-            var cosY = Math.Cos(rotateY);
-            var sinZ = Math.Sin(rotateZ);
-            var cosZ = Math.Cos(rotateZ);
-
-
-            var rotX = DenseMatrix.OfArray(new double[,] {
-        {1,0,0,0},
-        {0,cosX,-sinX,0},
-        {0,sinX,cosX,0},
-        {0,0,0,1}
-            });
-
-            var rotY = DenseMatrix.OfArray(new double[,] {
-        {cosX,0,sinX,0},
-        {0,1,0,0},
-        {-sinX,0,cosX,0},
-        {0,0,0,1}
-            });
-
-            var rotZ = DenseMatrix.OfArray(new double[,] {
-        {cosX,-sinX,0,0},
-        {sinX,cosX,0,0},
-        {0,0,1,0},
-        {0,0,0,1}
-            });
-            var scaleM = DiagonalMatrix.OfDiagonal(4, 4, new List<double>() { scale, scale, scale, 1 });
-
-            var move = DenseMatrix.OfArray(new double[,] {
-        {1,0,0,moveX},
-        {0,1,0,moveY},
-        {0,0,1,moveZ},
-        {0,0,0,-1}
-            });
-
-            return move * scaleM * rotZ * rotY * rotX;
+            return moveMatrix * rotationMatrix * scaleMatrix;
         }
 
         private void DrawPixel(MouseEventArgs e)
@@ -244,19 +239,6 @@ namespace Elipsoida
             }
         }
 
-        private void ErasePixel(MouseEventArgs e)
-        {
-            byte[] ColorData = { 0, 0, 0, 0 }; // B G R
-
-            Int32Rect rect = new Int32Rect(
-                    (int)(e.GetPosition(i).X),
-                    (int)(e.GetPosition(i).Y),
-                    1,
-                    1);
-
-            writeableBitmap.WritePixels(rect, ColorData, 4, 0);
-        }
-
         private void i_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             rotateStartPoint = e.GetPosition(i);
@@ -269,222 +251,33 @@ namespace Elipsoida
 
         private void i_MouseMove(object sender, MouseEventArgs e)
         {
-
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                Move(e.GetPosition(i));
+            }
+            if (e.RightButton == MouseButtonState.Pressed)
+            {
+                Rotate(e.GetPosition(i));
+            }
         }
 
         private void w_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            double scale;
             if (e.Delta > 0)
             {
-                scale *= 1.1;
+                scale = 1.1*scaleMatrix[0,0];
             }
             else
             {
-                scale /= 1.1;
+                scale = 1.1 * scaleMatrix[0, 0];
             }
+
+            scaleMatrix[0, 0] = scale;
+            scaleMatrix[1, 1] = scale;
+
+            smthChanged = true;
         }
-        /*
-        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            glControl.Invalidate();
-        }
-
-        private void glControl_Load(object sender, EventArgs e)
-        {
-            glControl.MakeCurrent();
-
-            // Get a shader program ID
-            shaderProgram = InitShadersAndGetProgram();
-
-            _numOfVertices = InitVertexBuffers();
-
-            _uColorLocation = GL.GetUniformLocation(shaderProgram, "uColor");
-            if (_uColorLocation < 0)
-            {
-                MessageBox.Show("Failed to get uColorLocation variable");
-                return;
-            }
-
-            // Set a coordinate cell
-            int uProjMatrixLocation = GL.GetUniformLocation(shaderProgram, "uProjMatrix");
-            if (uProjMatrixLocation < 0)
-            {
-                MessageBox.Show("Failed to get a location uProjMatrix variable");
-                return;
-            }
-            Matrix4 projMatrix = Matrix4.CreateOrthographicOffCenter(0f, _gameFieldWidth, _gameFieldHeight, 0f, -100f, 100f);
-            GL.UniformMatrix4(uProjMatrixLocation, false, ref projMatrix);
-
-            // Get uScaleMatrix Location
-            _uScaleMatrixLocation = GL.GetUniformLocation(shaderProgram, "uScaleMatrix");
-            if (_uScaleMatrixLocation < 0)
-            {
-                MessageBox.Show("Failed to get a location uScaleMatrix variable");
-                return;
-            }
-            _scaleMatrix = new Matrix4();
-
-            // Get uTranslateMatrix Location
-            _uTranslateMatrixLocation = GL.GetUniformLocation(shaderProgram, "uTranslateMatrix");
-            if (_uTranslateMatrixLocation < 0)
-            {
-                MessageBox.Show("Failed to get a location uTranslateMatrix variable");
-                return;
-            }
-            _translateMatrix = new Matrix4();
-
-
-            // Set a triangle color
-            GL.Uniform3(_uColorLocation, 0.945f, 0.745f, 0.356f);
-
-            // Set a color for clearing the glCotrol
-            GL.ClearColor(new Color4(0.286f, 0.576f, 0.243f, 1f));
-        }
-
-        private void glControl_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
-        {
-            GL.Viewport(0, 0, glControl.Width, glControl.Height);
-
-            // Clear the glControl with set color
-            GL.Clear(ClearBufferMask.ColorBufferBit);
-
-            Random r = new Random();
-
-            if (_numOfVertices != 0)
-            {
-                _scaleMatrix = Matrix4.CreateScale(5);
-                GL.UniformMatrix4(_uScaleMatrixLocation, false, ref _scaleMatrix);
-                _translateMatrix = Matrix4.CreateTranslation(new Vector3((float)r.NextDouble() + 10, (float)r.NextDouble() + 10, 1f));
-                GL.UniformMatrix4(_uTranslateMatrixLocation, false, ref _translateMatrix);
-                GL.DrawArrays(PrimitiveType.Triangles, 0, _numOfVertices);
-            }
-
-            // Swap the front and back buffers
-            glControl.SwapBuffers();
-        }
-
-        private int InitVertexBuffers()
-        {
-            vertices = new float[]
-            {
-                0.0f, 0.5f,
-                -0.5f, -0.5f,
-                0.5f, -0.5f
-            };
-            int n = 3;
-
-            int vbo;
-            GL.GenBuffers(1, out vbo);
-
-            // Get an array size in bytes
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            int sizeInBytes = vertices.Length * sizeof(float);
-            // Send the vertex array to a video card memory
-            GL.BufferData(BufferTarget.ArrayBuffer, sizeInBytes, vertices, BufferUsageHint.StaticDraw);
-            // Config the aPosition variable
-            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
-            GL.EnableVertexAttribArray(0);
-
-
-            return n;
-        }
-
-        private int InitShadersAndGetProgram()
-        {
-            string vertexShaderSource =
-                "#version 140\n" +
-                "in vec2 aPosition;" +
-                "uniform mat4 uProjMatrix;" +
-                "uniform mat4 uScaleMatrix;" +
-                "uniform mat4 uTranslateMatrix;" +
-                "void main()" +
-                "{" +
-                "    gl_Position = uProjMatrix * uTranslateMatrix * uScaleMatrix * vec4(aPosition, 1.0, 1.0);" +
-                "}";
-
-            string fragmentShaderSource =
-                "#version 140\n" +
-                "out vec4 fragColor;" +
-                "uniform vec3 uColor;" +
-                "void main()" +
-                "{" +
-                "    fragColor = vec4(uColor, 1.0);" +
-                "}";
-
-            // Vertex Shader
-            int vShader = GL.CreateShader(ShaderType.VertexShader);
-            GL.ShaderSource(vShader, vertexShaderSource);
-            GL.CompileShader(vShader);
-            // Check compilation
-            int ok;
-            GL.GetShader(vShader, ShaderParameter.CompileStatus, out ok);
-            if (ok == 0)
-            {
-                string vShaderInfo = GL.GetShaderInfoLog(vShader);
-                MessageBox.Show("Error in the vertex shader:\n" + vShaderInfo);
-                return -1;
-            }
-
-            // Fragment Shader
-            int fShader = GL.CreateShader(ShaderType.FragmentShader);
-            GL.ShaderSource(fShader, fragmentShaderSource);
-            GL.CompileShader(fShader);
-            GL.GetShader(fShader, ShaderParameter.CompileStatus, out ok);
-            if (ok == 0)
-            {
-                string fShaderInfo = GL.GetShaderInfoLog(fShader);
-                MessageBox.Show("Error in the fragment shader:\n" + fShaderInfo);
-                return -1;
-            }
-
-            int program = GL.CreateProgram();
-            GL.AttachShader(program, vShader);
-            GL.AttachShader(program, fShader);
-            GL.LinkProgram(program);
-            GL.UseProgram(program);
-
-            return program;
-        }
-
-        private void buttonSetBGColor_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new System.Windows.Forms.ColorDialog();
-
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                GL.ClearColor(dialog.Color);
-                glControl.Invalidate();
-            }
-
-        }
-
-        private void buttonSetTRColor_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new System.Windows.Forms.ColorDialog();
-
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                float r = dialog.Color.R / 255f;
-                float g = dialog.Color.G / 255f;
-                float b = dialog.Color.B / 255f;
-                GL.Uniform3(_uColorLocation, r, g, b);
-                glControl.Invalidate();
-            }
-
-        }
-
-        private void glControl_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
-        {
-            if (e.KeyCode == System.Windows.Forms.Keys.W)
-            {
-                vertices[1] += 0.1f;
-            }
-            if (e.KeyCode == System.Windows.Forms.Keys.W)
-            {
-                vertices[1] -= 0.1f;
-            }
-        }
-        */
 
         private (double?, Vector<double>) FindZ(Matrix<double> matrix, double x, double y)
         {
@@ -548,8 +341,17 @@ namespace Elipsoida
         private void i_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             var curPos = e.GetPosition(i);
+            Move(curPos);
+        }
+        private void Move(System.Windows.Point curPos)
+        {
             var xDiff = moveStartPoint.X - curPos.X;
             var yDiff = moveStartPoint.Y - curPos.Y;
+
+            xDiff /= 2;
+            yDiff /= 2;
+
+            moveStartPoint = curPos;
 
             {
                 var xABS = Math.Abs(OX[0]);
@@ -558,15 +360,15 @@ namespace Elipsoida
 
                 if (xABS >= yABS && xABS >= zABS)
                 {
-                    moveX += xDiff / 10;
+                    moveMatrix[0,3] += xDiff;
                 }
                 else if (yABS >= zABS)
                 {
-                    moveY += xDiff / 10;
+                    moveMatrix[1, 3] += xDiff;
                 }
                 else
                 {
-                    moveZ += xDiff / 10;
+                    moveMatrix[2, 3] += xDiff;
                 }
             }
 
@@ -577,62 +379,78 @@ namespace Elipsoida
 
                 if (xABS >= yABS && xABS >= zABS)
                 {
-                    moveX += yDiff / 10;
+                    moveMatrix[0, 3] += yDiff;
                 }
                 else if (yABS >= zABS)
                 {
-                    moveY += yDiff / 10;
+                    moveMatrix[1, 3] += yDiff;
                 }
                 else
                 {
-                    moveZ += yDiff / 10;
+                    moveMatrix[2, 3] += yDiff;
                 }
             }
+
+            smthChanged = true;
         }
 
         private void i_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             var curPos = e.GetPosition(i);
-            var xDiff = moveStartPoint.X - curPos.X;
-            var yDiff = moveStartPoint.Y - curPos.Y;
+            Rotate(curPos);
+        }
+        private void Rotate(System.Windows.Point curPos)
+        {
 
-            {
-                var xABS = Math.Abs(OX[1]);
-                var yABS = Math.Abs(OY[1]);
-                var zABS = Math.Abs(OZ[1]);
+            //v1
+            var xDiff = rotateStartPoint.X - curPos.X;
+            // var yDiff = rotateStartPoint.Y - curPos.Y;
 
-                if (xABS >= yABS && xABS >= zABS)
-                {
-                    rotateX += xDiff / 10;
-                }
-                else if (yABS >= zABS)
-                {
-                    rotateY += xDiff / 10;
-                }
-                else
-                {
-                    rotateZ += xDiff / 10;
-                }
-            }
+            //v2
+            //var xDiff = curPos.X - rotateStartPoint.X;
+            var yDiff = curPos.Y - rotateStartPoint.Y;
 
-            {
-                var xABS = Math.Abs(OX[0]);
-                var yABS = Math.Abs(OY[0]);
-                var zABS = Math.Abs(OZ[0]);
+            rotateStartPoint = curPos;
 
-                if (xABS >= yABS && xABS >= zABS)
-                {
-                    rotateX += yDiff / 10;
-                }
-                else if (yABS >= zABS)
-                {
-                    rotateY += yDiff / 10;
-                }
-                else
-                {
-                    rotateZ += yDiff / 10;
-                }
-            }
+            xDiff /= 360;
+            yDiff /= 360;
+
+            var sinX = Math.Sin(yDiff);
+            var cosX = Math.Cos(yDiff);
+            var sinY = Math.Sin(xDiff);
+            var cosY = Math.Cos(xDiff);
+
+
+            var rotX = DenseMatrix.OfArray(new double[,] {
+        {1,0,0,0},
+        {0,cosX,-sinX,0},
+        {0,sinX,cosX,0},
+        {0,0,0,1}
+            });
+
+            var rotY = DenseMatrix.OfArray(new double[,] {
+        {cosY,0,sinY,0},
+        {0,1,0,0},
+        {-sinY,0,cosY,0},
+        {0,0,0,1}
+            });
+            rotationMatrix = rotY * rotX * rotationMatrix;
+
+            smthChanged = true;
+        }
+
+        private void radiusSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            smthChanged = true;
+
+            if (xLabel != null)
+                xLabel.Content = "x = " + (int)xRadiusSlider.Value;
+            if (yLabel != null)
+                yLabel.Content = "y = " + (int)yRadiusSlider.Value;
+            if (zLabel != null)
+                zLabel.Content = "z = " + (int)zRadiusSlider.Value;
+            if (mLabel != null)
+                mLabel.Content = "m = " + (int)mSlider.Value;
         }
     }
 }
