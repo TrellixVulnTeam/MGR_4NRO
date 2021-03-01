@@ -262,7 +262,7 @@ namespace Elipsoida
             }
             else
             {
-                scale = 1.1 * scaleMatrix[0, 0];
+                scale = scaleMatrix[0, 0] / 1.1;
             }
 
             scaleMatrix[0, 0] = scale;
