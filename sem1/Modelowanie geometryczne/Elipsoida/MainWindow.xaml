@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Elipsoida"
         mc:Ignorable="d"
         Title="Elipsoida" Height="750" Width="850"
         Name="window"
@@ -11,15 +10,17 @@
         >
     <Grid>
         <DockPanel LastChildFill="True">
-            <StackPanel DockPanel.Dock="Right" Width="100">
-                <Slider x:Name="xRadiusSlider" Maximum="200" Minimum="1" Value="60" ValueChanged="radiusSlider_ValueChanged" Margin="5" ></Slider>
+            <StackPanel DockPanel.Dock="Right" Width="150">
+                <Slider x:Name="xRadiusSlider" Maximum="200" Minimum="1" Value="60" ValueChanged="slider_ValueChanged" Margin="5" IsSnapToTickEnabled="True" TickFrequency="1"></Slider>
                 <Label x:Name="xLabel"></Label>
-                <Slider x:Name="yRadiusSlider" Maximum="200" Minimum="1" Value="50" ValueChanged="radiusSlider_ValueChanged" Margin="5"></Slider>
+                <Slider x:Name="yRadiusSlider" Maximum="200" Minimum="1" Value="50" ValueChanged="slider_ValueChanged" Margin="5" IsSnapToTickEnabled="True" TickFrequency="1"></Slider>
                 <Label x:Name="yLabel"></Label>
-                <Slider x:Name="zRadiusSlider" Maximum="200" Minimum="1" Value="40" ValueChanged="radiusSlider_ValueChanged" Margin="5"></Slider>
+                <Slider x:Name="zRadiusSlider" Maximum="200" Minimum="1" Value="40" ValueChanged="slider_ValueChanged" Margin="5" IsSnapToTickEnabled="True" TickFrequency="1"></Slider>
                 <Label x:Name="zLabel"></Label>
-                <Slider x:Name="mSlider" Maximum="50" Minimum="1" Value="1" ValueChanged="radiusSlider_ValueChanged" Margin="5"></Slider>
+                <Slider x:Name="mSlider" Maximum="50" Minimum="1" Value="1" ValueChanged="slider_ValueChanged" Margin="5" IsSnapToTickEnabled="True" TickFrequency="1"></Slider>
                 <Label x:Name="mLabel"></Label>
+                <Slider x:Name="adSlider" Minimum="0" Value="0" ValueChanged="slider_ValueChanged" Margin="5" IsSnapToTickEnabled="True" TickFrequency="1"></Slider>
+                <Label x:Name="adLabel"></Label>
             </StackPanel>
             <Image x:Name="i" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="700" Height="700" MouseLeftButtonDown="i_MouseLeftButtonDown" MouseLeftButtonUp="i_MouseLeftButtonUp" MouseRightButtonDown="i_MouseRightButtonDown" MouseRightButtonUp="i_MouseRightButtonUp"/>
         </DockPanel>

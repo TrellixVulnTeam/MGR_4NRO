@@ -12,6 +12,7 @@ using System.Windows.Input;
 using MathNet.Numerics.LinearAlgebra.Double;
 using System.Windows.Threading;
 using System.Collections.Generic;
+using Point = System.Windows.Point;
 
 namespace Elipsoida
 {
@@ -26,8 +27,8 @@ namespace Elipsoida
         DispatcherTimer timer;
         WriteableBitmap writeableBitmap;
 
-        System.Windows.Point moveStartPoint;
-        System.Windows.Point rotateStartPoint;
+        Point moveStartPoint;
+        Point rotateStartPoint;
         Matrix<double> M;
 
         Vector<double> OX = DenseVector.OfArray(new double[] { 1, 0, 0, 0 });
@@ -41,15 +42,23 @@ namespace Elipsoida
         {0,0,1,0},
         { 0,0,0,1}
             });
-        
+
         Matrix<double> moveMatrix;
-        
+
         Matrix<double> scaleMatrix = DenseMatrix.OfArray(new double[,] {
         {1,0,0,0},
         {0,1,0,0},
         {0,0,1,0},
         { 0,0,0,1}
             });
+
+        Dictionary<int, int> unitSizes = new Dictionary<int, int>();
+        int smallerDimension;
+
+        int selAdaptation;
+        int curAdaptation;
+        int framesToAdapt = 5;
+        int curFrames = 0;
 
         public MainWindow()
         {
@@ -91,19 +100,40 @@ namespace Elipsoida
         {0,0,0,-1}
             });
 
+            slider_ValueChanged(null, new RoutedPropertyChangedEventArgs<double>(1, 1));
+
+            smallerDimension = (writeableBitmap.PixelHeight < writeableBitmap.PixelWidth ? writeableBitmap.PixelHeight : writeableBitmap.PixelWidth);
+            List<int> tmpSizes = new List<int>();
+            int parts = 2;
+            while (true)
+            {
+                int size = smallerDimension / parts;
+                tmpSizes.Add(size);
+                parts *= 2;
+                if (size == 1) break;
+            }
+
+            adSlider.Maximum = tmpSizes.Count - 1;
+
+            for (int i = 0; i < tmpSizes.Count; ++i)
+            {
+                unitSizes.Add(i, tmpSizes[tmpSizes.Count - i - 1]);
+            }
+
             timer = new DispatcherTimer();
             timer.Interval = new TimeSpan(0, 0, 0, 0, 1000 / 60);
             timer.Tick += Timer_Tick;
             timer.Start();
-
-            radiusSlider_ValueChanged(null, new RoutedPropertyChangedEventArgs<double>(1, 1));
         }
 
         private void Timer_Tick(object sender, EventArgs e)
         {
             Title = (DateTime.Now - lastFrame).TotalMilliseconds.ToString();
             lastFrame = DateTime.Now;
-            // if (!smthChanged) return;
+
+            if (smthChanged) curAdaptation = selAdaptation;
+            int unitSize = unitSizes[curAdaptation];
+
             M = GetTransformations();
             var M_inv = M.Inverse();
 
@@ -124,66 +154,44 @@ namespace Elipsoida
             {
                 writeableBitmap.Lock();
 
-                unsafe
+                double obsX = writeableBitmap.PixelWidth / 2;
+                double obsY = writeableBitmap.PixelHeight / 2;
+                double obsZ = -500;
+
+                for (int i = 0; i + unitSize <= writeableBitmap.PixelHeight; i += unitSize)
                 {
-
-                    byte[] black = { 0, 0, 0, 0 }; // B G R
-
-
-                    double obsX = writeableBitmap.PixelWidth / 2;
-                    double obsY = writeableBitmap.PixelHeight / 2;
-                    double obsZ = -500;
-
-                    for (int i = 0; i < writeableBitmap.PixelHeight; ++i)
+                    int unitHeight = i + 2 * unitSize <= writeableBitmap.PixelHeight ? unitSize : writeableBitmap.PixelHeight - i;
+                    for (int j = 0; j + unitSize <= writeableBitmap.PixelWidth; j += unitSize)
                     {
-                        for (int j = 0; j < writeableBitmap.PixelWidth; ++j)
+                        int unitWidth = j + 2 * unitSize <= writeableBitmap.PixelWidth ? unitSize : writeableBitmap.PixelWidth - j;
+                        int x = j + unitWidth / 2;
+                        int y = i + unitHeight / 2;
+                        var z = FindZ(DM, x, y);
+                        if (z.Item1.HasValue)
                         {
-                            var z = FindZ(DM, j, i);
-                            if (z.Item1.HasValue)
+                            var toObsV = DenseVector.OfArray(new double[] { obsX - x, obsY - y, obsZ - z.Item1.Value }).Normalize(2);
+                            var I = toObsV.DotProduct(z.Item2);
+                            
+                            if (I < 0)
                             {
-                                var toObsV = DenseVector.OfArray(new double[] { obsX - j, obsY - i, obsZ - z.Item1.Value }).Normalize(2);
-
-                                var I = toObsV.DotProduct(z.Item2);
-                                if (I < 0)
-                                {
-                                    I = 0;
-                                }
-                                if (I > 1)
-                                {
-                                    I = 1;
-                                }
-
-                                I = Math.Pow(I, mSlider.Value);
-
-                                int intens = (int)(255.0 * I);
-
-                                int
-                                color_data = intens << 16; // R
-                                color_data |= intens << 8;   // G
-                                color_data |= 0 << 0;   // B
-
-                                IntPtr pBackBuffer = writeableBitmap.BackBuffer;
-
-                                pBackBuffer += i * writeableBitmap.BackBufferStride;
-                                pBackBuffer += j * 4;
-                                *((int*)pBackBuffer) = color_data;
-                                //    writeableBitmap.AddDirtyRect(new Int32Rect(j, i, 1, 1));
-                                wasYellow[i, j] = true;
+                                I = 0;
                             }
-                            else if (wasYellow[i, j])
+                            if (I > 1)
                             {
-                                int
-                                color_data = 0 << 16; // R
-                                color_data |= 0 << 8;   // G
-                                color_data |= 0 << 0;   // B
-                                IntPtr pBackBuffer = writeableBitmap.BackBuffer;
-
-                                pBackBuffer += i * writeableBitmap.BackBufferStride;
-                                pBackBuffer += j * 4;
-                                *((int*)pBackBuffer) = color_data;
-                                //  writeableBitmap.AddDirtyRect(new Int32Rect(j, i, 1, 1));
-                                wasYellow[i, j] = false;
+                                I = 1;
                             }
+                            I = Math.Pow(I, mSlider.Value);
+                            int intens = (int)(255.0 * I);
+
+                            int
+                            color_data = intens << 16; // R
+                            color_data |= intens << 8;   // G
+                            color_data |= 0 << 0;   // B
+                            FillRect(j, i, unitWidth, unitHeight, color_data);
+                        }
+                        else
+                        {
+                            FillRect(j, i, unitWidth, unitHeight, 0);
                         }
                     }
                 }
@@ -193,50 +201,34 @@ namespace Elipsoida
                 writeableBitmap.AddDirtyRect(new Int32Rect(0, 0, writeableBitmap.PixelWidth, writeableBitmap.PixelHeight));
                 writeableBitmap.Unlock();
                 smthChanged = false;
+                if (curAdaptation > 0 && curFrames == framesToAdapt)
+                {
+                    curAdaptation--;
+                    curFrames = 0;
+                }
+                if (curAdaptation > 0) curFrames++;
+            }
+        }
+
+        private void FillRect(int x, int y, int width, int height, int color)
+        {
+            unsafe
+            {
+                IntPtr pBackBuffer;
+                for (int i = y; i < y + height; ++i)
+                    for (int j = x; j < x + width; ++j)
+                    {
+                        pBackBuffer = writeableBitmap.BackBuffer;
+                        pBackBuffer += i * writeableBitmap.BackBufferStride;
+                        pBackBuffer += j * 4;
+                        *((int*)pBackBuffer) = color;
+                    }
             }
         }
 
         private Matrix<double> GetTransformations()
         {
             return moveMatrix * rotationMatrix * scaleMatrix;
-        }
-
-        private void DrawPixel(MouseEventArgs e)
-        {
-            int column = (int)e.GetPosition(i).X;
-            int row = (int)e.GetPosition(i).Y;
-
-            try
-            {
-                // Reserve the back buffer for updates.
-                writeableBitmap.Lock();
-
-                unsafe
-                {
-                    // Get a pointer to the back buffer.
-                    IntPtr pBackBuffer = writeableBitmap.BackBuffer;
-
-                    // Find the address of the pixel to draw.
-                    pBackBuffer += row * writeableBitmap.BackBufferStride;
-                    pBackBuffer += column * 4;
-
-                    // Compute the pixel's color.
-                    int color_data = 255 << 16; // R
-                    color_data |= 128 << 8;   // G
-                    color_data |= 255 << 0;   // B
-
-                    // Assign the color data to the pixel.
-                    *((int*)pBackBuffer) = color_data;
-                }
-
-                // Specify the area of the bitmap that changed.
-                writeableBitmap.AddDirtyRect(new Int32Rect(column, row, 1, 1));
-            }
-            finally
-            {
-                // Release the back buffer and make it available for display.
-                writeableBitmap.Unlock();
-            }
         }
 
         private void i_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -266,11 +258,11 @@ namespace Elipsoida
             double scale;
             if (e.Delta > 0)
             {
-                scale = 1.1*scaleMatrix[0,0];
+                scale = 1.1 * scaleMatrix[0, 0];
             }
             else
             {
-                scale = 1.1 * scaleMatrix[0, 0];
+                scale = scaleMatrix[0, 0] / 1.1;
             }
 
             scaleMatrix[0, 0] = scale;
@@ -343,7 +335,8 @@ namespace Elipsoida
             var curPos = e.GetPosition(i);
             Move(curPos);
         }
-        private void Move(System.Windows.Point curPos)
+
+        private void Move(Point curPos)
         {
             var xDiff = moveStartPoint.X - curPos.X;
             var yDiff = moveStartPoint.Y - curPos.Y;
@@ -360,7 +353,7 @@ namespace Elipsoida
 
                 if (xABS >= yABS && xABS >= zABS)
                 {
-                    moveMatrix[0,3] += xDiff;
+                    moveMatrix[0, 3] += xDiff;
                 }
                 else if (yABS >= zABS)
                 {
@@ -399,7 +392,8 @@ namespace Elipsoida
             var curPos = e.GetPosition(i);
             Rotate(curPos);
         }
-        private void Rotate(System.Windows.Point curPos)
+
+        private void Rotate(Point curPos)
         {
 
             //v1
@@ -439,7 +433,7 @@ namespace Elipsoida
             smthChanged = true;
         }
 
-        private void radiusSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             smthChanged = true;
 
@@ -451,6 +445,11 @@ namespace Elipsoida
                 zLabel.Content = "z = " + (int)zRadiusSlider.Value;
             if (mLabel != null)
                 mLabel.Content = "m = " + (int)mSlider.Value;
+            if (adLabel != null)
+            {
+                adLabel.Content = "adaptive level = " + (int)adSlider.Value;
+                selAdaptation = (int)adSlider.Value;
+            }
         }
     }
 }
