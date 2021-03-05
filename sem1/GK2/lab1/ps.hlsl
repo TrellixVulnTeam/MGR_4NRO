@@ -1,4 +1,6 @@
-float4 main( float4 pos : POSITION ) : SV_POSITION
+#include "VSOut.hlsli"
+
+float4 main(VSOut i) : SV_TARGET
 {
-	return pos;
+	return i.col;
 }

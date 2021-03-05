@@ -26,4 +26,16 @@ struct BufferDescription : D3D11_BUFFER_DESC
 	{
 		return { D3D11_BIND_VERTEX_BUFFER, byteWidth };
 	}
+
+	static BufferDescription IndexBufferDescription(size_t byteWidth)
+	{
+		return { D3D11_BIND_INDEX_BUFFER, byteWidth };
+	}
+	static BufferDescription ConstantBufferDescription(size_t byteWidth) {
+		BufferDescription desc{
+		D3D11_BIND_CONSTANT_BUFFER, byteWidth };
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		return desc;
+	}
 };

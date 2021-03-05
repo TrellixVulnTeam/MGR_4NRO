@@ -38,11 +38,20 @@ public:
 
 	mini::dx_ptr < ID3D11DepthStencilView> CreateDepthStencilView(SIZE size) const;
 
-	template<class T> mini::dx_ptr < ID3D11Buffer>
-		CreateVertexBuffer(const std::vector<T>& vertices) const {
+	template<class T> mini::dx_ptr < ID3D11Buffer> CreateVertexBuffer(const std::vector<T>& vertices) const {
 			auto desc = BufferDescription::VertexBufferDescription(vertices.size() * sizeof(T));
 			return CreateBuffer(reinterpret_cast<const void*>(vertices.data()), desc);
-		}
+	}
+	
+	template<class T> mini::dx_ptr < ID3D11Buffer> CreateIndexBuffer(const std::vector<T>& indices) const {
+			auto desc = BufferDescription::IndexBufferDescription(indices.size() * sizeof(T));
+			return CreateBuffer(reinterpret_cast<const void*>(indices.data()), desc);
+	}
+
+	template<typename T> mini::dx_ptr<ID3D11Buffer> CreateConstantBuffer() const {
+			BufferDescription desc = BufferDescription::ConstantBufferDescription(sizeof(T));
+			return CreateBuffer(nullptr, desc);
+	}
 private:
 
 	mini::dx_ptr<ID3D11Device> m_device;

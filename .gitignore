@@ -1,6 +1,7 @@
 *.ova
 *.suo
 *.user
+*.cso
 _ReSharper.*
 bin/
 obj/
