@@ -265,10 +265,14 @@ namespace Elipsoida
                 scale = scaleMatrix[0, 0] / 1.1;
             }
 
-            scaleMatrix[0, 0] = scale;
-            scaleMatrix[1, 1] = scale;
+            if (scale >= 0.3 && scale <= 3)
+            {
+                scaleMatrix[0, 0] = scale;
+                scaleMatrix[1, 1] = scale;
+                scaleMatrix[2, 2] = scale;
 
-            smthChanged = true;
+                smthChanged = true;
+            }
         }
 
         private (double?, Vector<double>) FindZ(Matrix<double> matrix, double x, double y)
@@ -316,6 +320,7 @@ namespace Elipsoida
                 if (s1 < s2) z = s1;
                 else z = s2;
             }
+
 
             Vector<double> nabla = DenseVector.OfArray(
                 new double[]{
