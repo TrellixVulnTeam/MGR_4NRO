@@ -31,10 +31,6 @@ namespace Elipsoida
         Point rotateStartPoint;
         Matrix<double> M;
 
-        Vector<double> OX = DenseVector.OfArray(new double[] { 1, 0, 0, 0 });
-        Vector<double> OY = DenseVector.OfArray(new double[] { 0, 1, 0, 0 });
-        Vector<double> OZ = DenseVector.OfArray(new double[] { 0, 0, 1, 0 });
-
         bool[,] wasYellow;
         Matrix<double> rotationMatrix = DenseMatrix.OfArray(new double[,] {
         {1,0,0,0},
@@ -351,43 +347,8 @@ namespace Elipsoida
 
             moveStartPoint = curPos;
 
-            {
-                var xABS = Math.Abs(OX[0]);
-                var yABS = Math.Abs(OY[0]);
-                var zABS = Math.Abs(OZ[0]);
-
-                if (xABS >= yABS && xABS >= zABS)
-                {
-                    moveMatrix[0, 3] += xDiff;
-                }
-                else if (yABS >= zABS)
-                {
-                    moveMatrix[1, 3] += xDiff;
-                }
-                else
-                {
-                    moveMatrix[2, 3] += xDiff;
-                }
-            }
-
-            {
-                var xABS = Math.Abs(OX[1]);
-                var yABS = Math.Abs(OY[1]);
-                var zABS = Math.Abs(OZ[1]);
-
-                if (xABS >= yABS && xABS >= zABS)
-                {
-                    moveMatrix[0, 3] += yDiff;
-                }
-                else if (yABS >= zABS)
-                {
-                    moveMatrix[1, 3] += yDiff;
-                }
-                else
-                {
-                    moveMatrix[2, 3] += yDiff;
-                }
-            }
+            moveMatrix[0, 3] += xDiff;
+            moveMatrix[1, 3] += yDiff;
 
             smthChanged = true;
         }
