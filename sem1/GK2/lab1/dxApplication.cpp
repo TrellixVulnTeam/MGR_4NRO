@@ -1,5 +1,6 @@
 #include "dxApplication.h"
 #include <DirectXMath.h>
+#include <windowsx.h>
 using namespace mini;
 using namespace std;
 using namespace DirectX;
@@ -37,35 +38,39 @@ DxApplication::DxApplication(HINSTANCE hInstance)
 	m_layout = m_device.CreateInputLayout(elements, vsBytes);
 
 	XMStoreFloat4x4(&m_modelMtx, XMMatrixIdentity());
-	XMStoreFloat4x4(&m_viewMtx, XMMatrixRotationX(XMConvertToRadians(-30)) * XMMatrixTranslation(2.0f, 0.0f, 10.0f));
+	SetViewMtx();
 	XMStoreFloat4x4(&m_projMtx, XMMatrixPerspectiveFovLH(XMConvertToRadians(45), static_cast<float>(wndSize.cx) / wndSize.cy, 0.1f, 100.0f));
 	m_cbMVP = m_device.CreateConstantBuffer<XMFLOAT4X4>();
 
-	XMStoreFloat4x4(&m_modelMtx2, XMMatrixIdentity());
-	XMStoreFloat4x4(&m_viewMtx2, XMMatrixRotationX(XMConvertToRadians(-30)) * XMMatrixTranslation(-2.0f, 0.0f, 10.0f));
-	XMStoreFloat4x4(&m_projMtx2, XMMatrixPerspectiveFovLH(XMConvertToRadians(45), static_cast<float>(wndSize.cx) / wndSize.cy, 0.1f, 100.0f));
+	XMStoreFloat4x4(&m_modelMtx2, XMMatrixIdentity() * XMMatrixTranslation(-3.0f, 0.0f, 0.0f));
 	//m_cbMVP2 = m_device.CreateConstantBuffer<XMFLOAT4X4>();
 }
+
+void DxApplication::SetViewMtx()
+{
+	XMStoreFloat4x4(&m_viewMtx, XMMatrixRotationX(XMConvertToRadians(v_angle)) * XMMatrixTranslation(0.0f, 0.0f, v_dist));
+}
+
 std::vector<XMFLOAT2> DxApplication::CreateTriangleVertices()
 {
-	std::vector<XMFLOAT2> vec =  std::vector<XMFLOAT2>();
-	
+	std::vector<XMFLOAT2> vec = std::vector<XMFLOAT2>();
+
 	XMFLOAT2 v1 = XMFLOAT2();
 	v1.x = -0.8f;
 	v1.y = -0.8f;
-	
+
 	XMFLOAT2 v2 = XMFLOAT2();
 	v2.x = -0.8f;
 	v2.y = 0.8f;
-	
+
 	XMFLOAT2 v3 = XMFLOAT2();
 	v3.x = 0.8f;
 	v3.y = -0.8f;
-	
+
 	vec.push_back(v1);
 	vec.push_back(v2);
 	vec.push_back(v3);
-	
+
 	return vec;
 }
 int DxApplication::MainLoop() {
@@ -86,15 +91,66 @@ int DxApplication::MainLoop() {
 	return (int)msg.wParam;
 
 }
+
+bool DxApplication::ProcessMessage(mini::WindowMessage& msg)
+{
+	int ySize = m_window.getClientSize().cy;
+	bool setViewMtx = false;
+	switch (msg.message)
+	{
+	case WM_LBUTTONDOWN:
+		l_yPos = GET_Y_LPARAM(msg.lParam);
+		break;
+	case WM_RBUTTONDOWN:
+		r_yPos = GET_Y_LPARAM(msg.lParam);
+		break;
+	case WM_MOUSEMOVE:
+		if ((msg.wParam & MK_LBUTTON) != 0)
+		{
+			int y = GET_Y_LPARAM(msg.lParam);
+			float change = (float)(y - l_yPos) / ySize;
+			v_angle += -change * 50.0f;
+			if (v_angle > 90.0f) v_angle = 90.0f;
+			if (v_angle < -90.0f) v_angle = -90.0f;
+			setViewMtx = true;
+			l_yPos = y;
+		}
+		if ((msg.wParam & MK_RBUTTON) != 0)
+		{
+			int y = GET_Y_LPARAM(msg.lParam);
+			float change = (float)(y - r_yPos) / ySize;
+			v_dist += change * 10.0f;
+			if (v_dist > 50.0f) v_dist = 50.0f;
+			if (v_dist < 0.0f) v_dist = 0.0f;
+			setViewMtx = true;
+			r_yPos = y;
+		}
+		if (setViewMtx)
+			SetViewMtx();
+		break;
+	default:
+		return false;
+	}
+
+	return false;
+
+}
 void DxApplication::Update() {
-	XMStoreFloat4x4(&m_modelMtx, XMLoadFloat4x4(&m_modelMtx) * XMMatrixRotationY(0.001f));
+	LARGE_INTEGER ticks;
+	QueryPerformanceCounter(&ticks);
+	LARGE_INTEGER frequency;
+	QueryPerformanceFrequency(&frequency);
+	float seconds = ((float)ticks.QuadPart) / frequency.QuadPart;
+	//seconds = fmod(seconds, 8.0f);
+
+	XMStoreFloat4x4(&m_modelMtx, XMMatrixIdentity() * XMMatrixRotationY(XMConvertToRadians(seconds * 45)));
 }
 
-void DxApplication::DrawWithMatrices(XMFLOAT4X4* modelMtx, XMFLOAT4X4* viewMtx, XMFLOAT4X4* projMtx)
+void DxApplication::Draw(XMFLOAT4X4* modelMtx)
 {
 	D3D11_MAPPED_SUBRESOURCE res;
 	m_device.context()->Map(m_cbMVP.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
-	XMMATRIX mvp = XMLoadFloat4x4(modelMtx) * XMLoadFloat4x4(viewMtx) * XMLoadFloat4x4(projMtx);
+	XMMATRIX mvp = XMLoadFloat4x4(modelMtx) * XMLoadFloat4x4(&m_viewMtx) * XMLoadFloat4x4(&m_projMtx);
 	memcpy(res.pData, &mvp, sizeof(XMMATRIX));
 	m_device.context()->Unmap(m_cbMVP.get(), 0);
 	ID3D11Buffer* cbs[] = { m_cbMVP.get() };
@@ -122,49 +178,49 @@ void DxApplication::Render() {
 	UINT strides[] = { sizeof(VertexPositionColor) };
 	UINT offsets[] = { 0 };
 	m_device.context()->IASetVertexBuffers(0, 1, vbs, strides, offsets);
-	m_device.context()->IASetIndexBuffer(m_indexBuffer.get(),DXGI_FORMAT_R16_UINT, 0);
+	m_device.context()->IASetIndexBuffer(m_indexBuffer.get(), DXGI_FORMAT_R16_UINT, 0);
 
-	DrawWithMatrices(&m_modelMtx, &m_viewMtx, &m_projMtx);
-	DrawWithMatrices(&m_modelMtx2, &m_viewMtx2, &m_projMtx2);
+	Draw(&m_modelMtx);
+	Draw(&m_modelMtx2);
 }
 
 vector < DxApplication::VertexPositionColor>
 DxApplication::CreateCubeVertices() {
 	return {
-	//Front Face
-	{ { -0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 0.0f } },
-	{ { +0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 0.0f } },
-	{ { +0.5f, +0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
-	{ { -0.5f, +0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
-	//Back Face
-	{ { -0.5f, -0.5f, +0.5f }, { 1.0f, 1.0f, 1.0f } },
-	{ { +0.5f, -0.5f, +0.5f }, { 1.0f, 1.0f, 1.0f } },
-	{ { +0.5f, +0.5f, +0.5f }, { 1.0f, 0.0f, 1.0f } },
-	{ { -0.5f, +0.5f, +0.5f }, { 1.0f, 0.0f, 1.0f } },
+		//Front Face
+		{ { -0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 0.0f } },
+		{ { +0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 0.0f } },
+		{ { +0.5f, +0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
+		{ { -0.5f, +0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
+		//Back Face
+		{ { -0.5f, -0.5f, +0.5f }, { 1.0f, 1.0f, 1.0f } },
+		{ { +0.5f, -0.5f, +0.5f }, { 1.0f, 1.0f, 1.0f } },
+		{ { +0.5f, +0.5f, +0.5f }, { 1.0f, 0.0f, 1.0f } },
+		{ { -0.5f, +0.5f, +0.5f }, { 1.0f, 0.0f, 1.0f } },
 
-	//Top Face
-	{ { -0.5f, +0.5f, -0.5f }, { 0.0f, 1.0f, 1.0f } },
-	{ { -0.5f, +0.5f, +0.5f }, { 0.0f, 1.0f, 1.0f } },
-	{ { +0.5f, +0.5f, +0.5f }, { 0.0f, 1.0f, 0.0f } },
-	{ { +0.5f, +0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f } },
-	//Bottom Face
-	{ { -0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f } },
-	{ { -0.5f, -0.5f, +0.5f }, { 1.0f, 1.0f, 1.0f } },
-	{ { +0.5f, -0.5f, +0.5f }, { 1.0f, 1.0f, 0.0f } },
-	{ { +0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 0.0f } },
+		//Top Face
+		{ { -0.5f, +0.5f, -0.5f }, { 0.0f, 1.0f, 1.0f } },
+		{ { -0.5f, +0.5f, +0.5f }, { 0.0f, 1.0f, 1.0f } },
+		{ { +0.5f, +0.5f, +0.5f }, { 0.0f, 1.0f, 0.0f } },
+		{ { +0.5f, +0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f } },
+		//Bottom Face
+		{ { -0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f } },
+		{ { -0.5f, -0.5f, +0.5f }, { 1.0f, 1.0f, 1.0f } },
+		{ { +0.5f, -0.5f, +0.5f }, { 1.0f, 1.0f, 0.0f } },
+		{ { +0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 0.0f } },
 
-	//Left Face
-	{ { -0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f } },
-	{ { -0.5f, -0.5f, +0.5f }, { 0.0f, 0.0f, 1.0f } },
-	{ { -0.5f, +0.5f, +0.5f }, { 0.0f, 0.0f, 0.0f } },
-	{ { -0.5f, +0.5f, -0.5f }, { 0.0f, 0.0f, 0.0f } },
-	//Right Face
-	{ { +0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f } },
-	{ { +0.5f, -0.5f, +0.5f }, { 0.0f, 0.0f, 1.0f } },
-	{ { +0.5f, +0.5f, +0.5f }, { 1.0f, 0.0f, 1.0f } },
-	{ { +0.5f, +0.5f, -0.5f }, { 1.0f, 0.0f, 1.0f } }
+		//Left Face
+		{ { -0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f } },
+		{ { -0.5f, -0.5f, +0.5f }, { 0.0f, 0.0f, 1.0f } },
+		{ { -0.5f, +0.5f, +0.5f }, { 0.0f, 0.0f, 0.0f } },
+		{ { -0.5f, +0.5f, -0.5f }, { 0.0f, 0.0f, 0.0f } },
+		//Right Face
+		{ { +0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f } },
+		{ { +0.5f, -0.5f, +0.5f }, { 0.0f, 0.0f, 1.0f } },
+		{ { +0.5f, +0.5f, +0.5f }, { 1.0f, 0.0f, 1.0f } },
+		{ { +0.5f, +0.5f, -0.5f }, { 1.0f, 0.0f, 1.0f } }
 	};
-	
+
 }
 vector<unsigned short> DxApplication::CreateCubeIndices() {
 	return {
