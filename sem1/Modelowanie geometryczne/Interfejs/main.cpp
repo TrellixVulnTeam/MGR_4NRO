@@ -5,6 +5,34 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "processing.h"
 #include "Shader.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
+bool firstCall = true;
+
+
+void RenderGui(Processing& proc)
+{
+	if (firstCall)
+	{
+		ImGui::SetNextWindowSize(ImVec2(200, 400), 0);
+		firstCall = false;
+	}
+	ImGui::Begin("Menu");
+	
+
+	ImGui::SliderInt("n", &proc.n_new, 5, 50);
+	ImGui::SliderInt("m", &proc.m_new, 5, 50);
+	if (proc.CreateTorus())
+	{
+		glBufferData(GL_ARRAY_BUFFER, proc.vertices_s * sizeof(float), proc.vertices, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, proc.indices_s * sizeof(unsigned int), proc.indices, GL_STATIC_DRAW);
+	}
+
+	ImGui::End();
+}
+
 int main()
 {
 	glfwInit();
@@ -56,6 +84,8 @@ int main()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
+
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	float radians = 1.0f;
 
@@ -76,8 +106,23 @@ int main()
 	persp[2][3] = -((_far * _near * 2) / (_far - _near));
 	persp[3][3] = 0;
 	persp[3][2] = 1;
+
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	// Setup Platform/Renderer bindings
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 130");
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+
 	while (!glfwWindowShouldClose(window))
 	{
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
 		proc.processInput(window);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -95,6 +140,9 @@ int main()
 		glBindVertexArray(VAO);
 		glDrawElements(GL_LINES, proc.indices_s, GL_UNSIGNED_INT, 0);
 
+		RenderGui(proc);
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

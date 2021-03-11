@@ -5,6 +5,8 @@ Processing::Processing()
 {
 	vertices = new float[1];
 	indices = new unsigned int[1];
+	m_new = 8;
+	n_new = 8;
 
 	CreateTorus();
 }
@@ -27,13 +29,18 @@ void Processing::processInput(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 }
 
-void Processing::CreateTorus()
+bool Processing::CreateTorus()
 {
+	if (m_new == m_old && n_new == n_old) return false;
+
+	m_old = m_new;
+	n_old = n_new;
+	int n = n_new;
+	int m = m_new;
+
 	float r = 0.2f;
 	float R = 1.0f;
 
-	int n = 8;
-	int m = 8;
 	delete[] vertices;
 	delete[] indices;
 	vertices_s = n * m * 6;
@@ -79,6 +86,8 @@ void Processing::CreateTorus()
 				indices[idx2 + 3] = idx % n;
 		}
 	}
+
+	return true;
 
 
 }
