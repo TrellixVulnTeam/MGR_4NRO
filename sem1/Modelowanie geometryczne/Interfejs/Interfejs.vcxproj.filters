@@ -81,4 +81,8 @@
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\fragShader.fs" />
+    <None Include="shaders\vertexShader.vs" />
+  </ItemGroup>
 </Project>

@@ -7,6 +7,8 @@ Processing::Processing()
 	indices = new unsigned int[1];
 	m_new = 8;
 	n_new = 8;
+	r_new = 0.2f;
+	R_new = 1.0f;
 
 	CreateTorus();
 }
@@ -31,15 +33,18 @@ void Processing::processInput(GLFWwindow* window)
 
 bool Processing::CreateTorus()
 {
-	if (m_new == m_old && n_new == n_old) return false;
+	if (m_new == m_old && n_new == n_old &&
+		r_new == r_old && R_new == R_old) return false;
 
 	m_old = m_new;
 	n_old = n_new;
+	r_old = r_new;
+	R_old = R_new;
+
 	int n = n_new;
 	int m = m_new;
-
-	float r = 0.2f;
-	float R = 1.0f;
+	float r = r_new;
+	float R = R_new;
 
 	delete[] vertices;
 	delete[] indices;

@@ -10,7 +10,42 @@
 #include "imgui/imgui_impl_opengl3.h"
 
 bool firstCall = true;
+glm::vec2 mousePosOld;
+double scale = 1.0;
 
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	glm::vec2 mousePos = { xpos,ypos };
+	//glfwSetWindowTitle(window, (std::to_string(xpos) + std::string(" ") + std::to_string(ypos)).c_str());
+/*	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	{
+		glm::vec2 diff = mousePos - mousePosOld;
+		float alpha = 3.14f * (float)diff.x / current_width / 2;
+		camera->front = ArbitraryRotate(camera->front, -alpha, camera->up);
+
+		auto right = glm::normalize(cross(camera->front, camera->up));
+		alpha = 3.14f * (float)diff.y / current_height / 2;
+		camera->front = ArbitraryRotate(camera->front, -alpha, right);
+		camera->up = ArbitraryRotate(camera->up, -alpha, right);
+
+	}*/
+	mousePosOld = mousePos;
+	//TODO: write mouse camera control
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	if (yoffset >= 1)
+	{
+		if (scale <= 3)
+			scale *= 1.1;
+	}
+	if (yoffset <= -1)
+	{
+		if (scale >= 0.3)
+			scale /= 1.1;
+	}
+}
 
 void RenderGui(Processing& proc)
 {
@@ -24,6 +59,9 @@ void RenderGui(Processing& proc)
 
 	ImGui::SliderInt("n", &proc.n_new, 5, 50);
 	ImGui::SliderInt("m", &proc.m_new, 5, 50);
+	ImGui::SliderFloat("r", &proc.r_new, 0.1f, 5.0f);
+	ImGui::SliderFloat("R", &proc.R_new, 0.3f, 10.0f);
+
 	if (proc.CreateTorus())
 	{
 		glBufferData(GL_ARRAY_BUFFER, proc.vertices_s * sizeof(float), proc.vertices, GL_STATIC_DRAW);
@@ -60,6 +98,9 @@ int main()
 
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, proc.framebuffer_size_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+
 	Shader ourShader("shaders/vertexShader.vs", "shaders/fragShader.fs");
 
 	unsigned int VBO;
@@ -91,7 +132,6 @@ int main()
 
 	glm::mat4 projection = glm::mat4(0.0f);
 
-	glm::mat4 transf = glm::mat4(1.0f);
 	glm::mat4 view = glm::mat4(1.0f);
 	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 	glm::mat4 persp = glm::mat4(1.0f);
@@ -131,10 +171,13 @@ int main()
 		glm::mat4 trans = glm::mat4(1.0f);
 
 		radians += 0.010f;
-		trans = glm::rotate(trans, glm::radians(radians), glm::vec3(0.0, 1.0, 0.0));
-		transf = persp * view * trans;
-		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transf));
+		trans = glm::rotate(glm::scale(trans, glm::vec3(scale, scale, scale)), glm::radians(radians), glm::vec3(0.0, 1.0, 0.0));
+		unsigned int perspLoc = glGetUniformLocation(ourShader.ID, "persp");
+		unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
+		unsigned int transLoc = glGetUniformLocation(ourShader.ID, "transform");
+		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
 		ourShader.use();
 		glBindVertexArray(VAO);

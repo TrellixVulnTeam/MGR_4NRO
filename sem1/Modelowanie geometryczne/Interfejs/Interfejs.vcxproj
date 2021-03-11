@@ -173,6 +173,10 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="processing.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\fragShader.fs" />
+    <None Include="shaders\vertexShader.vs" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -20,6 +20,8 @@ public:
     unsigned int* indices;
     int indices_s;
 	int m_new, n_new;
+	float r_new, R_new;
 private:
 	int m_old = -1, n_old = -1;
+	float r_old = -1.0f, R_old = -1.0f;
 };
