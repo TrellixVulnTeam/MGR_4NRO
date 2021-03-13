@@ -8,27 +8,56 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include <glm/gtx/transform.hpp>
+#define DEFAULT_WIDTH 1280
+#define DEFAULT_HEIGHT 720
 
+int current_width = DEFAULT_WIDTH;
+int current_height = DEFAULT_HEIGHT;
 bool firstCall = true;
 glm::vec2 mousePosOld;
-double scale = 1.0;
+float scale = 1.0;
+double xMove = 0.0;
+double yMove = 0.0;
+glm::mat4 myRotationMatrix = glm::mat4(1.0f);
+
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	glm::vec2 mousePos = { xpos,ypos };
 	//glfwSetWindowTitle(window, (std::to_string(xpos) + std::string(" ") + std::to_string(ypos)).c_str());
-/*	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	glm::vec2 diff = mousePos - mousePosOld;
+	double xDiff = (double)diff.x / current_width;
+	double yDiff = (double)diff.y / current_height;
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 	{
+		xMove += 8 * xDiff;
+		yMove -= 8 * yDiff;
+	}
+
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	{
+		glm::mat4 rotX = glm::mat4(1.0f);
+		glm::mat4 rotY = glm::mat4(1.0f);
+
+		double xAngle = 2*yDiff;
+		double yAngle = 2*xDiff;
+
+		rotX[1][1] = cos(xAngle);
+		rotX[2][1] = -sin(xAngle);
+		rotX[1][2] = sin(xAngle);
+		rotX[2][2] = cos(xAngle);
+		
+		rotY[0][0] = cos(yAngle);
+		rotY[2][0] = sin(yAngle);
+		rotY[0][2] = -sin(yAngle);
+		rotY[2][2] = cos(yAngle);
+
+
+		myRotationMatrix = rotX * myRotationMatrix;
+		myRotationMatrix = rotY * myRotationMatrix;
 		glm::vec2 diff = mousePos - mousePosOld;
-		float alpha = 3.14f * (float)diff.x / current_width / 2;
-		camera->front = ArbitraryRotate(camera->front, -alpha, camera->up);
-
-		auto right = glm::normalize(cross(camera->front, camera->up));
-		alpha = 3.14f * (float)diff.y / current_height / 2;
-		camera->front = ArbitraryRotate(camera->front, -alpha, right);
-		camera->up = ArbitraryRotate(camera->up, -alpha, right);
-
-	}*/
+	}
 	mousePosOld = mousePos;
 	//TODO: write mouse camera control
 }
@@ -47,6 +76,12 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	}
 }
 
+void window_size_callback(GLFWwindow* window, int width, int height) {
+	current_width = width;
+	current_height = height;
+}
+
+
 void RenderGui(Processing& proc)
 {
 	if (firstCall)
@@ -55,7 +90,7 @@ void RenderGui(Processing& proc)
 		firstCall = false;
 	}
 	ImGui::Begin("Menu");
-	
+
 
 	ImGui::SliderInt("n", &proc.n_new, 5, 50);
 	ImGui::SliderInt("m", &proc.m_new, 5, 50);
@@ -79,7 +114,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -96,9 +131,10 @@ int main()
 
 	Processing proc = Processing();
 
-	glViewport(0, 0, 800, 600);
+	glViewport(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 	glfwSetFramebufferSizeCallback(window, proc.framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetWindowSizeCallback(window, window_size_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 
 	Shader ourShader("shaders/vertexShader.vs", "shaders/fragShader.fs");
@@ -168,10 +204,21 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glm::mat4 trans = glm::mat4(1.0f);
-
 		radians += 0.010f;
-		trans = glm::rotate(glm::scale(trans, glm::vec3(scale, scale, scale)), glm::radians(radians), glm::vec3(0.0, 1.0, 0.0));
+		glm::mat4 myScaleMatrix = glm::mat4(1.0f);
+		myScaleMatrix[0][0] = scale;
+		myScaleMatrix[1][1] = scale;
+		myScaleMatrix[2][2] = scale;
+
+		glm::mat4 myTranslationMatrix = glm::mat4(1.0f);
+		myTranslationMatrix[3][0] = xMove;
+		myTranslationMatrix[3][1] = yMove;
+
+		glm::mat4 trans = myTranslationMatrix
+			* myRotationMatrix
+			* myScaleMatrix;
+
+
 		unsigned int perspLoc = glGetUniformLocation(ourShader.ID, "persp");
 		unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
 		unsigned int transLoc = glGetUniformLocation(ourShader.ID, "transform");
