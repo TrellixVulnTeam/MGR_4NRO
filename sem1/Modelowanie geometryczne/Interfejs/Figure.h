@@ -21,6 +21,7 @@ public:
 	void Scale(float change);
 	void Rotate(glm::mat4 rotate);
 	void RotateAround(glm::vec3 point, double xAngle, double yAngle);
+	void ScaleAround(glm::vec3 point, float change);
 	void Move(float x, float y, float z);
 	void MoveTo(float x, float y, float z);
 	glm::vec3 GetPos();

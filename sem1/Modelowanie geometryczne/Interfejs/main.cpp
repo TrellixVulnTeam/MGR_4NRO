@@ -14,6 +14,7 @@
 #include "Point.h"
 #include <vector>
 #include "MiddlePoint.h"
+#include "Cursor.h"
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
 
@@ -24,7 +25,7 @@ bool rotate = false;
 glm::vec2 mousePosOld;
 std::vector<Figure*> figures;
 MiddlePoint* mp;
-
+Cursor* cur;
 
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -69,12 +70,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 			{
 				if (rotate)
 				{
-					figures[i]->RotateAround(mp->GetPos(),xAngle, yAngle);
+					figures[i]->RotateAround(cur->GetPos(), xAngle, yAngle);
 				}
 				else
 				{
-					figures[i]->Rotate(rotX);
-					figures[i]->Rotate(rotY);
+					figures[i]->RotateAround(mp->GetPos(),xAngle, yAngle);
 				}
 			}
 		}
@@ -91,11 +91,11 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 		{
 			if (yoffset >= 1)
 			{
-				figures[i]->Scale(1.1f);
+				figures[i]->ScaleAround(cur->GetPos(),1.1f);
 			}
 			if (yoffset <= -1)
 			{
-				figures[i]->Scale(0.9f);
+				figures[i]->ScaleAround(cur->GetPos(), 0.9f);
 			}
 		}
 	}
@@ -118,19 +118,24 @@ void RenderGui(Shader& shader)
 	int to_delete = -1;
 
 	ImGui::Begin("Menu");
-	ImGui::Checkbox("Rotate arount yellow point", &rotate);
+	ImGui::Checkbox("Rotate around cursor", &rotate);
+	cur->GetGui(-1);
 	if (ImGui::TreeNode("Adding"))
 	{
 		if (ImGui::Button("New Torus"))
 		{
 			Figure* f= new Torus(shader);
 			f->Initialize();
+			auto pos = cur->GetPos();
+			f->MoveTo(pos.x, pos.y, pos.z);
 			figures.push_back(f);
 		}
 		if (ImGui::Button("New Point"))
 		{
 			Figure* f= new Point(shader);
 			f->Initialize();
+			auto pos = cur->GetPos();
+			f->MoveTo(pos.x, pos.y, pos.z);
 			figures.push_back(f);
 		}
 		ImGui::TreePop();
@@ -202,6 +207,8 @@ int main()
 	figures[1]->Initialize();
 	mp = new MiddlePoint(shader);
 	mp->Initialize();
+	cur = new Cursor(shader);
+	cur->Initialize();
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -258,6 +265,7 @@ int main()
 		}
 
 		mp->Draw(transLoc);
+		cur->Draw(transLoc);
 
 		RenderGui(shader);
 		ImGui::Render();

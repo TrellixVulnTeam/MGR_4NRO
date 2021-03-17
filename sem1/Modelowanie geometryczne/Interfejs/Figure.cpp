@@ -88,6 +88,16 @@ void Figure::RotateAround(glm::vec3 point, double xAngle, double yAngle)
 	Rotate(rotY);
 }
 
+void Figure::ScaleAround(glm::vec3 point, float change)
+{
+	glm::mat4 scale = glm::mat4(change);
+	scale[3][3] = 1.0f;
+	glm::vec4 pos = scale * glm::vec4(GetPos() - point, 1.0f) + glm::vec4(point, 1.0f);
+	MoveTo(pos.x, pos.y, pos.z);
+
+	Scale(change);
+}
+
 void Figure::Move(float x, float y, float z)
 {
 	translation[3][0] += x;
