@@ -22,6 +22,43 @@ glm::vec2 mousePosOld;
 std::vector<Figure*> figures;
 
 
+void RebindFigures()
+{
+	/*
+	std::vector<float> vertices;
+	std::vector<unsigned int> indices;
+	for (int i = 0; i < figures.size(); ++i)
+	{
+		figures[i]->from = indices.size();
+		int v_from = vertices.size() / 6;
+		std::vector<float> vertices_t = figures[i]->GetVertices();
+		std::vector<unsigned int> indices_t = figures[i]->GetIndices();
+		vertices.insert(vertices.end(), vertices_t.begin(), vertices_t.end());
+		indices.insert(indices.end(), indices_t.begin(), indices_t.end());
+		int i_size = indices_t.size();
+		int v_size = vertices.size();
+		for (int j = figures[i]->from; j < figures[i]->from + i_size; ++j)
+			indices[j] += v_from;
+	}
+
+	int n = vertices.size();
+	int m = indices.size();
+	glBufferData(
+		GL_ARRAY_BUFFER,
+		vertices.size() * sizeof(float),
+		&vertices[0],
+		GL_STATIC_DRAW
+	);
+
+	glBufferData(
+		GL_ELEMENT_ARRAY_BUFFER,
+		indices.size() * sizeof(unsigned int),
+		&indices[0],
+		GL_STATIC_DRAW
+	);*/
+}
+
+
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	glm::vec2 mousePos = { xpos,ypos };
@@ -86,7 +123,7 @@ void window_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 
-void RenderGui()
+void RenderGui(Processing& proc)
 {
 	if (firstCall)
 	{
@@ -95,6 +132,7 @@ void RenderGui()
 	}
 
 	int to_delete = -1;
+	bool create = false;
 
 	ImGui::Begin("Menu");
 	if (ImGui::TreeNode("Figures"))
@@ -115,6 +153,16 @@ void RenderGui()
 		delete figures[to_delete];
 		figures.erase(figures.begin() + to_delete);
 	}
+
+	if (create)
+	{
+		RebindFigures();
+	}
+	/*
+	if (proc.CreateTorus())
+	{
+		
+	}*/
 
 	ImGui::End();
 }
@@ -154,10 +202,19 @@ int main()
 
 
 
-	figures.push_back(new Torus(ourShader));
+	figures.push_back(new Torus());
 	figures[0]->Initialize();
-	figures.push_back(new Torus(ourShader));
+	figures.push_back(new Torus());
 	figures[1]->Initialize();
+	RebindFigures();
+
+	// position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	// color attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
 
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -207,12 +264,17 @@ int main()
 		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
+		ourShader.use();
+		//glBindVertexArray(VAO);
+
 		for (int i = 0; i < figures.size(); ++i)
 		{
 			figures[i]->Draw(transLoc);
+			//glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(figures[i]->GetModel()));
+			//glDrawElements(GL_LINES, figures[i]->indices.size(), GL_UNSIGNED_INT, (GLvoid*)(figures[i]->from * sizeof(unsigned int)));
 		}
 
-		RenderGui();
+		RenderGui(proc);
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
