@@ -66,6 +66,28 @@ void Figure::Rotate(glm::mat4 rotate)
 	RecalcModel();
 }
 
+void Figure::RotateAround(glm::vec3 point, double xAngle, double yAngle)
+{
+	glm::mat4 rotX = glm::mat4(1.0f);
+	glm::mat4 rotY = glm::mat4(1.0f);
+
+	rotX[1][1] = cos(xAngle);
+	rotX[2][1] = -sin(xAngle);
+	rotX[1][2] = sin(xAngle);
+	rotX[2][2] = cos(xAngle);
+
+	rotY[0][0] = cos(yAngle);
+	rotY[2][0] = sin(yAngle);
+	rotY[0][2] = -sin(yAngle);
+	rotY[2][2] = cos(yAngle);
+
+	glm::vec4 pos = rotY * rotX * glm::vec4(GetPos() - point, 1.0f) + glm::vec4(point, 1.0f);
+	MoveTo(pos.x, pos.y, pos.z);
+
+	Rotate(rotX);
+	Rotate(rotY);
+}
+
 void Figure::Move(float x, float y, float z)
 {
 	translation[3][0] += x;

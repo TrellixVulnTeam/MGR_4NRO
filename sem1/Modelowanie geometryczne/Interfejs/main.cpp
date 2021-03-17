@@ -20,8 +20,10 @@
 int current_width = DEFAULT_WIDTH;
 int current_height = DEFAULT_HEIGHT;
 bool firstCall = true;
+bool rotate = false;
 glm::vec2 mousePosOld;
 std::vector<Figure*> figures;
+MiddlePoint* mp;
 
 
 
@@ -65,8 +67,15 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 		{
 			if (figures[i]->GetSelected())
 			{
-				figures[i]->Rotate(rotX);
-				figures[i]->Rotate(rotY);
+				if (rotate)
+				{
+					figures[i]->RotateAround(mp->GetPos(),xAngle, yAngle);
+				}
+				else
+				{
+					figures[i]->Rotate(rotX);
+					figures[i]->Rotate(rotY);
+				}
 			}
 		}
 	}
@@ -109,6 +118,7 @@ void RenderGui(Shader& shader)
 	int to_delete = -1;
 
 	ImGui::Begin("Menu");
+	ImGui::Checkbox("Rotate arount yellow point", &rotate);
 	if (ImGui::TreeNode("Adding"))
 	{
 		if (ImGui::Button("New Torus"))
@@ -190,7 +200,7 @@ int main()
 	figures[0]->Initialize();
 	figures.push_back(new Torus(shader));
 	figures[1]->Initialize();
-	MiddlePoint* mp = new MiddlePoint(shader);
+	mp = new MiddlePoint(shader);
 	mp->Initialize();
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -258,6 +268,8 @@ int main()
 	}
 
 	glfwTerminate();
+	for (int i = 0; i < figures.size(); ++i) delete figures[i];
+	delete mp;
 	return 0;
 }
 
