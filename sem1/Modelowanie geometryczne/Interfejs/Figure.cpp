@@ -7,6 +7,16 @@ Figure::Figure(Shader _shader):shader(_shader)
 {
 }
 
+bool Figure::Create()
+{
+	if (selected_old != selected)
+	{
+		selected_old = selected;
+		return true;
+	}
+	return false;
+}
+
 void Figure::RecalcModel()
 {
 	model = translation * rotation * scale;
@@ -14,6 +24,7 @@ void Figure::RecalcModel()
 
 bool Figure::GetGui(int i)
 {
+	ImGui::Checkbox("Selected", &selected);
 	if (ImGui::Button("Remove"))
 	{
 		return true;
@@ -63,14 +74,25 @@ void Figure::Move(float x, float y, float z)
 	RecalcModel();
 }
 
+void Figure::MoveTo(float x, float y, float z)
+{
+	translation[3][0] = x;
+	translation[3][1] = y;
+	translation[3][2] = z;
+	RecalcModel();
+}
+
+glm::vec3 Figure::GetPos()
+{
+	return glm::vec3(translation[3][0],
+		translation[3][1],
+		translation[3][2]);
+}
 void Figure::Draw(int transLoc)
 {
 	glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(GetModel()));
 	shader.use();
 	glBindVertexArray(VAO);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
 }
 
 void Figure::Initialize()

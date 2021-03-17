@@ -5,6 +5,7 @@ class Torus : public Figure
 public:
 	Torus(Shader _shader);
 	bool virtual GetGui(int i) override;
+	virtual void Draw(int transLoc) override;
 private:
 	bool virtual Create() override;
 	int m_new = 8, n_new = 8;

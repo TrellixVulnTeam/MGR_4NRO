@@ -4,31 +4,38 @@
 
 Torus::Torus(Shader _shader) : Figure(_shader)
 {
+	name = std::string("Torus");
 }
 
 bool Torus::GetGui(int i)
 {
 	bool b = false;
-	if (ImGui::TreeNode((std::to_string(i) + std::string(" - ") + std::string("Torus")).c_str()))
+
+	b = Figure::GetGui(i);
+	if (ImGui::TreeNode("Size"))
 	{
-		b = Figure::GetGui(i);
-		if (ImGui::TreeNode("Size"))
-		{
-			ImGui::SliderInt("n", &n_new, 5, 50);
-			ImGui::SliderInt("m", &m_new, 5, 50);
-			ImGui::SliderFloat("r", &r_new, 0.1f, 5.0f);
-			ImGui::SliderFloat("R", &R_new, 0.3f, 10.0f);
-			ImGui::TreePop();
-		}
+		ImGui::SliderInt("n", &n_new, 5, 50);
+		ImGui::SliderInt("m", &m_new, 5, 50);
+		ImGui::SliderFloat("r", &r_new, 0.1f, 5.0f);
+		ImGui::SliderFloat("R", &R_new, 0.3f, 10.0f);
 		ImGui::TreePop();
 	}
 	return b;
 }
 
+void Torus::Draw(int transLoc)
+{
+	Figure::Draw(transLoc);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+}
+
 bool Torus::Create()
 {
+	bool fCreate = Figure::Create();
 	if (m_new == m_old && n_new == n_old &&
-		r_new == r_old && R_new == R_old) return false;
+		r_new == r_old && R_new == R_old && !fCreate) return false;
 
 	if (m_new < 3 || n_new < 3 || r_new <= 0 || R_new <= 0) return false;
 
@@ -43,7 +50,7 @@ bool Torus::Create()
 	float R = R_new;
 
 	vertices.clear();
-	for(int i=0; i< n * m * 6; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < n * m * 6; ++i) vertices.push_back(0.0f);
 	indices.clear();
 	for (int i = 0; i < 4 * n * m; ++i)indices.push_back(0);
 
@@ -68,8 +75,8 @@ bool Torus::Create()
 			vertices[idx1] = x;
 			vertices[idx1 + 1] = y;
 			vertices[idx1 + 2] = z;
-			vertices[idx1 + 3] = 1.0f;
-			vertices[idx1 + 4] = 0.0f;
+			vertices[idx1 + 3] = selected ? 0.0f : 1.0f;
+			vertices[idx1 + 4] = selected ? 1.0f : 0.0f;
 			vertices[idx1 + 5] = 0.0f;
 
 			indices[idx2] = idx;

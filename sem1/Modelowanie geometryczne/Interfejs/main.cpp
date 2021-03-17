@@ -11,7 +11,9 @@
 #include <glm/gtx/transform.hpp>
 #include "Figure.h"
 #include "Torus.h"
+#include "Point.h"
 #include <vector>
+#include "MiddlePoint.h"
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
 
@@ -20,6 +22,7 @@ int current_height = DEFAULT_HEIGHT;
 bool firstCall = true;
 glm::vec2 mousePosOld;
 std::vector<Figure*> figures;
+
 
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -33,7 +36,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	{
 		for (int i = 0; i < figures.size(); ++i)
 		{
-			figures[i]->Move(8 * xDiff, -8 * yDiff, 0.0f);
+			if (figures[i]->GetSelected())
+			{
+				figures[i]->Move(8 * xDiff, -8 * yDiff, 0.0f);
+			}
 		}
 	}
 
@@ -57,8 +63,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 		for (int i = 0; i < figures.size(); ++i)
 		{
-			figures[i]->Rotate(rotX);
-			figures[i]->Rotate(rotY);
+			if (figures[i]->GetSelected())
+			{
+				figures[i]->Rotate(rotX);
+				figures[i]->Rotate(rotY);
+			}
 		}
 	}
 	mousePosOld = mousePos;
@@ -69,13 +78,16 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	for (int i = 0; i < figures.size(); ++i)
 	{
-		if (yoffset >= 1)
+		if (figures[i]->GetSelected())
 		{
-			figures[i]->Scale(1.1f);
-		}
-		if (yoffset <= -1)
-		{
-			figures[i]->Scale(0.9f);
+			if (yoffset >= 1)
+			{
+				figures[i]->Scale(1.1f);
+			}
+			if (yoffset <= -1)
+			{
+				figures[i]->Scale(0.9f);
+			}
 		}
 	}
 }
@@ -86,7 +98,7 @@ void window_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 
-void RenderGui()
+void RenderGui(Shader& shader)
 {
 	if (firstCall)
 	{
@@ -97,13 +109,33 @@ void RenderGui()
 	int to_delete = -1;
 
 	ImGui::Begin("Menu");
+	if (ImGui::TreeNode("Adding"))
+	{
+		if (ImGui::Button("New Torus"))
+		{
+			Figure* f= new Torus(shader);
+			f->Initialize();
+			figures.push_back(f);
+		}
+		if (ImGui::Button("New Point"))
+		{
+			Figure* f= new Point(shader);
+			f->Initialize();
+			figures.push_back(f);
+		}
+		ImGui::TreePop();
+	}
 	if (ImGui::TreeNode("Figures"))
 	{
 		for (int i = 0; i < figures.size(); ++i)
 		{
-			if (figures[i]->GetGui(i))
+			if (ImGui::TreeNode((std::to_string(i) + std::string(" - ") + figures[i]->name).c_str()))
 			{
-				to_delete = i;
+				if (figures[i]->GetGui(i))
+				{
+					to_delete = i;
+				}
+				ImGui::TreePop();
 			}
 			figures[i]->RecalcFigure();
 		}
@@ -150,15 +182,16 @@ int main()
 	glfwSetWindowSizeCallback(window, window_size_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 
-	Shader ourShader("shaders/vertexShader.vs", "shaders/fragShader.fs");
 
 
+	Shader shader("shaders/vertexShader.vs", "shaders/fragShader.fs");
 
-	figures.push_back(new Torus(ourShader));
+	figures.push_back(new Torus(shader));
 	figures[0]->Initialize();
-	figures.push_back(new Torus(ourShader));
+	figures.push_back(new Torus(shader));
 	figures[1]->Initialize();
-
+	MiddlePoint* mp = new MiddlePoint(shader);
+	mp->Initialize();
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -201,18 +234,22 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		unsigned int perspLoc = glGetUniformLocation(ourShader.ID, "persp");
-		unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
-		unsigned int transLoc = glGetUniformLocation(ourShader.ID, "transform");
+		unsigned int perspLoc = glGetUniformLocation(shader.ID, "persp");
+		unsigned int viewLoc = glGetUniformLocation(shader.ID, "view");
+		unsigned int transLoc = glGetUniformLocation(shader.ID, "transform");
 		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
+		mp->Reset();
 		for (int i = 0; i < figures.size(); ++i)
 		{
 			figures[i]->Draw(transLoc);
+			mp->Add(figures[i]);
 		}
 
-		RenderGui();
+		mp->Draw(transLoc);
+
+		RenderGui(shader);
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
