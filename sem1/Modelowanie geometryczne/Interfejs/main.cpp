@@ -208,7 +208,7 @@ void RenderGui(Shader& shader)
 	{
 		for (int i = 0; i < figures.size(); ++i)
 		{
-			if (ImGui::TreeNode((std::to_string(i) + std::string(" - ") + figures[i]->name).c_str()))
+			if (ImGui::TreeNode((std::to_string(i) + std::string(" - ") + figures[i]->GetName()).c_str()))
 			{
 				if (figures[i]->GetGui(i))
 				{

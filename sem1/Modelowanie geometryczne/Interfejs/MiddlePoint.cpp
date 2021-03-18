@@ -4,7 +4,7 @@
 
 MiddlePoint::MiddlePoint(Shader _shader) : Figure(_shader)
 {
-	name = std::string("Point");
+	strncpy_s(_name, "MiddlePoint", STRMAX);
 	figureType = FigureType::MiddlePoint;
 }
 

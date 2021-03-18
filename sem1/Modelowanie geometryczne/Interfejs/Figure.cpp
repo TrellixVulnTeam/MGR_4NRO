@@ -25,6 +25,7 @@ void Figure::RecalcModel()
 bool Figure::GetGui(int i)
 {
 	ImGui::Checkbox("Selected", &selected);
+	ImGui::InputText("Name", _name, IM_ARRAYSIZE(_name));
 	if (ImGui::Button("Remove"))
 	{
 		return true;
@@ -129,6 +130,7 @@ void Figure::Draw(int transLoc)
 
 void Figure::Initialize()
 {
+	name = std::string(_name);
 	translation = glm::mat4(1.0f);
 	scale = glm::mat4(1.0f);
 	rotation = glm::mat4(1.0f);

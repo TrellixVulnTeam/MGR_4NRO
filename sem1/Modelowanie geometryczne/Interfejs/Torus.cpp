@@ -4,7 +4,7 @@
 
 Torus::Torus(Shader _shader) : Figure(_shader)
 {
-	name = std::string("Torus");
+	strncpy_s(_name, "Torus", STRMAX);
 	figureType = FigureType::Torus;
 }
 

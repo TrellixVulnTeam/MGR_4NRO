@@ -4,7 +4,7 @@
 
 Cursor::Cursor(Shader _shader) : Figure(_shader)
 {
-	name = std::string("Cursor");
+	strncpy_s(_name, "Cursor", STRMAX);
 	figureType = FigureType::Cursor;
 }
 

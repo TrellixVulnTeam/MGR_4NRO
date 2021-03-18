@@ -1,5 +1,6 @@
 #pragma once
 #define _USE_MATH_DEFINES
+#define STRMAX 100
 #include<glm/glm.hpp>
 #include <cmath>
 #include <vector>
@@ -23,6 +24,7 @@ public:
 	std::vector<unsigned int> GetIndices();
 	glm::mat4 GetModel();
 	bool GetSelected() { return selected; };
+	std::string GetName() { return name; };
 	void Select() { selected = true; };
 	void Unselect() { selected = false; };
 	void Scale(float change);
@@ -38,9 +40,9 @@ public:
 
 	std::vector<float> vertices;
 	std::vector<unsigned int> indices;
-	std::string name;
 	int from;
 	FigureType figureType;
+	bool keepOpen = false;
 protected:
 	virtual bool Create();
 	void RecalcModel();
@@ -50,10 +52,12 @@ protected:
 	glm::mat4 model;
 	float scale_f;
 	bool selected = false;
+	char _name[STRMAX] = "";
 private:
 	bool selected_old = false;
 	unsigned int VBO;
 	unsigned int VAO;
 	unsigned int EBO;
 	Shader shader;
+	std::string name;
 };
