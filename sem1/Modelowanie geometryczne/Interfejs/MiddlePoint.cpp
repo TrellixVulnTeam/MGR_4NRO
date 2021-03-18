@@ -5,6 +5,7 @@
 MiddlePoint::MiddlePoint(Shader _shader) : Figure(_shader)
 {
 	name = std::string("Point");
+	figureType = FigureType::MiddlePoint;
 }
 
 bool MiddlePoint::GetGui(int i)

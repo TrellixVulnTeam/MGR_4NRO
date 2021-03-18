@@ -5,6 +5,7 @@
 Torus::Torus(Shader _shader) : Figure(_shader)
 {
 	name = std::string("Torus");
+	figureType = FigureType::Torus;
 }
 
 bool Torus::GetGui(int i)

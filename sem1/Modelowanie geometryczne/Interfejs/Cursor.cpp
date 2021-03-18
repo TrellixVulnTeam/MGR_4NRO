@@ -5,6 +5,7 @@
 Cursor::Cursor(Shader _shader) : Figure(_shader)
 {
 	name = std::string("Cursor");
+	figureType = FigureType::Cursor;
 }
 
 bool Cursor::GetGui(int i)

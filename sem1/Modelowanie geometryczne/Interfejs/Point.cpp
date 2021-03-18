@@ -5,6 +5,7 @@
 Point::Point(Shader _shader) : Figure(_shader)
 {
 	name = std::string("Point");
+	figureType = FigureType::Point;
 }
 
 bool Point::GetGui(int i)

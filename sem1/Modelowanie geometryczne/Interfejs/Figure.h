@@ -8,6 +8,11 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Shader.h"
 
+enum class FigureType
+{
+	Torus, Point, MiddlePoint, Cursor
+};
+
 class Figure
 {
 public:
@@ -18,6 +23,8 @@ public:
 	std::vector<unsigned int> GetIndices();
 	glm::mat4 GetModel();
 	bool GetSelected() { return selected; };
+	void Select() { selected = true; };
+	void Unselect() { selected = false; };
 	void Scale(float change);
 	void Rotate(glm::mat4 rotate);
 	void RotateAround(glm::vec3 point, double xAngle, double yAngle);
@@ -33,6 +40,7 @@ public:
 	std::vector<unsigned int> indices;
 	std::string name;
 	int from;
+	FigureType figureType;
 protected:
 	virtual bool Create();
 	void RecalcModel();
