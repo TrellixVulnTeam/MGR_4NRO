@@ -26,12 +26,12 @@ glm::vec2 mousePosOld;
 std::vector<Figure*> figures;
 MiddlePoint* mp;
 Cursor* cur;
-
+glm::mat4 InversePerspMatrix;
+glm::mat4 InverseViewMatrix;
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	glm::vec2 mousePos = { xpos,ypos };
-	//glfwSetWindowTitle(window, (std::to_string(xpos) + std::string(" ") + std::to_string(ypos)).c_str());
 	glm::vec2 diff = mousePos - mousePosOld;
 	double xDiff = (double)diff.x / current_width;
 	double yDiff = (double)diff.y / current_height;
@@ -75,6 +75,82 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 				else
 				{
 					figures[i]->RotateAround(mp->GetPos(),xAngle, yAngle);
+				}
+			}
+		}
+	}
+	mousePosOld = mousePos;
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
+	glm::vec2 mousePos = { xpos,ypos };
+	glm::vec2 diff = mousePos - mousePosOld;
+	double xDiff = (double)diff.x / current_width;
+	double yDiff = (double)diff.y / current_height;
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+
+		glm::vec4 lRayStart_NDC(
+			((float)xpos / (float)current_width - 0.5f) * 2.0f,
+			((float)ypos / (float)current_height - 0.5f) * 2.0f,
+			-1.0,
+			1.0f
+		);
+		glm::vec4 lRayEnd_NDC(
+			((float)xpos / (float)current_width - 0.5f) * 2.0f,
+			((float)ypos / (float)current_height - 0.5f) * 2.0f,
+			0.0,
+			1.0f
+		);
+
+		glm::vec4 lRayStart_camera = InversePerspMatrix * lRayStart_NDC;    lRayStart_camera /= lRayStart_camera.w;
+		glm::vec4 lRayStart_world = InverseViewMatrix * lRayStart_camera; lRayStart_world /= lRayStart_world.w;
+		glm::vec4 lRayEnd_camera = InversePerspMatrix * lRayEnd_NDC;      lRayEnd_camera /= lRayEnd_camera.w;
+		glm::vec4 lRayEnd_world = InverseViewMatrix * lRayEnd_camera;   lRayEnd_world /= lRayEnd_world.w;
+		glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
+		lRayDir_world = glm::normalize(lRayDir_world);
+
+		glm::vec3 testPoint = glm::vec3(0, 0, 0);
+
+		glm::vec3 toPoint(testPoint - glm::vec3(lRayStart_world));
+
+		glm::vec3 crossp = glm::cross(lRayDir_world, toPoint);
+		float length = glm::length(crossp);
+		glfwSetWindowTitle(window, (std::to_string(length)).c_str());
+	}
+
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	{
+		glm::mat4 rotX = glm::mat4(1.0f);
+		glm::mat4 rotY = glm::mat4(1.0f);
+
+		double xAngle = 2 * yDiff;
+		double yAngle = 2 * xDiff;
+
+		rotX[1][1] = cos(xAngle);
+		rotX[2][1] = -sin(xAngle);
+		rotX[1][2] = sin(xAngle);
+		rotX[2][2] = cos(xAngle);
+
+		rotY[0][0] = cos(yAngle);
+		rotY[2][0] = sin(yAngle);
+		rotY[0][2] = -sin(yAngle);
+		rotY[2][2] = cos(yAngle);
+
+		for (int i = 0; i < figures.size(); ++i)
+		{
+			if (figures[i]->GetSelected())
+			{
+				if (rotate)
+				{
+					figures[i]->RotateAround(cur->GetPos(), xAngle, yAngle);
+				}
+				else
+				{
+					figures[i]->RotateAround(mp->GetPos(), xAngle, yAngle);
 				}
 			}
 		}
@@ -192,10 +268,12 @@ int main()
 	Processing proc = Processing();
 
 	glViewport(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+//	glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
 	glfwSetFramebufferSizeCallback(window, proc.framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetWindowSizeCallback(window, window_size_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 
 
 
@@ -212,7 +290,6 @@ int main()
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	glm::mat4 projection = glm::mat4(0.0f);
 
 	glm::mat4 view = glm::mat4(1.0f);
 	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
@@ -229,6 +306,8 @@ int main()
 	persp[3][3] = 0;
 	persp[3][2] = 1;
 
+	InversePerspMatrix = glm::inverse(persp);
+	InverseViewMatrix = glm::inverse(view);
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
