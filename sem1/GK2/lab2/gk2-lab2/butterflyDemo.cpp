@@ -154,7 +154,7 @@ void ButterflyDemo::CreateDodecahadronMtx()
 	float a = DODECAHEDRON_A;
 
 	XMStoreFloat4x4(&m_dodecahedronMtx[0], XMMatrixRotationAxis(xRot, M_PI / 2) * XMMatrixTranslation(0.0f, -h / 2, 0.0f));
-	XMStoreFloat4x4(&m_dodecahedronMtx[1], XMMatrixRotationAxis(xRot, -M_PI / 2) * XMMatrixTranslation(r, 0.0f, 0.0f)* XMMatrixRotationAxis(zRot, a) *XMMatrixTranslation(-r,  -h / 2,0.0f));
+	XMStoreFloat4x4(&m_dodecahedronMtx[1], XMMatrixRotationAxis(xRot, -M_PI / 2) * XMMatrixTranslation(r, 0.0f, 0.0f) * XMMatrixRotationAxis(zRot, a) * XMMatrixTranslation(-r, -h / 2, 0.0f));
 	XMStoreFloat4x4(&m_dodecahedronMtx[2], XMLoadFloat4x4(&m_dodecahedronMtx[1]) * XMMatrixRotationAxis(yRot, 2 * M_PI / 5));
 	XMStoreFloat4x4(&m_dodecahedronMtx[3], XMLoadFloat4x4(&m_dodecahedronMtx[2]) * XMMatrixRotationAxis(yRot, 2 * M_PI / 5));
 	XMStoreFloat4x4(&m_dodecahedronMtx[4], XMLoadFloat4x4(&m_dodecahedronMtx[3]) * XMMatrixRotationAxis(yRot, 2 * M_PI / 5));
@@ -173,26 +173,74 @@ void ButterflyDemo::CreateDodecahadronMtx()
 XMFLOAT3 ButterflyDemo::MoebiusStripPos(float t, float s)
 //TODO : 1.04. Compute the position of point on the Moebius strip for parameters t and s
 {
-	return {};
+	return {
+	cos(t) * (MOEBIUS_R + MOEBIUS_W * s * cos(0.5f * t)),
+	MOEBIUS_W * s * sin(0.5f * t),
+	sin(t) * (MOEBIUS_R + MOEBIUS_W * s * cos(0.5f * t))
+	};
 }
 
 XMVECTOR ButterflyDemo::MoebiusStripDs(float t, float s)
 //TODO : 1.05. Return the s-derivative of point on the Moebius strip for parameters t and s
 {
-	return {};
+	return XMVector3Normalize({
+	cos(0.5f * t) * cos(t),
+	sin(0.5f * t),
+	cos(0.5f * t) * sin(t)
+		});
 }
 
 XMVECTOR ButterflyDemo::MoebiusStripDt(float t, float s)
 //TODO : 1.06. Compute the t-derivative of point on the Moebius strip for parameters t and s
 {
-	return {};
+	return XMVector3Normalize({
+	-MOEBIUS_R * sin(t) - 0.5f * s * MOEBIUS_W * sin(0.5f * t) * cos(t) - MOEBIUS_W * s * cos(0.5f * t) * sin(t),
+	0.5f * s * MOEBIUS_W * cos(t),
+	MOEBIUS_R * cos(t) - 0.5f * s * MOEBIUS_W * sin(0.5f * t) * sin(t) + MOEBIUS_W * s * cos(0.5f * t) * cos(t)
+		});
 }
 
 void ButterflyDemo::CreateMoebuisStrip()
 //TODO : 1.07. Create Moebius strip mesh
 {
+	float step = 4 * M_PI / 256;
+	std::vector<VertexPositionNormal> vertices;
+	std::vector<unsigned short> indices;
+	for (int i = 0; i < 255; ++i)
+	{
+		float t = i * step;
+		XMFLOAT3 pos1 = MoebiusStripPos(t, -1);
+		XMFLOAT3 pos2 = MoebiusStripPos(t, 1);
 
+		XMVECTOR dt1 = MoebiusStripDt(t, -1);
+		XMVECTOR dt2 = MoebiusStripDt(t, 1);
+
+		XMVECTOR ds1 = MoebiusStripDs(t, -1);
+		XMVECTOR ds2 = MoebiusStripDs(t, 1);
+
+		XMFLOAT3 n1; XMStoreFloat3(&n1, XMVector3Normalize(XMVector3Cross(ds1, dt1)));
+		XMFLOAT3 n2; XMStoreFloat3(&n2, XMVector3Normalize(XMVector3Cross(ds2, dt2)));
+
+
+		vertices.push_back({ pos1, n1 });
+		vertices.push_back({ pos2, n2 });
+
+		//t1
+		indices.push_back(2 * i);
+		indices.push_back(2 * i + 1);
+		indices.push_back(2 * ((i + 1) % 255));
+
+		//t2
+		indices.push_back(2 * ((i + 1) % 255));
+		indices.push_back(2 * i + 1);
+		indices.push_back(2 * ((i + 1) % 255) + 1);
+	}
+
+	m_moebius = mini::Mesh::SimpleTriMesh(m_device, vertices, indices);
+
+	//DZIA£A
 }
+
 #pragma endregion
 
 #pragma region Per-Frame Update
@@ -235,6 +283,25 @@ void ButterflyDemo::UpdateButterfly(float dtime)
 		a = 2 * WING_MAX_A - a;
 	//Write the rest of code here
 
+	XMVECTOR xRot = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	XMVECTOR yRot = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMVECTOR zRot = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+
+
+	float w = WING_W;
+	float h = WING_H;
+
+
+	XMVECTOR ds = MoebiusStripDs(t, 0);
+	XMVECTOR dt = MoebiusStripDt(t, 0);
+	XMVECTOR n = XMVector3Normalize(XMVector3Cross(ds, dt));
+	XMFLOAT3 pos = MoebiusStripPos(t, 0);
+	XMVECTOR pos2 = { pos.x,pos.y,pos.z,1.0f };
+	XMMATRIX mx = { ds,dt,n,pos2 };
+
+	XMStoreFloat4x4(&m_wingMtx[0], XMMatrixTranslation(1.0f, 0.0f, 0.0f) * XMMatrixRotationAxis(yRot, M_PI / 2) * XMMatrixScaling(1.0f, w / 2, h / 2) * XMMatrixRotationAxis(yRot, a) * mx);
+	XMStoreFloat4x4(&m_wingMtx[1], XMMatrixTranslation(1.0f, 0.0f, 0.0f) * XMMatrixRotationAxis(yRot, M_PI / 2) * XMMatrixScaling(1.0f, w / 2, h / 2) * XMMatrixRotationAxis(yRot, -a) * mx);
+	//DZIA£A :O
 }
 #pragma endregion
 
@@ -317,13 +384,20 @@ void ButterflyDemo::DrawDodecahedron(bool colors)
 void ButterflyDemo::DrawMoebiusStrip()
 //TODO : 1.08. Draw the Moebius strip mesh
 {
-
+	XMFLOAT4X4 worldMtx;
+	XMStoreFloat4x4(&worldMtx, XMMatrixIdentity());
+	UpdateBuffer(m_cbWorld, worldMtx);
+	m_moebius.Render(m_device.context());
 }
 
 void ButterflyDemo::DrawButterfly()
 //TODO : 1.11. Draw the butterfly
 {
+	UpdateBuffer(m_cbWorld, m_wingMtx[0]);
+	m_wing.Render(m_device.context());
 
+	UpdateBuffer(m_cbWorld, m_wingMtx[1]);
+	m_wing.Render(m_device.context());
 }
 
 void ButterflyDemo::DrawBillboards()
