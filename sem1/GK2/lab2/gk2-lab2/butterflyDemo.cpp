@@ -221,7 +221,6 @@ void ButterflyDemo::CreateMoebuisStrip()
 		XMFLOAT3 n1; XMStoreFloat3(&n1, XMVector3Normalize(XMVector3Cross(ds1, dt1)));
 		XMFLOAT3 n2; XMStoreFloat3(&n2, XMVector3Normalize(XMVector3Cross(ds2, dt2)));
 
-
 		vertices.push_back({ pos1, n1 });
 		vertices.push_back({ pos2, n2 });
 
@@ -237,8 +236,6 @@ void ButterflyDemo::CreateMoebuisStrip()
 	}
 
 	m_moebius = mini::Mesh::SimpleTriMesh(m_device, vertices, indices);
-
-	//DZIA£A
 }
 
 #pragma endregion
@@ -277,7 +274,7 @@ void ButterflyDemo::UpdateButterfly(float dtime)
 	//Value of the Moebius strip t parameter
 	float t = 2 * lap / LAP_TIME;
 	//Angle between wing current and vertical position
-	float a = t * WING_MAX_A;
+	float a = fmod(24 * t * WING_MAX_A,2*WING_MAX_A);
 	t *= XM_2PI;
 	if (a > WING_MAX_A)
 		a = 2 * WING_MAX_A - a;
@@ -287,10 +284,8 @@ void ButterflyDemo::UpdateButterfly(float dtime)
 	XMVECTOR yRot = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	XMVECTOR zRot = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 
-
 	float w = WING_W;
 	float h = WING_H;
-
 
 	XMVECTOR ds = MoebiusStripDs(t, 0);
 	XMVECTOR dt = MoebiusStripDt(t, 0);
@@ -301,7 +296,6 @@ void ButterflyDemo::UpdateButterfly(float dtime)
 
 	XMStoreFloat4x4(&m_wingMtx[0], XMMatrixTranslation(1.0f, 0.0f, 0.0f) * XMMatrixRotationAxis(yRot, M_PI / 2) * XMMatrixScaling(1.0f, w / 2, h / 2) * XMMatrixRotationAxis(yRot, a) * mx);
 	XMStoreFloat4x4(&m_wingMtx[1], XMMatrixTranslation(1.0f, 0.0f, 0.0f) * XMMatrixRotationAxis(yRot, M_PI / 2) * XMMatrixScaling(1.0f, w / 2, h / 2) * XMMatrixRotationAxis(yRot, -a) * mx);
-	//DZIA£A :O
 }
 #pragma endregion
 
