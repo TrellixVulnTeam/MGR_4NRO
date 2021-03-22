@@ -41,7 +41,15 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 		{
 			if (figures[i]->GetSelected())
 			{
-				figures[i]->Move(8 * xDiff, -8 * yDiff, 0.0f);
+				int lAltState = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
+				if (lAltState == GLFW_PRESS)
+				{
+					figures[i]->Move(0.0f, -8 * yDiff, 8 * xDiff);
+				}
+				else
+				{
+					figures[i]->Move(8 * xDiff, -8 * yDiff, 0.0f);
+				}
 			}
 		}
 	}
@@ -80,6 +88,21 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 		}
 	}
 	mousePosOld = mousePos;
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (key == GLFW_KEY_A && action == GLFW_PRESS)
+	{
+		int lCtrlState = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
+		if (lCtrlState == GLFW_PRESS)
+		{
+			for (int i = 0; i < figures.size(); ++i)
+			{
+				figures[i]->Select();
+			}
+		}
+	}
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -262,7 +285,7 @@ int main()
 	glfwSetWindowSizeCallback(window, window_size_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
-
+	glfwSetKeyCallback(window, key_callback);
 
 
 	Shader shader("shaders/vertexShader.vs", "shaders/fragShader.fs");
