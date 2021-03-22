@@ -31,6 +31,7 @@ glm::mat4 InverseViewMatrix;
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+	if (ImGui::GetIO().WantCaptureMouse) return;
 	glm::vec2 mousePos = { xpos,ypos };
 	glm::vec2 diff = mousePos - mousePosOld;
 	double xDiff = (double)diff.x / current_width;
@@ -172,17 +173,33 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
+	if (ImGui::GetIO().WantCaptureMouse) return;
+
 	for (int i = 0; i < figures.size(); ++i)
 	{
 		if (figures[i]->GetSelected())
 		{
 			if (yoffset >= 1)
 			{
-				figures[i]->ScaleAround(cur->GetPos(), 1.1f);
+				if (rotate)
+				{
+					figures[i]->ScaleAround(cur->GetPos(), 1.1f);
+				}
+				else
+				{
+					figures[i]->ScaleAround(mp->GetPos(), 1.1f);
+				}
 			}
 			if (yoffset <= -1)
 			{
-				figures[i]->ScaleAround(cur->GetPos(), 0.9f);
+				if (rotate)
+				{
+					figures[i]->ScaleAround(cur->GetPos(), 0.9f);
+				}
+				else
+				{
+					figures[i]->ScaleAround(mp->GetPos(), 0.9f);
+				}
 			}
 		}
 	}
@@ -198,14 +215,14 @@ void RenderGui(Shader& shader)
 {
 	if (firstCall)
 	{
-		ImGui::SetNextWindowSize(ImVec2(200, 400), 0);
+		ImGui::SetNextWindowSize(ImVec2(250, 400), 0);
 		firstCall = false;
 	}
 
 	int to_delete = -1;
 
 	ImGui::Begin("Menu");
-	ImGui::Checkbox("Rotate around cursor", &rotate);
+	ImGui::Checkbox("Transformate around cursor", &rotate);
 	cur->GetGui(-1);
 	if (ImGui::TreeNode("Adding"))
 	{
@@ -231,14 +248,14 @@ void RenderGui(Shader& shader)
 	{
 		for (int i = 0; i < figures.size(); ++i)
 		{
-			if (ImGui::TreeNode((std::to_string(i) + std::string(" - ") + figures[i]->GetName()).c_str()))
-			{
+			//if (ImGui::TreeNode((std::to_string(i) + std::string(" - ") + figures[i]->GetName()).c_str()))
+			//{
 				if (figures[i]->GetGui(i))
 				{
 					to_delete = i;
 				}
-				ImGui::TreePop();
-			}
+			//	ImGui::TreePop();
+			//}
 			figures[i]->RecalcFigure();
 		}
 		ImGui::TreePop();

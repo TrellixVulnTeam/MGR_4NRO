@@ -4,16 +4,14 @@
 
 Point::Point(Shader _shader) : Figure(_shader)
 {
-	strncpy_s(_name, "Point", STRMAX);
+	sprintf_s(name, STRMAX, "Point");
+	_name = "Point";
 	figureType = FigureType::Point;
 }
 
-bool Point::GetGui(int i)
+bool Point::GetGuiInternal()
 {
-	bool b = false;
-
-	b = Figure::GetGui(i);
-	return b;
+	return false;
 }
 
 void Point::Draw(int transLoc)

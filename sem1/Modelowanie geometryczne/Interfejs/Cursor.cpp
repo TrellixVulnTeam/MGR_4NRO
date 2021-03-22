@@ -4,22 +4,19 @@
 
 Cursor::Cursor(Shader _shader) : Figure(_shader)
 {
-	strncpy_s(_name, "Cursor", STRMAX);
+	sprintf_s(name, STRMAX, "Cursor");
+	_name = "Cursor";
 	figureType = FigureType::Cursor;
 }
 
-bool Cursor::GetGui(int i)
+bool Cursor::GetGuiInternal()
 {
 	bool b = false;
-	if (ImGui::TreeNode("Cursor"))
+	if (ImGui::TreeNode("Position"))
 	{
-		if (ImGui::TreeNode("Position"))
-		{
-			ImGui::SliderFloat("x", &translation[3][0], -7.0f, 7.0f);
-			ImGui::SliderFloat("y", &translation[3][1], -7.0f, 7.0f);
-			ImGui::SliderFloat("z", &translation[3][2], -7.0f, 7.0f);
-			ImGui::TreePop();
-		}
+		ImGui::SliderFloat("x", &translation[3][0], -7.0f, 7.0f);
+		ImGui::SliderFloat("y", &translation[3][1], -7.0f, 7.0f);
+		ImGui::SliderFloat("z", &translation[3][2], -7.0f, 7.0f);
 		ImGui::TreePop();
 	}
 

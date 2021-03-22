@@ -4,15 +4,15 @@
 
 MiddlePoint::MiddlePoint(Shader _shader) : Figure(_shader)
 {
-	strncpy_s(_name, "MiddlePoint", STRMAX);
+	sprintf_s(name, STRMAX, "MiddlePoint");
+	_name = "MiddlePoint";
 	figureType = FigureType::MiddlePoint;
 }
 
-bool MiddlePoint::GetGui(int i)
+bool MiddlePoint::GetGuiInternal()
 {
 	bool b = false;
 
-	b = Figure::GetGui(i);
 	return b;
 }
 

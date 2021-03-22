@@ -4,15 +4,15 @@
 
 Torus::Torus(Shader _shader) : Figure(_shader)
 {
-	strncpy_s(_name, "Torus", STRMAX);
+	sprintf_s(name, STRMAX, "Torus");
+	_name = "Torus";
 	figureType = FigureType::Torus;
 }
 
-bool Torus::GetGui(int i)
+bool Torus::GetGuiInternal()
 {
 	bool b = false;
 
-	b = Figure::GetGui(i);
 	if (ImGui::TreeNode("Size"))
 	{
 		ImGui::SliderInt("n", &n_new, 5, 50);

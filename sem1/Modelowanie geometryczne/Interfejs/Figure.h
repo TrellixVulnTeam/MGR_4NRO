@@ -19,12 +19,11 @@ class Figure
 public:
 	Figure(Shader _shader);
 	~Figure() = default;
-	bool virtual GetGui(int i);
+	bool GetGui(int i);
 	std::vector<float> GetVertices();
 	std::vector<unsigned int> GetIndices();
 	glm::mat4 GetModel();
 	bool GetSelected() { return selected; };
-	std::string GetName() { return name; };
 	void Select() { selected = true; };
 	void Unselect() { selected = false; };
 	void Scale(float change);
@@ -52,12 +51,13 @@ protected:
 	glm::mat4 model;
 	float scale_f;
 	bool selected = false;
-	char _name[STRMAX] = "";
+	char name[STRMAX] = "";
+	std::string _name;
+	bool virtual GetGuiInternal() = 0;
 private:
 	bool selected_old = false;
 	unsigned int VBO;
 	unsigned int VAO;
 	unsigned int EBO;
 	Shader shader;
-	std::string name;
 };

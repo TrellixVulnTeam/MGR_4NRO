@@ -24,13 +24,37 @@ void Figure::RecalcModel()
 
 bool Figure::GetGui(int i)
 {
-	ImGui::Checkbox("Selected", &selected);
-	ImGui::InputText("Name", _name, IM_ARRAYSIZE(_name));
-	if (ImGui::Button("Remove"))
+	bool to_ret = false;
+	char buffer[STRMAX];
+	std::string t(name);
+	if (i >= 0)
 	{
-		return true;
+		sprintf_s(buffer, "%s###%s", (t + " - " + std::to_string(i)).c_str(), _name);
 	}
-	return false;
+	else
+	{
+		sprintf_s(buffer, "%s###%s", t.c_str(), _name);
+	}
+	if (ImGui::TreeNode(buffer)) {
+
+		if (ImGui::BeginPopupContextItem())
+		{
+			ImGui::Text("Edit:");
+			ImGui::InputText("##edit", name, IM_ARRAYSIZE(name));
+			if (ImGui::Button("Close"))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+		ImGui::Checkbox("Selected", &selected);
+		if (ImGui::Button("Remove"))
+		{
+			to_ret = true;
+		}
+		GetGuiInternal();
+		ImGui::TreePop();
+		ImGui::Separator(); 
+	}
+	return to_ret;
 }
 
 std::vector<float> Figure::GetVertices()
@@ -130,7 +154,6 @@ void Figure::Draw(int transLoc)
 
 void Figure::Initialize()
 {
-	name = std::string(_name);
 	translation = glm::mat4(1.0f);
 	scale = glm::mat4(1.0f);
 	rotation = glm::mat4(1.0f);

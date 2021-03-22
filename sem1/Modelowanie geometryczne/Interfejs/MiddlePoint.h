@@ -4,7 +4,7 @@ class MiddlePoint : public Figure
 {
 public:
 	MiddlePoint(Shader _shader);
-	bool virtual GetGui(int i) override;
+	bool virtual GetGuiInternal() override;
 	void Reset();
 	void Add(Figure* figure);
 	virtual void Draw(int transLoc) override;
