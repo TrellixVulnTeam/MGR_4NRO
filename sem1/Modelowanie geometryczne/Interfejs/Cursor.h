@@ -1,15 +1,14 @@
 #pragma once
 #include "Figure.h"
+#include "Camera.h"
 class Cursor : public Figure
 {
 public:
 	Cursor(Shader _shader);
+	void ForceRecalcScreenPos();
 	bool virtual GetGuiInternal() override;
 	virtual void Draw(int transLoc) override;
-	glm::mat4 persp;
-	glm::mat4 view;
-	glm::mat4 inv_persp;
-	glm::mat4 inv_view;
+	Camera* cam;
 	int cur_width;
 	int cur_height;
 private:

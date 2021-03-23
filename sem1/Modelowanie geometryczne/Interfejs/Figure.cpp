@@ -3,7 +3,7 @@
 
 
 
-Figure::Figure(Shader _shader):shader(_shader)
+Figure::Figure(Shader _shader) :shader(_shader)
 {
 }
 
@@ -55,7 +55,7 @@ bool Figure::GetGui(int i)
 		}
 		GetGuiInternal();
 		ImGui::TreePop();
-		ImGui::Separator(); 
+		ImGui::Separator();
 	}
 	return to_ret;
 }
@@ -116,6 +116,14 @@ void Figure::RotateAround(glm::vec3 point, double xAngle, double yAngle)
 	Rotate(rotY);
 }
 
+void Figure::RotateAroundWithMtx(glm::vec3 point, glm::mat4 rotate)
+{
+	glm::vec4 pos = rotate* glm::vec4(GetPos() - point, 1.0f) + glm::vec4(point, 1.0f);
+	MoveTo(pos.x, pos.y, pos.z);
+
+	Rotate(rotate);
+}
+
 void Figure::ScaleAround(glm::vec3 point, float change)
 {
 	glm::mat4 scale = glm::mat4(change);
@@ -139,6 +147,14 @@ void Figure::MoveTo(float x, float y, float z)
 	translation[3][0] = x;
 	translation[3][1] = y;
 	translation[3][2] = z;
+	RecalcModel();
+}
+
+void Figure::MoveVec(float a, glm::vec3 v)
+{
+	translation[3][0] += a * v.x;
+	translation[3][1] += a * v.y;
+	translation[3][2] += a * v.z;
 	RecalcModel();
 }
 

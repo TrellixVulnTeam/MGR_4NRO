@@ -11,6 +11,11 @@ Cursor::Cursor(Shader _shader) : Figure(_shader)
 	posOld = glm::vec3(-1.0f);
 }
 
+void Cursor::ForceRecalcScreenPos()
+{
+	posOld = { -1,-1,-1 };
+}
+
 bool Cursor::GetGuiInternal()
 {
 	bool b = false;
@@ -35,7 +40,7 @@ bool Cursor::GetGuiInternal()
 		translation[3][0] = pos.x;
 		translation[3][1] = pos.y;
 		translation[3][2] = pos.z;
-		glm::vec4 _posScreen = persp * view * translation * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		glm::vec4 _posScreen = cam->GetProjectionMatrix() * cam->GetViewportMatrix() * translation * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 		_posScreen /= _posScreen.w;
 		_posScreen = (_posScreen + glm::vec4(1.0f)) / 2.0f;
 		posScreen.x = _posScreen.x * cur_width;
@@ -48,6 +53,13 @@ bool Cursor::GetGuiInternal()
 	if (posScreen != posScreenOld)
 	{
 		posScreenOld = posScreen;
+
+		float A = cam->front.x;
+		float B = cam->front.y;
+		float C = cam->front.z;
+		float D = -cam->front.x * pos.x
+			- cam->front.y * pos.y
+			- cam->front.z * pos.z;
 
 		glm::vec4 lRayStart_NDC(
 			((float)posScreen.x / (float)cur_width - 0.5f) * 2.0f,
@@ -62,18 +74,22 @@ bool Cursor::GetGuiInternal()
 			1.0f
 		);
 
-		glm::vec4 lRayStart_camera = inv_persp * lRayStart_NDC;    lRayStart_camera /= lRayStart_camera.w;
-		glm::vec4 lRayStart_world = inv_view * lRayStart_camera; lRayStart_world /= lRayStart_world.w;
-		glm::vec4 lRayEnd_camera = inv_persp * lRayEnd_NDC;      lRayEnd_camera /= lRayEnd_camera.w;
-		glm::vec4 lRayEnd_world = inv_view * lRayEnd_camera;   lRayEnd_world /= lRayEnd_world.w;
+		glm::vec4 lRayStart_camera = cam->GetInvProjectionMatrix() * lRayStart_NDC;    lRayStart_camera /= lRayStart_camera.w;
+		glm::vec4 lRayStart_world = cam->GetInvViewportMatrix() * lRayStart_camera; lRayStart_world /= lRayStart_world.w;
+		glm::vec4 lRayEnd_camera = cam->GetInvProjectionMatrix() * lRayEnd_NDC;      lRayEnd_camera /= lRayEnd_camera.w;
+		glm::vec4 lRayEnd_world = cam->GetInvViewportMatrix() * lRayEnd_camera;   lRayEnd_world /= lRayEnd_world.w;
 		glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
+		lRayDir_world = glm::normalize(lRayDir_world);
 
-		float coef = (pos.z - lRayStart_world.z) / lRayDir_world.z;
+		float t = (-D - A * lRayStart_world.x - B * lRayStart_world.y - C * lRayStart_world.z) / (A * lRayDir_world.x + B * lRayDir_world.y + C * lRayDir_world.z);
 
-		pos.x = lRayStart_world.x + coef * lRayDir_world.x;
-		pos.y = lRayStart_world.y + coef * lRayDir_world.y;
+		pos.x = lRayStart_world.x + t * lRayDir_world.x;
+		pos.y = lRayStart_world.y + t * lRayDir_world.y;
+		pos.z = lRayStart_world.z + t * lRayDir_world.z;
+
 		translation[3][0] = pos.x;
 		translation[3][1] = pos.y;
+		translation[3][2] = pos.z;
 		posOld = pos;
 		RecalcModel();
 

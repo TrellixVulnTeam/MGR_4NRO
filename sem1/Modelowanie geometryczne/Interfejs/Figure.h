@@ -29,9 +29,11 @@ public:
 	void Scale(float change);
 	void Rotate(glm::mat4 rotate);
 	void RotateAround(glm::vec3 point, double xAngle, double yAngle);
+	void RotateAroundWithMtx(glm::vec3 point, glm::mat4 rotate);
 	void ScaleAround(glm::vec3 point, float change);
 	void Move(float x, float y, float z);
 	void MoveTo(float x, float y, float z);
+	void MoveVec(float a, glm::vec3 v);
 	glm::vec3 GetPos();
 	virtual void Draw(int transLoc);
 	void Initialize();
