@@ -208,6 +208,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 void window_size_callback(GLFWwindow* window, int width, int height) {
 	current_width = width;
 	current_height = height;
+	cur->cur_width = width;
+	cur->cur_height = height;
 }
 
 
@@ -307,10 +309,6 @@ int main()
 
 	Shader shader("shaders/vertexShader.vs", "shaders/fragShader.fs");
 
-	figures.push_back(new Torus(shader));
-	figures[0]->Initialize();
-	figures.push_back(new Torus(shader));
-	figures[1]->Initialize();
 	mp = new MiddlePoint(shader);
 	mp->Initialize();
 	cur = new Cursor(shader);
@@ -334,8 +332,16 @@ int main()
 	persp[3][3] = 0;
 	persp[3][2] = 1;
 
+
 	InversePerspMatrix = glm::inverse(persp);
 	InverseViewMatrix = glm::inverse(view);
+
+	cur->persp = persp;
+	cur->view = view;
+	cur->inv_persp = InversePerspMatrix;
+	cur->inv_view = InverseViewMatrix;
+	cur->cur_width = current_width;
+	cur->cur_height = current_height;
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();

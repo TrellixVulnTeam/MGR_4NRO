@@ -45,10 +45,13 @@ bool Figure::GetGui(int i)
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
 		}
-		ImGui::Checkbox("Selected", &selected);
-		if (ImGui::Button("Remove"))
+		if (figureType != FigureType::Cursor)
 		{
-			to_ret = true;
+			ImGui::Checkbox("Selected", &selected);
+			if (ImGui::Button("Remove"))
+			{
+				to_ret = true;
+			}
 		}
 		GetGuiInternal();
 		ImGui::TreePop();

@@ -7,6 +7,8 @@ Cursor::Cursor(Shader _shader) : Figure(_shader)
 	sprintf_s(name, STRMAX, "Cursor");
 	_name = "Cursor";
 	figureType = FigureType::Cursor;
+	pos = glm::vec3(0.0f, 0.0f, 0.0f);
+	posOld = glm::vec3(-1.0f);
 }
 
 bool Cursor::GetGuiInternal()
@@ -14,14 +16,69 @@ bool Cursor::GetGuiInternal()
 	bool b = false;
 	if (ImGui::TreeNode("Position"))
 	{
-		ImGui::SliderFloat("x", &translation[3][0], -7.0f, 7.0f);
-		ImGui::SliderFloat("y", &translation[3][1], -7.0f, 7.0f);
-		ImGui::SliderFloat("z", &translation[3][2], -7.0f, 7.0f);
+		ImGui::SliderFloat("x", &pos.x, -7.0f, 7.0f);
+		ImGui::SliderFloat("y", &pos.y, -7.0f, 7.0f);
+		ImGui::SliderFloat("z", &pos.z, -7.0f, 7.0f);
+		ImGui::TreePop();
+	}
+	if (ImGui::TreeNode("PositionScreen"))
+	{
+		ImGui::SliderInt("x", &posScreen.x, 0, cur_width);
+		ImGui::SliderInt("y", &posScreen.y, 0, cur_height);
 		ImGui::TreePop();
 	}
 
-	RecalcModel();
 
+	if (pos != posOld)
+	{
+		posOld = pos;
+		translation[3][0] = pos.x;
+		translation[3][1] = pos.y;
+		translation[3][2] = pos.z;
+		glm::vec4 _posScreen = persp * view * translation * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		_posScreen /= _posScreen.w;
+		_posScreen = (_posScreen + glm::vec4(1.0f)) / 2.0f;
+		posScreen.x = _posScreen.x * cur_width;
+		posScreen.y = _posScreen.y * cur_height;
+		posScreen.z = _posScreen.z;
+		posScreenOld = posScreen;
+		RecalcModel();
+	}
+
+	if (posScreen != posScreenOld)
+	{
+		posScreenOld = posScreen;
+
+		glm::vec4 lRayStart_NDC(
+			((float)posScreen.x / (float)cur_width - 0.5f) * 2.0f,
+			((float)posScreen.y / (float)cur_height - 0.5f) * 2.0f,
+			-1.0,
+			1.0f
+		);
+		glm::vec4 lRayEnd_NDC(
+			((float)posScreen.x / (float)cur_width - 0.5f) * 2.0f,
+			((float)posScreen.y / (float)cur_height - 0.5f) * 2.0f,
+			0.0,
+			1.0f
+		);
+
+		glm::vec4 lRayStart_camera = inv_persp * lRayStart_NDC;    lRayStart_camera /= lRayStart_camera.w;
+		glm::vec4 lRayStart_world = inv_view * lRayStart_camera; lRayStart_world /= lRayStart_world.w;
+		glm::vec4 lRayEnd_camera = inv_persp * lRayEnd_NDC;      lRayEnd_camera /= lRayEnd_camera.w;
+		glm::vec4 lRayEnd_world = inv_view * lRayEnd_camera;   lRayEnd_world /= lRayEnd_world.w;
+		glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
+
+		float coef = (pos.z - lRayStart_world.z) / lRayDir_world.z;
+
+		pos.x = lRayStart_world.x + coef * lRayDir_world.x;
+		pos.y = lRayStart_world.y + coef * lRayDir_world.y;
+		translation[3][0] = pos.x;
+		translation[3][1] = pos.y;
+		posOld = pos;
+		RecalcModel();
+
+
+	}
 	return b;
 }
 
