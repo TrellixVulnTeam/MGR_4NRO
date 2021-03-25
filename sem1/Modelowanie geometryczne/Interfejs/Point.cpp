@@ -1,6 +1,7 @@
 #include "Point.h"
 #include "imgui\imgui.h"
 #include <string>
+#include "BezierCurve.h"
 
 Point::Point(Shader _shader) : Figure(_shader)
 {
@@ -9,9 +10,40 @@ Point::Point(Shader _shader) : Figure(_shader)
 	figureType = FigureType::Point;
 }
 
-bool Point::GetGuiInternal()
+bool Point::GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui)
 {
-	return false;
+	bool to_ret = false;
+	if (fromMainGui)
+	{
+		if (ImGui::Button("Pin to Bezier.."))
+			ImGui::OpenPopup("my_select_popup");
+		int selectedBezier = -1;
+		if (ImGui::BeginPopup("my_select_popup"))
+		{
+			for (int i = 0; i < figures.size(); i++)
+			{
+				if (figures[i]->figureType == FigureType::BezierCurve)
+					if (ImGui::Selectable(figures[i]->name))
+						selectedBezier = i;
+			}
+			if (selectedBezier != -1)
+			{
+				AddParent(figures[selectedBezier]);
+				((BezierCurve*)figures[selectedBezier])->AddPoint(this);
+			}
+			ImGui::EndPopup();
+		}
+	}
+	else
+	{
+		if (ImGui::Button("Unpin"))
+		{
+			to_ret = true;
+			parent = NULL;
+			Unpin();
+		}
+	}
+	return to_ret;
 }
 
 void Point::Draw(int transLoc)
@@ -20,6 +52,28 @@ void Point::Draw(int transLoc)
 	glPointSize(2.0f);
 	glDrawElements(GL_POINTS, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+}
+
+void Point::Unpin()
+{
+	showInMainGui = true;
+}
+
+void Point::RecalcParent()
+{
+	if (parent != NULL)
+	{
+		if (parent->figureType == FigureType::BezierCurve)
+		{
+			((BezierCurve*)parent)->Recalc();
+		}
+	}
+}
+
+void Point::AddParent(Figure* f)
+{
+	parent = f;
+	showInMainGui = false;
 }
 
 bool Point::Create()

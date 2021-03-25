@@ -6,7 +6,7 @@ class Cursor : public Figure
 public:
 	Cursor(Shader _shader);
 	void ForceRecalcScreenPos();
-	bool virtual GetGuiInternal() override;
+	bool virtual GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui) override;
 	virtual void Draw(int transLoc) override;
 	Camera* cam;
 	int cur_width;

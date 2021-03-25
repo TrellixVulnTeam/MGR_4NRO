@@ -16,6 +16,7 @@
 #include "MiddlePoint.h"
 #include "Cursor.h"
 #include "Camera.h"
+#include "BezierCurve.h"
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
 
@@ -94,7 +95,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 		{
 			for (int i = 0; i < figures.size(); ++i)
 			{
-				if (figures[i]->GetSelected())
+				if (figures[i]->GetSelected() && figures[i]->CanMove())
 				{
 					figures[i]->MoveVec(8 * xDiff, cam->right);
 					figures[i]->MoveVec(-8 * yDiff, cam->up);
@@ -135,7 +136,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 			for (int i = 0; i < figures.size(); ++i)
 			{
-				if (figures[i]->GetSelected())
+				if (figures[i]->GetSelected() && figures[i]->CanMove())
 				{
 					if (rotate)
 					{
@@ -255,7 +256,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	{
 		for (int i = 0; i < figures.size(); ++i)
 		{
-			if (figures[i]->GetSelected())
+			if (figures[i]->GetSelected() && figures[i]->CanMove())
 			{
 				if (yoffset >= 1)
 				{
@@ -304,7 +305,7 @@ void RenderGui(Shader& shader)
 
 	ImGui::Begin("Menu");
 	ImGui::Checkbox("Transformate around cursor", &rotate);
-	cur->GetGui(-1);
+	cur->GetGui(-1, figures, true);
 	if (ImGui::TreeNode("Adding"))
 	{
 		if (ImGui::Button("New Torus"))
@@ -322,6 +323,14 @@ void RenderGui(Shader& shader)
 			auto pos = cur->GetPos();
 			f->MoveTo(pos.x, pos.y, pos.z);
 			figures.push_back(f);
+			for (int i = 0; i < figures.size(); ++i)
+			{
+				if (figures[i]->GetSelected() && figures[i]->figureType == FigureType::BezierCurve)
+				{
+					((BezierCurve*)figures[i])->AddPoint((Point*)f);
+					((Point*)f)->AddParent(figures[i]);
+				}
+			}
 		}
 		ImGui::TreePop();
 	}
@@ -329,7 +338,7 @@ void RenderGui(Shader& shader)
 	{
 		for (int i = 0; i < figures.size(); ++i)
 		{
-			if (figures[i]->GetGui(i))
+			if (figures[i]->GetGui(i, figures, true))
 			{
 				to_delete = i;
 			}
@@ -383,6 +392,8 @@ int main()
 
 	Shader shader("shaders/vertexShader.vs", "shaders/fragShader.fs");
 
+	figures.push_back(new BezierCurve(shader));
+	figures[0]->Initialize();
 	mp = new MiddlePoint(shader);
 	mp->Initialize();
 	cur = new Cursor(shader);
@@ -418,6 +429,7 @@ int main()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
+	//	ImGui::ShowDemoWindow();
 		proc.processInput(window);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);

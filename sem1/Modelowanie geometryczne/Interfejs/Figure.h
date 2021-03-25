@@ -11,7 +11,7 @@
 
 enum class FigureType
 {
-	Torus, Point, MiddlePoint, Cursor
+	Torus, Point, MiddlePoint, Cursor, BezierCurve, PointsLine
 };
 
 class Figure
@@ -19,7 +19,7 @@ class Figure
 public:
 	Figure(Shader _shader);
 	~Figure() = default;
-	bool GetGui(int i);
+	bool GetGui(int i,std::vector<Figure*> figures,bool fromMainGui);
 	std::vector<float> GetVertices();
 	std::vector<unsigned int> GetIndices();
 	glm::mat4 GetModel();
@@ -38,12 +38,14 @@ public:
 	virtual void Draw(int transLoc);
 	void Initialize();
 	void RecalcFigure();
+	bool CanMove() { return canMove; };
 
 	std::vector<float> vertices;
 	std::vector<unsigned int> indices;
 	int from;
 	FigureType figureType;
 	bool keepOpen = false;
+	char name[STRMAX] = "";
 protected:
 	virtual bool Create();
 	void RecalcModel();
@@ -53,9 +55,10 @@ protected:
 	glm::mat4 model;
 	float scale_f;
 	bool selected = false;
-	char name[STRMAX] = "";
+	bool canMove = true;
 	std::string _name;
-	bool virtual GetGuiInternal() = 0;
+	bool virtual GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui) = 0;
+	bool showInMainGui = true;
 private:
 	bool selected_old = false;
 	unsigned int VBO;

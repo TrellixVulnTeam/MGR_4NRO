@@ -1,5 +1,6 @@
 #include "Figure.h"
 #include "imgui/imgui.h"
+#include "BezierCurve.h"
 
 
 
@@ -20,42 +21,62 @@ bool Figure::Create()
 void Figure::RecalcModel()
 {
 	model = translation * rotation * scale;
+	if (figureType == FigureType::Point)
+	{
+		((Point*)this)->RecalcParent();
+	}
 }
 
-bool Figure::GetGui(int i)
+bool Figure::GetGui(int i, std::vector<Figure*> figures, bool fromMainGui)
 {
 	bool to_ret = false;
-	char buffer[STRMAX];
-	std::string t(name);
-	if (i >= 0)
+	if (fromMainGui && showInMainGui
+		||
+		!fromMainGui && !showInMainGui)
 	{
-		sprintf_s(buffer, "%s###%s", (t + " - " + std::to_string(i)).c_str(), _name);
-	}
-	else
-	{
-		sprintf_s(buffer, "%s###%s", t.c_str(), _name);
-	}
-	if (ImGui::TreeNode(buffer)) {
-
-		if (ImGui::BeginPopupContextItem())
+		char buffer[STRMAX];
+		std::string t(name);
+		if (i >= 0)
 		{
-			ImGui::Text("Edit:");
-			ImGui::InputText("##edit", name, IM_ARRAYSIZE(name));
-			if (ImGui::Button("Close"))
-				ImGui::CloseCurrentPopup();
-			ImGui::EndPopup();
+			sprintf_s(buffer, "%s###%s", (t + " - " + std::to_string(i)).c_str(), _name);
 		}
-		if (figureType != FigureType::Cursor)
+		else
 		{
-			ImGui::Checkbox("Selected", &selected);
-			if (ImGui::Button("Remove"))
+			sprintf_s(buffer, "%s###%s", t.c_str(), _name);
+		}
+		if (ImGui::TreeNode(buffer)) {
+
+			if (ImGui::BeginPopupContextItem())
+			{
+				ImGui::Text("Edit:");
+				ImGui::InputText("##edit", name, IM_ARRAYSIZE(name));
+				if (ImGui::Button("Close"))
+					ImGui::CloseCurrentPopup();
+				ImGui::EndPopup();
+			}
+			if (figureType != FigureType::Cursor)
+			{
+				ImGui::Checkbox("Selected", &selected);
+				if (selected && !selected_old && figureType == FigureType::BezierCurve)
+				{
+					for (int j = 0; j < figures.size(); ++j) if (j!=i && figures[j]->figureType == FigureType::BezierCurve) figures[j]->Unselect();
+				}
+				if (fromMainGui) {
+					if (ImGui::Button("Remove"))
+					{
+						if (figureType == FigureType::BezierCurve)
+							((BezierCurve*)this)->CleanUp();
+						to_ret = true;
+					}
+				}
+			}
+			if (GetGuiInternal(figures, fromMainGui))
 			{
 				to_ret = true;
 			}
+			ImGui::TreePop();
+			ImGui::Separator();
 		}
-		GetGuiInternal();
-		ImGui::TreePop();
-		ImGui::Separator();
 	}
 	return to_ret;
 }
@@ -118,7 +139,7 @@ void Figure::RotateAround(glm::vec3 point, double xAngle, double yAngle)
 
 void Figure::RotateAroundWithMtx(glm::vec3 point, glm::mat4 rotate)
 {
-	glm::vec4 pos = rotate* glm::vec4(GetPos() - point, 1.0f) + glm::vec4(point, 1.0f);
+	glm::vec4 pos = rotate * glm::vec4(GetPos() - point, 1.0f) + glm::vec4(point, 1.0f);
 	MoveTo(pos.x, pos.y, pos.z);
 
 	Rotate(rotate);

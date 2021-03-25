@@ -16,7 +16,7 @@ void Cursor::ForceRecalcScreenPos()
 	posOld = { -1,-1,-1 };
 }
 
-bool Cursor::GetGuiInternal()
+bool Cursor::GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui)
 {
 	bool b = false;
 	if (ImGui::TreeNode("Position"))
