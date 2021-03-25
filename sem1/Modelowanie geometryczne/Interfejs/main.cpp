@@ -332,6 +332,20 @@ void RenderGui(Shader& shader)
 				}
 			}
 		}
+		if (ImGui::Button("New Bezier Curve"))
+		{
+			Figure* f = new BezierCurve(shader);
+			f->Initialize();
+			figures.push_back(f);
+			for (int i = 0; i < figures.size(); ++i)
+			{
+				if (figures[i]->GetSelected() && figures[i]->figureType == FigureType::Point && !figures[i]->HasParent())
+				{
+					((BezierCurve*)f)->AddPoint((Point*)figures[i]);
+					((Point*)figures[i])->AddParent(f);
+				}
+			}
+		}
 		ImGui::TreePop();
 	}
 	if (ImGui::TreeNode("Figures"))

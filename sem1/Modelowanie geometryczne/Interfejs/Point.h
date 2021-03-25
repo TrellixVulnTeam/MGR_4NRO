@@ -12,6 +12,5 @@ public:
 private:
 	bool virtual Create() override;
 	bool firstTime = true;
-	Figure* parent = NULL;
 };
 
