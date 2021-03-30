@@ -20,6 +20,7 @@ bool Figure::Create()
 
 void Figure::RecalcModel()
 {
+	glm::mat4 rotation = glm::toMat4(rotation_q);
 	model = translation * rotation * scale;
 	if (figureType == FigureType::Point)
 	{
@@ -109,40 +110,26 @@ void Figure::Scale(float change)
 	RecalcModel();
 }
 
-void Figure::Rotate(glm::mat4 rotate)
+void Figure::Rotate(glm::vec3 axis, float angle)
 {
-	rotation = rotate * rotation;
+	auto new_q = glm::angleAxis(angle, axis);
+	Rotate(new_q);
+}
+
+void Figure::Rotate(glm::quat new_q)
+{
+	rotation_q = new_q * rotation_q;
 	RecalcModel();
 }
 
-void Figure::RotateAround(glm::vec3 point, double xAngle, double yAngle)
+void Figure::RotateAround(glm::vec3 point, glm::vec3 axis, float angle)
 {
-	glm::mat4 rotX = glm::mat4(1.0f);
-	glm::mat4 rotY = glm::mat4(1.0f);
+	auto new_q = glm::angleAxis(angle, axis);
 
-	rotX[1][1] = cos(xAngle);
-	rotX[2][1] = -sin(xAngle);
-	rotX[1][2] = sin(xAngle);
-	rotX[2][2] = cos(xAngle);
-
-	rotY[0][0] = cos(yAngle);
-	rotY[2][0] = sin(yAngle);
-	rotY[0][2] = -sin(yAngle);
-	rotY[2][2] = cos(yAngle);
-
-	glm::vec4 pos = rotY * rotX * glm::vec4(GetPos() - point, 1.0f) + glm::vec4(point, 1.0f);
+	glm::vec4 pos = new_q * glm::vec4(GetPos() - point, 1.0f) + glm::vec4(point, 1.0f);
 	MoveTo(pos.x, pos.y, pos.z);
 
-	Rotate(rotX);
-	Rotate(rotY);
-}
-
-void Figure::RotateAroundWithMtx(glm::vec3 point, glm::mat4 rotate)
-{
-	glm::vec4 pos = rotate * glm::vec4(GetPos() - point, 1.0f) + glm::vec4(point, 1.0f);
-	MoveTo(pos.x, pos.y, pos.z);
-
-	Rotate(rotate);
+	Rotate(new_q);
 }
 
 void Figure::ScaleAround(glm::vec3 point, float change)
@@ -197,7 +184,8 @@ void Figure::Initialize(Program* _program)
 	program = _program;
 	translation = glm::mat4(1.0f);
 	scale = glm::mat4(1.0f);
-	rotation = glm::mat4(1.0f);
+
+	rotation_q.w = 1.0f;
 	scale_f = 1.0f;
 	RecalcModel();
 

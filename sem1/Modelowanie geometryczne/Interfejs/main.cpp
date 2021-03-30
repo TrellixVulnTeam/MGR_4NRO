@@ -28,49 +28,10 @@ glm::vec2 mousePosOld;
 glm::vec3 lookAt;
 Program* program;
 
-glm::mat4 ArbitraryRotationMatrix(glm::vec3 v, float a)
+glm::vec3 ArbitraryRotate(glm::vec3 p, float angle , glm::vec3 axis)
 {
-	glm::mat4 ret = glm::mat4(1.0f);
-	float t = 1.0f - cos(a);
-	float s = sin(a);
-	float c = cos(a);
-	ret[0][0] = t * v.x * v.x + c;
-	ret[0][1] = t * v.x * v.y - s * v.z;
-	ret[0][2] = t * v.x * v.z + s * v.y;
-
-	ret[1][0] = t * v.x * v.y + s * v.z;
-	ret[1][1] = t * v.y * v.y + c;
-	ret[1][2] = t * v.y * v.z - s * v.x;
-
-	ret[2][0] = t * v.x * v.z - s * v.y;
-	ret[2][1] = t * v.y * v.z + s * v.x;
-	ret[2][2] = t * v.z * v.z + c;
-	return ret;
-}
-
-//via http://paulbourke.net/geometry/rotate/source.c
-glm::vec3 ArbitraryRotate(glm::vec3 p, double theta, glm::vec3 r)
-{
-	glm::vec3 q = { 0.0,0.0,0.0 };
-	double costheta, sintheta;
-
-	glm::normalize(r);
-	costheta = cos(theta);
-	sintheta = sin(theta);
-
-	q.x += (costheta + (1 - costheta) * r.x * r.x) * p.x;
-	q.x += ((1 - costheta) * r.x * r.y - r.z * sintheta) * p.y;
-	q.x += ((1 - costheta) * r.x * r.z + r.y * sintheta) * p.z;
-
-	q.y += ((1 - costheta) * r.x * r.y + r.z * sintheta) * p.x;
-	q.y += (costheta + (1 - costheta) * r.y * r.y) * p.y;
-	q.y += ((1 - costheta) * r.y * r.z - r.x * sintheta) * p.z;
-
-	q.z += ((1 - costheta) * r.x * r.z - r.y * sintheta) * p.x;
-	q.z += ((1 - costheta) * r.y * r.z + r.x * sintheta) * p.y;
-	q.z += (costheta + (1 - costheta) * r.z * r.z) * p.z;
-
-	return q;
+	glm::quat quat= glm::angleAxis(angle, axis);
+	return quat*p;
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -120,16 +81,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 		}
 		else
 		{
-			glm::mat4 rotX = glm::mat4(1.0f);
-			glm::mat4 rotY = glm::mat4(1.0f);
-
 			float xAngle = 2 * yDiff;
 			float yAngle = 2 * xDiff;
-
-
-			glm::mat4 rot1 = ArbitraryRotationMatrix(program->cam->up, -yAngle);
-			glm::mat4 rot2 = ArbitraryRotationMatrix(program->cam->right, -xAngle);
-			glm::mat4 m_rotate = rot2 * rot1;
 
 			for (int i = 0; i < program->figures.size(); ++i)
 			{
@@ -137,11 +90,13 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 				{
 					if (rotate)
 					{
-						program->figures[i]->RotateAroundWithMtx(program->cur->GetPos(), m_rotate);
+						program->figures[i]->RotateAround(program->cur->GetPos(), program->cam->up, yAngle);
+						program->figures[i]->RotateAround(program->cur->GetPos(), program->cam->right, xAngle);
 					}
 					else
 					{
-						program->figures[i]->RotateAroundWithMtx(program->mp->GetPos(), m_rotate);
+						program->figures[i]->RotateAround(program->mp->GetPos(), program->cam->up, yAngle);
+						program->figures[i]->RotateAround(program->mp->GetPos(), program->cam->right, xAngle);
 					}
 				}
 			}
@@ -404,6 +359,11 @@ int main()
 	glEnable(GL_LINE_SMOOTH);
 
 	Shader shader("shaders/vertexShader.vs", "shaders/fragShader.fs");
+
+	Figure* f = new Torus(shader);
+	f->Initialize(program);
+	f->Select();
+	program->figures.push_back(f);
 
 	program->mp = new MiddlePoint(shader);
 	program->mp->Initialize(program);

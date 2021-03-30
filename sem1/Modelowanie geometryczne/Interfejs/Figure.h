@@ -9,6 +9,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Shader.h"
 #include "Math.h"
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 enum class FigureType
 {
@@ -30,9 +32,9 @@ public:
 	void Select() { selected = true; };
 	void Unselect() { selected = false; };
 	void Scale(float change);
-	void Rotate(glm::mat4 rotate);
-	void RotateAround(glm::vec3 point, double xAngle, double yAngle);
-	void RotateAroundWithMtx(glm::vec3 point, glm::mat4 rotate);
+	void Rotate(glm::vec3 axis, float angle);
+	void Rotate(glm::quat new_q);
+	void RotateAround(glm::vec3 point, glm::vec3 axis, float angle);
 	void ScaleAround(glm::vec3 point, float change);
 	void Move(float x, float y, float z);
 	void MoveTo(float x, float y, float z);
@@ -54,7 +56,8 @@ protected:
 	virtual bool Create();
 	void RecalcModel();
 	glm::mat4 translation;
-	glm::mat4 rotation;
+	//glm::mat4 rotation;
+	glm::quat rotation_q;
 	glm::mat4 scale;
 	glm::mat4 model;
 	float scale_f;
