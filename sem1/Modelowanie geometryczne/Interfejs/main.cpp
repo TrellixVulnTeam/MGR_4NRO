@@ -403,8 +403,6 @@ int main()
 
 	Shader shader("shaders/vertexShader.vs", "shaders/fragShader.fs");
 
-	program->figures.push_back(new BezierCurve(shader));
-	program->figures[0]->Initialize(program);
 	program->mp = new MiddlePoint(shader);
 	program->mp->Initialize(program);
 	program->cur = new Cursor(shader);
