@@ -39,6 +39,7 @@ public:
 	void Initialize();
 	void RecalcFigure();
 	bool CanMove() { return canMove; };
+	bool HasParent() { return parent != NULL; };
 
 	std::vector<float> vertices;
 	std::vector<unsigned int> indices;
@@ -59,6 +60,7 @@ protected:
 	std::string _name;
 	bool virtual GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui) = 0;
 	bool showInMainGui = true;
+	Figure* parent = NULL;
 private:
 	bool selected_old = false;
 	unsigned int VBO;

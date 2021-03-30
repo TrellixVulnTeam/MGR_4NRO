@@ -24,7 +24,7 @@ void MiddlePoint::Reset()
 
 void MiddlePoint::Add(Figure* figure)
 {
-	if (figure->GetSelected())
+	if (figure->GetSelected() && figure->CanMove())
 	{
 		count++;
 		pos += figure->GetPos();
