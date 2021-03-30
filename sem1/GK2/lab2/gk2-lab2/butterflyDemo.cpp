@@ -122,11 +122,11 @@ void ButterflyDemo::CreateRenderStates()
 
 	//TODO : 1.36. Setup depth stencil state for stencil test for billboards
 
+	dssDesc.StencilEnable = true;
+	dssDesc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
 	m_dssStencilTestNoDepthWrite = m_device.CreateDepthStencilState(dssDesc);
 
 	//TODO : 1.21. Setup depth stencil state for stencil test for 3D objects
-	dssDesc.StencilEnable = true;
-	dssDesc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
 	dssDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
 	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	m_dssStencilTest = m_device.CreateDepthStencilState(dssDesc);
