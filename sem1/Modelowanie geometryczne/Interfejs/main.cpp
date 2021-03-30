@@ -318,10 +318,12 @@ void RenderGui(Shader& shader)
 			auto pos = program->cur->GetPos();
 			f->MoveTo(pos.x, pos.y, pos.z);
 			program->figures.push_back(f);
-			for (int i = 0; i < program->figures.size(); ++i)
+			bool added = false;
+			for (int i = 0; i < program->figures.size() && !added; ++i)
 			{
 				if (program->figures[i]->GetSelected() && program->figures[i]->figureType == FigureType::BezierCurve)
 				{
+					added = true;
 					((BezierCurve*)program->figures[i])->AddPoint((Point*)f);
 					((Point*)f)->AddParent(program->figures[i]);
 				}
