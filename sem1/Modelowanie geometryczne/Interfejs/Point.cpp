@@ -10,7 +10,7 @@ Point::Point(Shader _shader) : Figure(_shader)
 	figureType = FigureType::Point;
 }
 
-bool Point::GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui)
+bool Point::GetGuiInternal(bool fromMainGui)
 {
 	bool to_ret = false;
 	if (fromMainGui)
@@ -20,16 +20,16 @@ bool Point::GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui)
 		int selectedBezier = -1;
 		if (ImGui::BeginPopup("my_select_popup"))
 		{
-			for (int i = 0; i < figures.size(); i++)
+			for (int i = 0; i < program->figures.size(); i++)
 			{
-				if (figures[i]->figureType == FigureType::BezierCurve)
-					if (ImGui::Selectable(figures[i]->name))
+				if (program->figures[i]->figureType == FigureType::BezierCurve)
+					if (ImGui::Selectable(program->figures[i]->name))
 						selectedBezier = i;
 			}
 			if (selectedBezier != -1)
 			{
-				AddParent(figures[selectedBezier]);
-				((BezierCurve*)figures[selectedBezier])->AddPoint(this);
+				AddParent(program->figures[selectedBezier]);
+				((BezierCurve*)program->figures[selectedBezier])->AddPoint(this);
 			}
 			ImGui::EndPopup();
 		}

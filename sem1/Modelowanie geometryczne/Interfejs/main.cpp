@@ -13,23 +13,20 @@
 #include "Torus.h"
 #include "Point.h"
 #include <vector>
-#include "MiddlePoint.h"
-#include "Cursor.h"
 #include "Camera.h"
 #include "BezierCurve.h"
+#include "Program.h"
+#include "MiddlePoint.h"
+#include "Cursor.h"
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
 
-int current_width = DEFAULT_WIDTH;
-int current_height = DEFAULT_HEIGHT;
+
 bool firstCall = true;
 bool rotate = false;
 glm::vec2 mousePosOld;
-std::vector<Figure*> figures;
-MiddlePoint* mp;
-Cursor* cur;
-Camera* cam;
 glm::vec3 lookAt;
+Program* program;
 
 glm::mat4 ArbitraryRotationMatrix(glm::vec3 v, float a)
 {
@@ -81,24 +78,24 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	if (ImGui::GetIO().WantCaptureMouse) return;
 	glm::vec2 mousePos = { xpos,ypos };
 	glm::vec2 diff = mousePos - mousePosOld;
-	double xDiff = (double)diff.x / current_width;
-	double yDiff = (double)diff.y / current_height;
+	double xDiff = (double)diff.x / program->current_width;
+	double yDiff = (double)diff.y / program->current_height;
 	int lShiftState = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 	{
 		if (lShiftState == GLFW_PRESS)
 		{
 			//TODO
-			cur->ForceRecalcScreenPos();
+			program->cur->ForceRecalcScreenPos();
 		}
 		else
 		{
-			for (int i = 0; i < figures.size(); ++i)
+			for (int i = 0; i < program->figures.size(); ++i)
 			{
-				if (figures[i]->GetSelected() && figures[i]->CanMove())
+				if (program->figures[i]->GetSelected() && program->figures[i]->CanMove())
 				{
-					figures[i]->MoveVec(8 * xDiff, cam->right);
-					figures[i]->MoveVec(-8 * yDiff, cam->up);
+					program->figures[i]->MoveVec(8 * xDiff, program->cam->right);
+					program->figures[i]->MoveVec(-8 * yDiff, program->cam->up);
 				}
 			}
 		}
@@ -111,15 +108,15 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 			double xAngle = 2 * yDiff;
 			double yAngle = 2 * xDiff;
 
-			glm::vec3 camVec = cam->pos - lookAt;
-			camVec = ArbitraryRotate(camVec, xAngle, cam->right);
-			cam->LookAt(lookAt + camVec, ArbitraryRotate(cam->front, xAngle, cam->right), ArbitraryRotate(cam->up, xAngle, cam->right));
+			glm::vec3 camVec = program->cam->pos - lookAt;
+			camVec = ArbitraryRotate(camVec, xAngle, program->cam->right);
+			program->cam->LookAt(lookAt + camVec, ArbitraryRotate(program->cam->front, xAngle, program->cam->right), ArbitraryRotate(program->cam->up, xAngle, program->cam->right));
 
 
-			camVec = cam->pos - lookAt;
-			camVec = ArbitraryRotate(camVec, yAngle, cam->up);
-			cam->LookAt(lookAt + camVec, ArbitraryRotate(cam->front, yAngle, cam->up), cam->up);
-			cur->ForceRecalcScreenPos();
+			camVec = program->cam->pos - lookAt;
+			camVec = ArbitraryRotate(camVec, yAngle, program->cam->up);
+			program->cam->LookAt(lookAt + camVec, ArbitraryRotate(program->cam->front, yAngle, program->cam->up), program->cam->up);
+			program->cur->ForceRecalcScreenPos();
 		}
 		else
 		{
@@ -130,21 +127,21 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 			float yAngle = 2 * xDiff;
 
 
-			glm::mat4 rot1 = ArbitraryRotationMatrix(cam->up, -yAngle);
-			glm::mat4 rot2 = ArbitraryRotationMatrix(cam->right, -xAngle);
+			glm::mat4 rot1 = ArbitraryRotationMatrix(program->cam->up, -yAngle);
+			glm::mat4 rot2 = ArbitraryRotationMatrix(program->cam->right, -xAngle);
 			glm::mat4 m_rotate = rot2 * rot1;
 
-			for (int i = 0; i < figures.size(); ++i)
+			for (int i = 0; i < program->figures.size(); ++i)
 			{
-				if (figures[i]->GetSelected() && figures[i]->CanMove())
+				if (program->figures[i]->GetSelected() && program->figures[i]->CanMove())
 				{
 					if (rotate)
 					{
-						figures[i]->RotateAroundWithMtx(cur->GetPos(), m_rotate);
+						program->figures[i]->RotateAroundWithMtx(program->cur->GetPos(), m_rotate);
 					}
 					else
 					{
-						figures[i]->RotateAroundWithMtx(mp->GetPos(), m_rotate);
+						program->figures[i]->RotateAroundWithMtx(program->mp->GetPos(), m_rotate);
 					}
 				}
 			}
@@ -160,9 +157,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		int lCtrlState = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
 		if (lCtrlState == GLFW_PRESS)
 		{
-			for (int i = 0; i < figures.size(); ++i)
+			for (int i = 0; i < program->figures.size(); ++i)
 			{
-				figures[i]->Select();
+				program->figures[i]->Select();
 			}
 		}
 	}
@@ -176,33 +173,33 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && lCtrlState == GLFW_PRESS)
 	{
 		glm::vec4 lRayStart_NDC(
-			((float)xpos / (float)current_width - 0.5f) * 2.0f,
-			-((float)ypos / (float)current_height - 0.5f) * 2.0f,
+			((float)xpos / (float)program->current_width - 0.5f) * 2.0f,
+			-((float)ypos / (float)program->current_height - 0.5f) * 2.0f,
 			-1.0,
 			1.0f
 		);
 		glm::vec4 lRayEnd_NDC(
-			((float)xpos / (float)current_width - 0.5f) * 2.0f,
-			-((float)ypos / (float)current_height - 0.5f) * 2.0f,
+			((float)xpos / (float)program->current_width - 0.5f) * 2.0f,
+			-((float)ypos / (float)program->current_height - 0.5f) * 2.0f,
 			0.0,
 			1.0f
 		);
 
-		glm::vec4 lRayStart_camera = cam->GetInvProjectionMatrix() * lRayStart_NDC;    lRayStart_camera /= -lRayStart_camera.w;
-		glm::vec4 lRayStart_world = cam->GetInvViewportMatrix() * lRayStart_camera; lRayStart_world /= lRayStart_world.w;
-		glm::vec4 lRayEnd_camera = cam->GetInvProjectionMatrix() * lRayEnd_NDC;      lRayEnd_camera /= -lRayEnd_camera.w;
-		glm::vec4 lRayEnd_world = cam->GetInvViewportMatrix() * lRayEnd_camera;   lRayEnd_world /= lRayEnd_world.w;
+		glm::vec4 lRayStart_camera = program->cam->GetInvProjectionMatrix() * lRayStart_NDC;    lRayStart_camera /= -lRayStart_camera.w;
+		glm::vec4 lRayStart_world = program->cam->GetInvViewportMatrix() * lRayStart_camera; lRayStart_world /= lRayStart_world.w;
+		glm::vec4 lRayEnd_camera = program->cam->GetInvProjectionMatrix() * lRayEnd_NDC;      lRayEnd_camera /= -lRayEnd_camera.w;
+		glm::vec4 lRayEnd_world = program->cam->GetInvViewportMatrix() * lRayEnd_camera;   lRayEnd_world /= lRayEnd_world.w;
 		glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
 		lRayDir_world = glm::normalize(lRayDir_world);
 
 		float minLength = 9999.0f;
 		int minInd = -1;
 
-		for (int i = 0; i < figures.size(); ++i)
+		for (int i = 0; i < program->figures.size(); ++i)
 		{
-			if (figures[i]->figureType == FigureType::Point)
+			if (program->figures[i]->figureType == FigureType::Point)
 			{
-				glm::vec3 point = figures[i]->GetPos();
+				glm::vec3 point = program->figures[i]->GetPos();
 				glm::vec3 toPoint(point - glm::vec3(lRayStart_world));
 				glm::vec3 crossp = glm::cross(lRayDir_world, toPoint);
 				float length = glm::length(crossp);
@@ -215,14 +212,14 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		}
 		if (minInd > -1)
 		{
-			figures[minInd]->Select();
+			program->figures[minInd]->Select();
 		}
 	}
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && lCtrlState == GLFW_PRESS)
 	{
-		for (int i = 0; i < figures.size(); ++i)
+		for (int i = 0; i < program->figures.size(); ++i)
 		{
-			figures[i]->Unselect();
+			program->figures[i]->Unselect();
 		}
 	}
 
@@ -237,47 +234,47 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 		if (yoffset >= 1)
 		{
 			glm::mat3 scale = glm::mat3(0.9f);
-			glm::vec3 camVec = cam->pos - lookAt;
+			glm::vec3 camVec = program->cam->pos - lookAt;
 			camVec = scale * camVec;
-			cam->LookAt(lookAt + camVec, cam->front, cam->up);
-			cur->ForceRecalcScreenPos();
+			program->cam->LookAt(lookAt + camVec, program->cam->front, program->cam->up);
+			program->cur->ForceRecalcScreenPos();
 		}
 		if (yoffset <= -1)
 		{
 			glm::mat3 scale = glm::mat3(1.1f);
-			glm::vec3 camVec = cam->pos - lookAt;
+			glm::vec3 camVec = program->cam->pos - lookAt;
 			camVec = scale * camVec;
-			cam->LookAt(lookAt + camVec, cam->front, cam->up);
-			cur->ForceRecalcScreenPos();
+			program->cam->LookAt(lookAt + camVec, program->cam->front, program->cam->up);
+			program->cur->ForceRecalcScreenPos();
 		}
 
 	}
 	else
 	{
-		for (int i = 0; i < figures.size(); ++i)
+		for (int i = 0; i < program->figures.size(); ++i)
 		{
-			if (figures[i]->GetSelected() && figures[i]->CanMove())
+			if (program->figures[i]->GetSelected() && program->figures[i]->CanMove())
 			{
 				if (yoffset >= 1)
 				{
 					if (rotate)
 					{
-						figures[i]->ScaleAround(cur->GetPos(), 1.1f);
+						program->figures[i]->ScaleAround(program->cur->GetPos(), 1.1f);
 					}
 					else
 					{
-						figures[i]->ScaleAround(mp->GetPos(), 1.1f);
+						program->figures[i]->ScaleAround(program->mp->GetPos(), 1.1f);
 					}
 				}
 				if (yoffset <= -1)
 				{
 					if (rotate)
 					{
-						figures[i]->ScaleAround(cur->GetPos(), 0.9f);
+						program->figures[i]->ScaleAround(program->cur->GetPos(), 0.9f);
 					}
 					else
 					{
-						figures[i]->ScaleAround(mp->GetPos(), 0.9f);
+						program->figures[i]->ScaleAround(program->mp->GetPos(), 0.9f);
 					}
 				}
 			}
@@ -286,10 +283,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 }
 
 void window_size_callback(GLFWwindow* window, int width, int height) {
-	current_width = width;
-	current_height = height;
-	cur->cur_width = width;
-	cur->cur_height = height;
+	program->current_width = width;
+	program->current_height = height;
 }
 
 
@@ -305,44 +300,44 @@ void RenderGui(Shader& shader)
 
 	ImGui::Begin("Menu");
 	ImGui::Checkbox("Transformate around cursor", &rotate);
-	cur->GetGui(-1, figures, true);
+	program->cur->GetGui(-1, true);
 	if (ImGui::TreeNode("Adding"))
 	{
 		if (ImGui::Button("New Torus"))
 		{
 			Figure* f = new Torus(shader);
-			f->Initialize();
-			auto pos = cur->GetPos();
+			f->Initialize(program);
+			auto pos = program->cur->GetPos();
 			f->MoveTo(pos.x, pos.y, pos.z);
-			figures.push_back(f);
+			program->figures.push_back(f);
 		}
 		if (ImGui::Button("New Point"))
 		{
 			Figure* f = new Point(shader);
-			f->Initialize();
-			auto pos = cur->GetPos();
+			f->Initialize(program);
+			auto pos = program->cur->GetPos();
 			f->MoveTo(pos.x, pos.y, pos.z);
-			figures.push_back(f);
-			for (int i = 0; i < figures.size(); ++i)
+			program->figures.push_back(f);
+			for (int i = 0; i < program->figures.size(); ++i)
 			{
-				if (figures[i]->GetSelected() && figures[i]->figureType == FigureType::BezierCurve)
+				if (program->figures[i]->GetSelected() && program->figures[i]->figureType == FigureType::BezierCurve)
 				{
-					((BezierCurve*)figures[i])->AddPoint((Point*)f);
-					((Point*)f)->AddParent(figures[i]);
+					((BezierCurve*)program->figures[i])->AddPoint((Point*)f);
+					((Point*)f)->AddParent(program->figures[i]);
 				}
 			}
 		}
 		if (ImGui::Button("New Bezier Curve"))
 		{
 			Figure* f = new BezierCurve(shader);
-			f->Initialize();
-			figures.push_back(f);
-			for (int i = 0; i < figures.size(); ++i)
+			f->Initialize(program);
+			program->figures.push_back(f);
+			for (int i = 0; i < program->figures.size(); ++i)
 			{
-				if (figures[i]->GetSelected() && figures[i]->figureType == FigureType::Point && !figures[i]->HasParent())
+				if (program->figures[i]->GetSelected() && program->figures[i]->figureType == FigureType::Point && !program->figures[i]->HasParent())
 				{
-					((BezierCurve*)f)->AddPoint((Point*)figures[i]);
-					((Point*)figures[i])->AddParent(f);
+					((BezierCurve*)f)->AddPoint((Point*)program->figures[i]);
+					((Point*)program->figures[i])->AddParent(f);
 				}
 			}
 		}
@@ -350,9 +345,9 @@ void RenderGui(Shader& shader)
 	}
 	if (ImGui::TreeNode("Figures"))
 	{
-		for (int i = 0; i < figures.size(); ++i)
+		for (int i = 0; i < program->figures.size(); ++i)
 		{
-			if (figures[i]->GetGui(i, figures, true))
+			if (program->figures[i]->GetGui(i, true))
 			{
 				to_delete = i;
 			}
@@ -362,8 +357,8 @@ void RenderGui(Shader& shader)
 
 	if (to_delete >= 0)
 	{
-		delete figures[to_delete];
-		figures.erase(figures.begin() + to_delete);
+		delete program->figures[to_delete];
+		program->figures.erase(program->figures.begin() + to_delete);
 	}
 
 	ImGui::End();
@@ -393,7 +388,9 @@ int main()
 	}
 
 	Processing proc = Processing();
-
+	program = new Program();
+	program->current_width = DEFAULT_WIDTH;
+	program->current_height = DEFAULT_HEIGHT;
 	glViewport(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 	//	glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
 	glfwSetFramebufferSizeCallback(window, proc.framebuffer_size_callback);
@@ -402,30 +399,26 @@ int main()
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetKeyCallback(window, key_callback);
-
+	glEnable(GL_LINE_SMOOTH);
 
 	Shader shader("shaders/vertexShader.vs", "shaders/fragShader.fs");
 
-	figures.push_back(new BezierCurve(shader));
-	figures[0]->Initialize();
-	mp = new MiddlePoint(shader);
-	mp->Initialize();
-	cur = new Cursor(shader);
-	cur->Initialize();
+	program->figures.push_back(new BezierCurve(shader));
+	program->figures[0]->Initialize(program);
+	program->mp = new MiddlePoint(shader);
+	program->mp->Initialize(program);
+	program->cur = new Cursor(shader);
+	program->cur->Initialize(program);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	cam = new Camera();
+	program->cam = new Camera();
 	lookAt = { 0,0,0 };
-	cam->LookAt({ 0,0,3 }, { 0,0,-1 }, { 0,1,0 });
-	float aspect = (float)current_width / (float)current_height;
-	cam->SetPerspective(aspect);
-	glm::mat4 view = cam->GetViewportMatrix();
-	glm::mat4 persp = cam->GetProjectionMatrix();
-
-	cur->cam = cam;
-	cur->cur_width = current_width;
-	cur->cur_height = current_height;
+	program->cam->LookAt({ 0,0,3 }, { 0,0,-1 }, { 0,1,0 });
+	float aspect = (float)program->current_width / (float)program->current_height;
+	program->cam->SetPerspective(aspect);
+	glm::mat4 view = program->cam->GetViewportMatrix();
+	glm::mat4 persp = program->cam->GetProjectionMatrix();
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -452,21 +445,21 @@ int main()
 		unsigned int perspLoc = glGetUniformLocation(shader.ID, "persp");
 		unsigned int viewLoc = glGetUniformLocation(shader.ID, "view");
 		unsigned int transLoc = glGetUniformLocation(shader.ID, "transform");
-		persp = cam->GetProjectionMatrix();
-		view = cam->GetViewportMatrix();
+		persp = program->cam->GetProjectionMatrix();
+		view = program->cam->GetViewportMatrix();
 		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
-		mp->Reset();
-		for (int i = 0; i < figures.size(); ++i)
+		program->mp->Reset();
+		for (int i = 0; i < program->figures.size(); ++i)
 		{
-			figures[i]->RecalcFigure();
-			figures[i]->Draw(transLoc);
-			mp->Add(figures[i]);
+			program->figures[i]->RecalcFigure();
+			program->figures[i]->Draw(transLoc);
+			program->mp->Add(program->figures[i]);
 		}
 
-		mp->Draw(transLoc);
-		cur->Draw(transLoc);
+		program->mp->Draw(transLoc);
+		program->cur->Draw(transLoc);
 
 		RenderGui(shader);
 		ImGui::Render();
@@ -477,8 +470,9 @@ int main()
 	}
 
 	glfwTerminate();
-	for (int i = 0; i < figures.size(); ++i) delete figures[i];
-	delete mp;
+	for (int i = 0; i < program->figures.size(); ++i) delete program->figures[i];
+	delete program->mp;
+	delete program;
 	return 0;
 }
 

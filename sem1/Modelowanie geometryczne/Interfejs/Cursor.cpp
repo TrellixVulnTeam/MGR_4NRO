@@ -16,7 +16,7 @@ void Cursor::ForceRecalcScreenPos()
 	posOld = { -1,-1,-1 };
 }
 
-bool Cursor::GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui)
+bool Cursor::GetGuiInternal(bool fromMainGui)
 {
 	bool b = false;
 	if (ImGui::TreeNode("Position"))
@@ -28,8 +28,8 @@ bool Cursor::GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui)
 	}
 	if (ImGui::TreeNode("PositionScreen"))
 	{
-		ImGui::SliderInt("x", &posScreen.x, 0, cur_width);
-		ImGui::SliderInt("y", &posScreen.y, 0, cur_height);
+		ImGui::SliderInt("x", &posScreen.x, 0, program->current_width);
+		ImGui::SliderInt("y", &posScreen.y, 0, program->current_height);
 		ImGui::TreePop();
 	}
 
@@ -40,12 +40,7 @@ bool Cursor::GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui)
 		translation[3][0] = pos.x;
 		translation[3][1] = pos.y;
 		translation[3][2] = pos.z;
-		glm::vec4 _posScreen = cam->GetProjectionMatrix() * cam->GetViewportMatrix() * translation * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		_posScreen /= _posScreen.w;
-		_posScreen = (_posScreen + glm::vec4(1.0f)) / 2.0f;
-		posScreen.x = _posScreen.x * cur_width;
-		posScreen.y = _posScreen.y * cur_height;
-		posScreen.z = _posScreen.z;
+		posScreen = GetScreenPos(program, translation*glm::vec4(0.0f,0.0f,0.0f,1.0f));
 		posScreenOld = posScreen;
 		RecalcModel();
 	}
@@ -54,30 +49,30 @@ bool Cursor::GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui)
 	{
 		posScreenOld = posScreen;
 
-		float A = cam->front.x;
-		float B = cam->front.y;
-		float C = cam->front.z;
-		float D = -cam->front.x * pos.x
-			- cam->front.y * pos.y
-			- cam->front.z * pos.z;
+		float A = program->cam->front.x;
+		float B = program->cam->front.y;
+		float C = program->cam->front.z;
+		float D = -program->cam->front.x * pos.x
+			- program->cam->front.y * pos.y
+			- program->cam->front.z * pos.z;
 
 		glm::vec4 lRayStart_NDC(
-			((float)posScreen.x / (float)cur_width - 0.5f) * 2.0f,
-			((float)posScreen.y / (float)cur_height - 0.5f) * 2.0f,
+			((float)posScreen.x / (float)program->current_width - 0.5f) * 2.0f,
+			((float)posScreen.y / (float)program->current_height - 0.5f) * 2.0f,
 			-1.0,
 			1.0f
 		);
 		glm::vec4 lRayEnd_NDC(
-			((float)posScreen.x / (float)cur_width - 0.5f) * 2.0f,
-			((float)posScreen.y / (float)cur_height - 0.5f) * 2.0f,
+			((float)posScreen.x / (float)program->current_width - 0.5f) * 2.0f,
+			((float)posScreen.y / (float)program->current_height - 0.5f) * 2.0f,
 			0.0,
 			1.0f
 		);
 
-		glm::vec4 lRayStart_camera = cam->GetInvProjectionMatrix() * lRayStart_NDC;    lRayStart_camera /= lRayStart_camera.w;
-		glm::vec4 lRayStart_world = cam->GetInvViewportMatrix() * lRayStart_camera; lRayStart_world /= lRayStart_world.w;
-		glm::vec4 lRayEnd_camera = cam->GetInvProjectionMatrix() * lRayEnd_NDC;      lRayEnd_camera /= lRayEnd_camera.w;
-		glm::vec4 lRayEnd_world = cam->GetInvViewportMatrix() * lRayEnd_camera;   lRayEnd_world /= lRayEnd_world.w;
+		glm::vec4 lRayStart_camera = program->cam->GetInvProjectionMatrix() * lRayStart_NDC;    lRayStart_camera /= lRayStart_camera.w;
+		glm::vec4 lRayStart_world = program->cam->GetInvViewportMatrix() * lRayStart_camera; lRayStart_world /= lRayStart_world.w;
+		glm::vec4 lRayEnd_camera = program->cam->GetInvProjectionMatrix() * lRayEnd_NDC;      lRayEnd_camera /= lRayEnd_camera.w;
+		glm::vec4 lRayEnd_world = program->cam->GetInvViewportMatrix() * lRayEnd_camera;   lRayEnd_world /= lRayEnd_world.w;
 		glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
 		lRayDir_world = glm::normalize(lRayDir_world);
 

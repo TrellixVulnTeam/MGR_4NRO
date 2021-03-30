@@ -27,7 +27,7 @@ void Figure::RecalcModel()
 	}
 }
 
-bool Figure::GetGui(int i, std::vector<Figure*> figures, bool fromMainGui)
+bool Figure::GetGui(int i, bool fromMainGui)
 {
 	bool to_ret = false;
 	if (fromMainGui && showInMainGui
@@ -59,7 +59,7 @@ bool Figure::GetGui(int i, std::vector<Figure*> figures, bool fromMainGui)
 				ImGui::Checkbox("Selected", &selected);
 				if (selected && !selected_old && figureType == FigureType::BezierCurve)
 				{
-					for (int j = 0; j < figures.size(); ++j) if (j!=i && figures[j]->figureType == FigureType::BezierCurve) figures[j]->Unselect();
+					for (int j = 0; j < program->figures.size(); ++j) if (j!=i && program->figures[j]->figureType == FigureType::BezierCurve) program->figures[j]->Unselect();
 				}
 				if (fromMainGui) {
 					if (ImGui::Button("Remove"))
@@ -70,7 +70,7 @@ bool Figure::GetGui(int i, std::vector<Figure*> figures, bool fromMainGui)
 					}
 				}
 			}
-			if (GetGuiInternal(figures, fromMainGui))
+			if (GetGuiInternal(fromMainGui))
 			{
 				to_ret = true;
 			}
@@ -192,8 +192,9 @@ void Figure::Draw(int transLoc)
 	glBindVertexArray(VAO);
 }
 
-void Figure::Initialize()
+void Figure::Initialize(Program* _program)
 {
+	program = _program;
 	translation = glm::mat4(1.0f);
 	scale = glm::mat4(1.0f);
 	rotation = glm::mat4(1.0f);

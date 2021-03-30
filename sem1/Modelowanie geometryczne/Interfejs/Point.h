@@ -4,7 +4,7 @@ class Point : public Figure
 {
 public:
 	Point(Shader _shader);
-	bool virtual GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui) override;
+	bool virtual GetGuiInternal(bool fromMainGui) override;
 	virtual void Draw(int transLoc) override;
 	void Unpin();
 	void RecalcParent();

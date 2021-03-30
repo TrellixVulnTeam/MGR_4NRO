@@ -2,11 +2,12 @@
 #include "Figure.h"
 #include "Point.h"
 #include "PointsLine.h"
+
 class BezierCurve : public Figure
 {
 public:
 	BezierCurve(Shader _shader);
-	bool virtual GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui) override;
+	bool virtual GetGuiInternal(bool fromMainGui) override;
 	virtual void Draw(int transLoc) override;
 	void AddPoint(Point* point);
 	void CleanUp();

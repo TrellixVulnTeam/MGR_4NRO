@@ -8,18 +8,21 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Shader.h"
+#include "Math.h"
 
 enum class FigureType
 {
 	Torus, Point, MiddlePoint, Cursor, BezierCurve, PointsLine
 };
 
+class Program;
+
 class Figure
 {
 public:
 	Figure(Shader _shader);
 	~Figure() = default;
-	bool GetGui(int i,std::vector<Figure*> figures,bool fromMainGui);
+	bool GetGui(int i, bool fromMainGui);
 	std::vector<float> GetVertices();
 	std::vector<unsigned int> GetIndices();
 	glm::mat4 GetModel();
@@ -36,7 +39,7 @@ public:
 	void MoveVec(float a, glm::vec3 v);
 	glm::vec3 GetPos();
 	virtual void Draw(int transLoc);
-	void Initialize();
+	void Initialize(Program* _program);
 	void RecalcFigure();
 	bool CanMove() { return canMove; };
 	bool HasParent() { return parent != NULL; };
@@ -58,9 +61,10 @@ protected:
 	bool selected = false;
 	bool canMove = true;
 	std::string _name;
-	bool virtual GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui) = 0;
+	bool virtual GetGuiInternal(bool fromMainGui) = 0;
 	bool showInMainGui = true;
 	Figure* parent = NULL;
+	Program* program = NULL;
 private:
 	bool selected_old = false;
 	unsigned int VBO;

@@ -9,7 +9,7 @@ Torus::Torus(Shader _shader) : Figure(_shader)
 	figureType = FigureType::Torus;
 }
 
-bool Torus::GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui)
+bool Torus::GetGuiInternal(bool fromMainGui)
 {
 	bool b = false;
 

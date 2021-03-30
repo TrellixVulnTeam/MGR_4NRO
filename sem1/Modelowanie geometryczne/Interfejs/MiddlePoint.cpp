@@ -9,7 +9,7 @@ MiddlePoint::MiddlePoint(Shader _shader) : Figure(_shader)
 	figureType = FigureType::MiddlePoint;
 }
 
-bool MiddlePoint::GetGuiInternal(std::vector<Figure*> figures, bool fromMainGui)
+bool MiddlePoint::GetGuiInternal(bool fromMainGui)
 {
 	bool b = false;
 
