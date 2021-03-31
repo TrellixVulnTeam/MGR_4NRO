@@ -55,8 +55,8 @@ void main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
 	PSInput pg = (PSInput)0;
 	pg.pos = i.pos;
 	pg.pos.x += dx;
-	pg.pos = mul(projMatrix, pg.pos);
 	pg.pos.y += dy;
+	pg.pos = mul(projMatrix, pg.pos);
 	pg.tex1.x = 1.0f;
 	pg.tex1.y = 0.0f;
 	pg.tex2.x = i.age / TimeToLive;
