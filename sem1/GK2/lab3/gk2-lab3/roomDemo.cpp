@@ -149,7 +149,7 @@ RoomDemo::RoomDemo(HINSTANCE appInstance)
 
 	// TODO : 1.08 Calculate correct transformation matrix for the poster texture
 	XMVECTOR zRot = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-	XMStoreFloat4x4(&tempMtx, XMMatrixTranslation(0.8f, 0.0f, 0.0f)* XMMatrixRotationAxis(zRot, -M_PI / 18.0f) * XMMatrixScaling(1.0f,-0.75f,1.0f)* XMMatrixTranslation(0.5f, 0.5f, 0.0f));
+	XMStoreFloat4x4(&tempMtx, XMMatrixTranslation(0.8f, 0.0f, 0.0f)* XMMatrixRotationAxis(zRot, M_PI / 18.0f) * XMMatrixScaling(1.0f,-0.75f,1.0f)* XMMatrixTranslation(0.5f, 0.5f, 0.0f));
 
 	UpdateBuffer(m_cbTex2Mtx, tempMtx);
 
@@ -225,6 +225,8 @@ void RoomDemo::UpdateLamp(float dt)
 
 void mini::gk2::RoomDemo::UpdateParticles(float dt)
 {
+	auto particles =  m_particles.Update(dt, m_camera.getCameraPosition());
+	UpdateBuffer(m_vbParticles, particles);
 	// TODO : 1.31 update particle system and copy vertex data to the buffer
 }
 

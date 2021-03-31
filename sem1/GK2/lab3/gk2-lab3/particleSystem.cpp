@@ -75,6 +75,15 @@ Particle ParticleSystem::RandomParticle()
 {
 	static const uniform_real_distribution<float> anglularVelDist(MIN_ANGLE_VEL, MAX_ANGLE_VEL);
 	Particle p;
+	p.Vertex = ParticleVertex();
+	p.Vertex.Age = 0;
+	p.Vertex.Size = PARTICLE_SIZE;
+	p.Vertex.Pos = m_emitterPos;
+	p.Vertex.Angle = 0;
+
+	p.Velocities = ParticleVelocities();
+	p.Velocities.Velocity = RandomVelocity();
+	p.Velocities.AngularVelocity = anglularVelDist(m_random);
 	// TODO : 1.27 Setup initial particle properties
 
 	return p;
@@ -83,13 +92,39 @@ Particle ParticleSystem::RandomParticle()
 void ParticleSystem::UpdateParticle(Particle& p, float dt)
 {
 	// TODO : 1.28 Update particle properties
+	p.Vertex.Age += dt;
+
+	XMVECTOR v1 = XMLoadFloat3(&p.Vertex.Pos);
+	XMVECTOR v2 = XMLoadFloat3(&p.Velocities.Velocity);
+	XMStoreFloat3(&p.Vertex.Pos, v1 + dt * v2);
+
+	p.Vertex.Angle += dt * p.Velocities.AngularVelocity;
+	p.Vertex.Size += PARTICLE_SCALE * PARTICLE_SIZE * dt;
 }
+
+struct myclass {
+	DirectX::XMFLOAT4 camPos;
+	bool operator() (ParticleVertex a, ParticleVertex b) 
+	{
+		return dist(camPos,a.Pos) < dist(camPos, a.Pos);
+	}
+	float dist(XMFLOAT4 v1, XMFLOAT3 v2) {
+		return sqrt((v1.x-v2.x)* (v1.x - v2.x)+
+			(v1.y - v2.y) * (v1.y - v2.y)+
+			(v1.z - v2.z) * (v1.z - v2.z)
+		);
+	}
+} myobject;
 
 vector<ParticleVertex> ParticleSystem::GetParticleVerts(DirectX::XMFLOAT4 cameraPosition)
 {
 	XMFLOAT4 cameraTarget(0.0f, 0.0f, 0.0f, 1.0f);
 
 	vector<ParticleVertex> vertices;
+	for (int i = 0; i < m_particles.size(); ++i) vertices.push_back(m_particles[i].Vertex);
+	
+	myobject.camPos = cameraPosition;
+	std::sort(vertices.begin(), vertices.end(), myobject);
 	// TODO : 1.29 Copy particles' vertex data to a vector and sort them
 
 	return vertices;
