@@ -22,7 +22,7 @@ class Program;
 class Figure
 {
 public:
-	Figure(Shader _shader);
+	Figure();
 	~Figure() = default;
 	bool GetGui(int i, bool fromMainGui);
 	std::vector<float> GetVertices();
@@ -40,8 +40,8 @@ public:
 	void MoveTo(float x, float y, float z);
 	void MoveVec(float a, glm::vec3 v);
 	glm::vec3 GetPos();
-	virtual void Draw(int transLoc);
-	void Initialize(Program* _program);
+	virtual void Draw();
+	void virtual Initialize(Program* _program);
 	void RecalcFigure();
 	bool CanMove() { return canMove; };
 	bool HasParent() { return parent != NULL; };
@@ -56,7 +56,6 @@ protected:
 	virtual bool Create();
 	void RecalcModel();
 	glm::mat4 translation;
-	//glm::mat4 rotation;
 	glm::quat rotation_q;
 	glm::mat4 scale;
 	glm::mat4 model;
@@ -68,10 +67,10 @@ protected:
 	bool showInMainGui = true;
 	Figure* parent = NULL;
 	Program* program = NULL;
+	Shader shader;
 private:
 	bool selected_old = false;
 	unsigned int VBO;
 	unsigned int VAO;
 	unsigned int EBO;
-	Shader shader;
 };

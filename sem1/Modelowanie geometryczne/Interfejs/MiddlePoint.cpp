@@ -2,11 +2,16 @@
 #include "imgui\imgui.h"
 #include <string>
 
-MiddlePoint::MiddlePoint(Shader _shader) : Figure(_shader)
+MiddlePoint::MiddlePoint() : Figure()
 {
 	sprintf_s(name, STRMAX, "MiddlePoint");
 	_name = "MiddlePoint";
 	figureType = FigureType::MiddlePoint;
+}
+
+void MiddlePoint::Initialize(Program* _program)
+{
+	Figure::Initialize(_program);
 }
 
 bool MiddlePoint::GetGuiInternal(bool fromMainGui)
@@ -31,12 +36,12 @@ void MiddlePoint::Add(Figure* figure)
 	}
 }
 
-void MiddlePoint::Draw(int transLoc)
+void MiddlePoint::Draw()
 {
 	if (count > 0)
 	{
 		MoveTo(pos.x/count, pos.y/count, pos.z/count);
-		Figure::Draw(transLoc);
+		Figure::Draw();
 		glPointSize(3.0f);
 		glDrawElements(GL_POINTS, indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);

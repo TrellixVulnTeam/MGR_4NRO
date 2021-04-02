@@ -4,8 +4,9 @@
 
 
 
-Figure::Figure(Shader _shader) :shader(_shader)
+Figure::Figure() :shader()
 {
+	
 }
 
 bool Figure::Create()
@@ -172,16 +173,19 @@ glm::vec3 Figure::GetPos()
 		translation[3][1],
 		translation[3][2]);
 }
-void Figure::Draw(int transLoc)
+void Figure::Draw()
 {
-	glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(GetModel()));
 	shader.use();
+	int transLoc = glGetUniformLocation(shader.ID, "transform");
+
+	glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(GetModel()));
 	glBindVertexArray(VAO);
 }
 
 void Figure::Initialize(Program* _program)
 {
 	program = _program;
+	shader =Shader(program->shader);
 	translation = glm::mat4(1.0f);
 	scale = glm::mat4(1.0f);
 

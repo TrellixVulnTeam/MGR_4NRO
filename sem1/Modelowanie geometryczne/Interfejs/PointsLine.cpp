@@ -1,7 +1,7 @@
 #include "PointsLine.h"
 #include <string>
 
-PointsLine::PointsLine(Shader _shader) : Figure(_shader)
+PointsLine::PointsLine() : Figure()
 {
 	sprintf_s(name, STRMAX, "PointsLine");
 	_name = "PointsLine";
@@ -9,9 +9,14 @@ PointsLine::PointsLine(Shader _shader) : Figure(_shader)
 	canMove = false;
 }
 
-void PointsLine::Draw(int transLoc)
+void PointsLine::Initialize(Program* _program)
 {
-	Figure::Draw(transLoc);
+	Figure::Initialize(_program);
+}
+
+void PointsLine::Draw()
+{
+	Figure::Draw();
 	glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }

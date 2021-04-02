@@ -28,6 +28,7 @@ glm::vec2 mousePosOld;
 glm::vec3 lookAt;
 Program* program;
 
+
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle , glm::vec3 axis)
 {
 	glm::quat quat= glm::angleAxis(angle, axis);
@@ -243,7 +244,7 @@ void window_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 
-void RenderGui(Shader& shader)
+void RenderGui()
 {
 	if (firstCall)
 	{
@@ -260,7 +261,7 @@ void RenderGui(Shader& shader)
 	{
 		if (ImGui::Button("New Torus"))
 		{
-			Figure* f = new Torus(shader);
+			Figure* f = new Torus();
 			f->Initialize(program);
 			auto pos = program->cur->GetPos();
 			f->MoveTo(pos.x, pos.y, pos.z);
@@ -268,7 +269,7 @@ void RenderGui(Shader& shader)
 		}
 		if (ImGui::Button("New Point"))
 		{
-			Figure* f = new Point(shader);
+			Figure* f = new Point();
 			f->Initialize(program);
 			auto pos = program->cur->GetPos();
 			f->MoveTo(pos.x, pos.y, pos.z);
@@ -286,7 +287,7 @@ void RenderGui(Shader& shader)
 		}
 		if (ImGui::Button("New Bezier Curve"))
 		{
-			Figure* f = new BezierCurve(shader);
+			Figure* f = new BezierCurve();
 			f->Initialize(program);
 			program->figures.push_back(f);
 			for (int i = 0; i < program->figures.size(); ++i)
@@ -348,6 +349,7 @@ int main()
 	program = new Program();
 	program->current_width = DEFAULT_WIDTH;
 	program->current_height = DEFAULT_HEIGHT;
+	//program->shader = new Shader("shaders/vertexShader.vs", "shaders/fragShader.fs",nullptr);
 	glViewport(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 	//	glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
 	glfwSetFramebufferSizeCallback(window, proc.framebuffer_size_callback);
@@ -356,18 +358,18 @@ int main()
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetKeyCallback(window, key_callback);
-	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_LINE_SMOOTH); 
 
-	Shader shader("shaders/vertexShader.vs", "shaders/fragShader.fs");
+	program->shader= Shader("shaders/vertexShader.vs"
+		, "shaders/fragShader.fs"
+		, nullptr);
+	program->bezierShader = Shader("shaders/bezierVertexShader.vs"
+		, "shaders/fragShader.fs"
+		, "shaders/bezierGeometryShader.gs");
 
-	Figure* f = new Torus(shader);
-	f->Initialize(program);
-	f->Select();
-	program->figures.push_back(f);
-
-	program->mp = new MiddlePoint(shader);
+	program->mp = new MiddlePoint();
 	program->mp->Initialize(program);
-	program->cur = new Cursor(shader);
+	program->cur = new Cursor();
 	program->cur->Initialize(program);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -379,7 +381,8 @@ int main()
 	program->cam->SetPerspective(aspect);
 	glm::mat4 view = program->cam->GetViewportMatrix();
 	glm::mat4 persp = program->cam->GetProjectionMatrix();
-
+	glm::mat4 view2 = program->cam->GetViewportMatrix();
+	glm::mat4 persp2 = program->cam->GetProjectionMatrix();
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -402,11 +405,16 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		unsigned int perspLoc = glGetUniformLocation(shader.ID, "persp");
-		unsigned int viewLoc = glGetUniformLocation(shader.ID, "view");
-		unsigned int transLoc = glGetUniformLocation(shader.ID, "transform");
+		program->shader.use();
+		unsigned int perspLoc = glGetUniformLocation(program->shader.ID, "persp");
+		unsigned int viewLoc = glGetUniformLocation(program->shader.ID, "view");
 		persp = program->cam->GetProjectionMatrix();
 		view = program->cam->GetViewportMatrix();
+		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		program->bezierShader.use();
+		perspLoc = glGetUniformLocation(program->bezierShader.ID, "persp");
+		viewLoc = glGetUniformLocation(program->bezierShader.ID, "view");
 		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
@@ -414,14 +422,14 @@ int main()
 		for (int i = 0; i < program->figures.size(); ++i)
 		{
 			program->figures[i]->RecalcFigure();
-			program->figures[i]->Draw(transLoc);
+			program->figures[i]->Draw();
 			program->mp->Add(program->figures[i]);
 		}
 
-		program->mp->Draw(transLoc);
-		program->cur->Draw(transLoc);
+		program->mp->Draw();
+		program->cur->Draw();
 
-		RenderGui(shader);
+		RenderGui();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

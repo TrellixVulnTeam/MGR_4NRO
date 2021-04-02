@@ -196,6 +196,8 @@
     <ClInclude Include="Torus.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\bezierGeometryShader.gs" />
+    <None Include="shaders\bezierVertexShader.vs" />
     <None Include="shaders\fragShader.fs" />
     <None Include="shaders\vertexShader.vs" />
   </ItemGroup>

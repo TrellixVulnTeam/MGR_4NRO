@@ -3,11 +3,16 @@
 #include <string>
 #include "BezierCurve.h"
 
-Point::Point(Shader _shader) : Figure(_shader)
+Point::Point() : Figure()
 {
 	sprintf_s(name, STRMAX, "Point");
 	_name = "Point";
 	figureType = FigureType::Point;
+}
+
+void Point::Initialize(Program* _program)
+{
+	Figure::Initialize(_program);
 }
 
 bool Point::GetGuiInternal(bool fromMainGui)
@@ -46,9 +51,9 @@ bool Point::GetGuiInternal(bool fromMainGui)
 	return to_ret;
 }
 
-void Point::Draw(int transLoc)
+void Point::Draw()
 {
-	Figure::Draw(transLoc);
+	Figure::Draw();
 	glPointSize(2.0f);
 	glDrawElements(GL_POINTS, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);

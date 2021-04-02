@@ -3,11 +3,12 @@
 class MiddlePoint : public Figure
 {
 public:
-	MiddlePoint(Shader _shader);
+	MiddlePoint();
 	bool virtual GetGuiInternal(bool fromMainGui) override;
 	void Reset();
 	void Add(Figure* figure);
-	virtual void Draw(int transLoc) override;
+	virtual void Draw() override;
+	void virtual Initialize(Program* _program) override;
 private:
 	bool virtual Create() override;
 	bool firstTime = true;

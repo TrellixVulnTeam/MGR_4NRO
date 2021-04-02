@@ -3,10 +3,11 @@
 class Cursor : public Figure
 {
 public:
-	Cursor(Shader _shader);
+	Cursor();
 	void ForceRecalcScreenPos();
 	bool virtual GetGuiInternal(bool fromMainGui) override;
-	virtual void Draw(int transLoc) override;
+	virtual void Draw() override;
+	void virtual Initialize(Program* _program) override;
 private:
 	bool virtual Create() override;
 	bool firstTime = true;

@@ -2,13 +2,18 @@
 #include "imgui\imgui.h"
 #include <string>
 
-Cursor::Cursor(Shader _shader) : Figure(_shader)
+Cursor::Cursor() : Figure()
 {
 	sprintf_s(name, STRMAX, "Cursor");
 	_name = "Cursor";
 	figureType = FigureType::Cursor;
 	pos = glm::vec3(0.0f, 0.0f, 0.0f);
 	posOld = glm::vec3(-1.0f);
+}
+
+void Cursor::Initialize(Program* _program)
+{
+	Figure::Initialize(_program);
 }
 
 void Cursor::ForceRecalcScreenPos()
@@ -93,9 +98,9 @@ bool Cursor::GetGuiInternal(bool fromMainGui)
 	return b;
 }
 
-void Cursor::Draw(int transLoc)
+void Cursor::Draw()
 {
-	Figure::Draw(transLoc);
+	Figure::Draw();
 	glPointSize(2.0f);
 	glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);

@@ -3,9 +3,10 @@
 class Torus : public Figure
 {
 public:
-	Torus(Shader _shader);
+	Torus();
 	bool virtual GetGuiInternal(bool fromMainGui) override;
-	virtual void Draw(int transLoc) override;
+	virtual void Draw() override;
+	void virtual Initialize(Program* _program) override;
 private:
 	bool virtual Create() override;
 	int m_new = 8, n_new = 8;

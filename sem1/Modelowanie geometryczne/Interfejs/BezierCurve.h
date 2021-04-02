@@ -6,12 +6,13 @@
 class BezierCurve : public Figure
 {
 public:
-	BezierCurve(Shader _shader);
+	BezierCurve();
 	bool virtual GetGuiInternal(bool fromMainGui) override;
-	virtual void Draw(int transLoc) override;
+	virtual void Draw() override;
 	void AddPoint(Point* point);
 	void CleanUp();
 	void Recalc() { first = true; }
+	void virtual Initialize(Program* _program) override;
 private:
 	bool virtual Create() override;
 	std::vector<Point*> points;

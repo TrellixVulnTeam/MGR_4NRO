@@ -19,6 +19,9 @@
     <Filter Include="Source Files\imgui">
       <UniqueIdentifier>{8363063c-5e8d-4107-8c55-d0be84d95141}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{61920383-684a-495a-b6fe-463c2ee1be3a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
@@ -142,7 +145,17 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\fragShader.fs" />
-    <None Include="shaders\vertexShader.vs" />
+    <None Include="shaders\vertexShader.vs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\fragShader.fs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\bezierGeometryShader.gs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\bezierVertexShader.vs">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-
+#include "Shader.h"
 class Figure;
 class MiddlePoint;
 class Cursor;
@@ -18,5 +18,7 @@ public:
 	MiddlePoint* mp = NULL;
 	Cursor* cur = NULL;
 	Camera* cam = NULL;
+	Shader shader;
+	Shader bezierShader;
 };
 

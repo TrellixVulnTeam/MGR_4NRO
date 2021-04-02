@@ -2,11 +2,16 @@
 #include "imgui\imgui.h"
 #include <string>
 
-Torus::Torus(Shader _shader) : Figure(_shader)
+Torus::Torus() : Figure()
 {
 	sprintf_s(name, STRMAX, "Torus");
 	_name = "Torus";
 	figureType = FigureType::Torus;
+}
+
+void Torus::Initialize(Program* _program)
+{
+	Figure::Initialize(_program);
 }
 
 bool Torus::GetGuiInternal(bool fromMainGui)
@@ -24,9 +29,9 @@ bool Torus::GetGuiInternal(bool fromMainGui)
 	return b;
 }
 
-void Torus::Draw(int transLoc)
+void Torus::Draw()
 {
-	Figure::Draw(transLoc);
+	Figure::Draw();
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
