@@ -14,7 +14,7 @@ void MiddlePoint::Initialize(Program* _program)
 	Figure::Initialize(_program);
 }
 
-bool MiddlePoint::GetGuiInternal(bool fromMainGui)
+bool MiddlePoint::GetGuiInternal(Figure* par)
 {
 	bool b = false;
 

@@ -14,7 +14,7 @@ void Torus::Initialize(Program* _program)
 	Figure::Initialize(_program);
 }
 
-bool Torus::GetGuiInternal(bool fromMainGui)
+bool Torus::GetGuiInternal(Figure* par)
 {
 	bool b = false;
 

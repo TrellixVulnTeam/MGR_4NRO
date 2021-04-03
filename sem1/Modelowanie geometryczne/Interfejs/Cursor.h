@@ -5,7 +5,7 @@ class Cursor : public Figure
 public:
 	Cursor();
 	void ForceRecalcScreenPos();
-	bool virtual GetGuiInternal(bool fromMainGui) override;
+	bool virtual GetGuiInternal(Figure* par) override;
 	virtual void Draw() override;
 	void virtual Initialize(Program* _program) override;
 private:

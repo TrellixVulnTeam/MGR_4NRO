@@ -29,24 +29,23 @@ void Figure::RecalcModel()
 	}
 }
 
-bool Figure::GetGui(int i, bool fromMainGui)
+bool Figure::GetGui(int i, Figure* par)
 {
 	bool to_ret = false;
-	if (fromMainGui && showInMainGui
+	if (par==nullptr && showInMainGui
 		||
-		!fromMainGui && !showInMainGui)
+		par!=nullptr && !showInMainGui)
 	{
-		char buffer[STRMAX];
 		std::string t(name);
 		if (i >= 0)
 		{
-			sprintf_s(buffer, "%s###%s", (t + " - " + std::to_string(i)).c_str(), _name);
+			sprintf_s(gui_name, "%s###%s", (t + " - " + std::to_string(i)).c_str(), _name);
 		}
 		else
 		{
-			sprintf_s(buffer, "%s###%s", t.c_str(), _name);
+			sprintf_s(gui_name, "%s###%s", t.c_str(), _name);
 		}
-		if (ImGui::TreeNode(buffer)) {
+		if (ImGui::TreeNode(gui_name)) {
 
 			if (ImGui::BeginPopupContextItem())
 			{
@@ -63,7 +62,7 @@ bool Figure::GetGui(int i, bool fromMainGui)
 				{
 					for (int j = 0; j < program->figures.size(); ++j) if (j!=i && program->figures[j]->figureType == FigureType::BezierCurve) program->figures[j]->Unselect();
 				}
-				if (fromMainGui) {
+				if (par==nullptr) {
 					if (ImGui::Button("Remove"))
 					{
 						if (figureType == FigureType::BezierCurve)
@@ -72,7 +71,7 @@ bool Figure::GetGui(int i, bool fromMainGui)
 					}
 				}
 			}
-			if (GetGuiInternal(fromMainGui))
+			if (GetGuiInternal(par))
 			{
 				to_ret = true;
 			}

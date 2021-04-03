@@ -12,7 +12,6 @@
 #include "Figure.h"
 #include "Torus.h"
 #include "Point.h"
-#include <vector>
 #include "Camera.h"
 #include "BezierCurve.h"
 #include "Program.h"
@@ -256,7 +255,7 @@ void RenderGui()
 
 	ImGui::Begin("Menu");
 	ImGui::Checkbox("Transformate around cursor", &rotate);
-	program->cur->GetGui(-1, true);
+	program->cur->GetGui(-1, nullptr);
 	if (ImGui::TreeNode("Adding"))
 	{
 		if (ImGui::Button("New Torus"))
@@ -274,12 +273,10 @@ void RenderGui()
 			auto pos = program->cur->GetPos();
 			f->MoveTo(pos.x, pos.y, pos.z);
 			program->figures.push_back(f);
-			bool added = false;
-			for (int i = 0; i < program->figures.size() && !added; ++i)
+			for (int i = 0; i < program->figures.size(); ++i)
 			{
 				if (program->figures[i]->GetSelected() && program->figures[i]->figureType == FigureType::BezierCurve)
 				{
-					added = true;
 					((BezierCurve*)program->figures[i])->AddPoint((Point*)f);
 					((Point*)f)->AddParent(program->figures[i]);
 				}
@@ -292,7 +289,7 @@ void RenderGui()
 			program->figures.push_back(f);
 			for (int i = 0; i < program->figures.size(); ++i)
 			{
-				if (program->figures[i]->GetSelected() && program->figures[i]->figureType == FigureType::Point && !program->figures[i]->HasParent())
+				if (program->figures[i]->GetSelected() && program->figures[i]->figureType == FigureType::Point)
 				{
 					((BezierCurve*)f)->AddPoint((Point*)program->figures[i]);
 					((Point*)program->figures[i])->AddParent(f);
@@ -305,7 +302,7 @@ void RenderGui()
 	{
 		for (int i = 0; i < program->figures.size(); ++i)
 		{
-			if (program->figures[i]->GetGui(i, true))
+			if (program->figures[i]->GetGui(i, nullptr))
 			{
 				to_delete = i;
 			}
@@ -399,7 +396,7 @@ int main()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-	//	ImGui::ShowDemoWindow();
+		//ImGui::ShowDemoWindow();
 		proc.processInput(window);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);

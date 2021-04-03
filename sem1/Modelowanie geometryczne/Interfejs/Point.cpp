@@ -15,37 +15,35 @@ void Point::Initialize(Program* _program)
 	Figure::Initialize(_program);
 }
 
-bool Point::GetGuiInternal(bool fromMainGui)
+bool Point::GetGuiInternal(Figure* par)
 {
 	bool to_ret = false;
-	if (fromMainGui)
+
+	int selectedBezier = -1;
+	if (ImGui::TreeNode("Pin to Bezier..."))
 	{
-		if (ImGui::Button("Pin to Bezier.."))
-			ImGui::OpenPopup("my_select_popup");
-		int selectedBezier = -1;
-		if (ImGui::BeginPopup("my_select_popup"))
+		for (int i = 0; i < program->figures.size(); i++)
 		{
-			for (int i = 0; i < program->figures.size(); i++)
-			{
-				if (program->figures[i]->figureType == FigureType::BezierCurve)
-					if (ImGui::Selectable(program->figures[i]->name))
-						selectedBezier = i;
-			}
-			if (selectedBezier != -1)
-			{
-				AddParent(program->figures[selectedBezier]);
-				((BezierCurve*)program->figures[selectedBezier])->AddPoint(this);
-			}
-			ImGui::EndPopup();
+			if (program->figures[i]->figureType == FigureType::BezierCurve
+				&& !(std::find(parents.begin(), parents.end(), program->figures[i]) != parents.end()))
+				if (ImGui::Button(program->figures[i]->gui_name))
+				{
+					selectedBezier = i;
+				}
 		}
+		if (selectedBezier != -1)
+		{
+			AddParent(program->figures[selectedBezier]);
+			((BezierCurve*)program->figures[selectedBezier])->AddPoint(this);
+		}
+		ImGui::TreePop();
 	}
-	else
+	if (par != nullptr)
 	{
 		if (ImGui::Button("Unpin"))
 		{
 			to_ret = true;
-			parent = NULL;
-			Unpin();
+			Unpin(par);
 		}
 	}
 	return to_ret;
@@ -59,25 +57,30 @@ void Point::Draw()
 	glBindVertexArray(0);
 }
 
-void Point::Unpin()
+void Point::Unpin(Figure* par)
 {
-	showInMainGui = true;
+	int j = -1;
+	for (int i = 0; i < parents.size(); ++i)
+		if (parents[i] == par) j = i;
+	parents.erase(parents.begin() + j);
+	if (parents.size() == 0)
+		showInMainGui = true;
 }
 
 void Point::RecalcParent()
 {
-	if (parent != NULL)
+	for (int i = 0; i < parents.size(); ++i)
 	{
-		if (parent->figureType == FigureType::BezierCurve)
+		if (parents[i]->figureType == FigureType::BezierCurve)
 		{
-			((BezierCurve*)parent)->Recalc();
+			((BezierCurve*)parents[i])->Recalc();
 		}
 	}
 }
 
 void Point::AddParent(Figure* f)
 {
-	parent = f;
+	parents.push_back(f);
 	showInMainGui = false;
 }
 
@@ -94,7 +97,7 @@ bool Point::Create()
 		vertices[3] = selected ? 0.0f : 1.0f;
 		vertices[4] = selected ? 1.0f : 0.0f;
 		vertices[5] = 0.0f;
-		
+
 		indices.clear();
 		indices.push_back(0);
 

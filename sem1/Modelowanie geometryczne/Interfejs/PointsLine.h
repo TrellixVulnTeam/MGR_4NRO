@@ -6,7 +6,7 @@ class PointsLine : public Figure
 {
 public:
 	PointsLine();
-	bool virtual GetGuiInternal(bool fromMainGui) override { return false; };
+	bool virtual GetGuiInternal(Figure* par) override { return false; };
 	virtual void Draw() override;
 	void AddPoint(Point* point);
 	void RemoveAt(int i);

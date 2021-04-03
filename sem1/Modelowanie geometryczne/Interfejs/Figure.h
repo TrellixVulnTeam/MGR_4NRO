@@ -24,7 +24,7 @@ class Figure
 public:
 	Figure();
 	~Figure() = default;
-	bool GetGui(int i, bool fromMainGui);
+	bool GetGui(int i, Figure* par);
 	std::vector<float> GetVertices();
 	std::vector<unsigned int> GetIndices();
 	glm::mat4 GetModel();
@@ -44,7 +44,7 @@ public:
 	void virtual Initialize(Program* _program);
 	void RecalcFigure();
 	bool CanMove() { return canMove; };
-	bool HasParent() { return parent != NULL; };
+	bool HasParent() { return parents.size() > 0; };
 
 	std::vector<float> vertices;
 	std::vector<unsigned int> indices;
@@ -52,6 +52,7 @@ public:
 	FigureType figureType;
 	bool keepOpen = false;
 	char name[STRMAX] = "";
+	char gui_name[STRMAX];
 protected:
 	virtual bool Create();
 	void RecalcModel();
@@ -63,9 +64,9 @@ protected:
 	bool selected = false;
 	bool canMove = true;
 	std::string _name;
-	bool virtual GetGuiInternal(bool fromMainGui) = 0;
+	bool virtual GetGuiInternal(Figure* par) = 0;
 	bool showInMainGui = true;
-	Figure* parent = NULL;
+	std::vector<Figure*> parents;
 	Program* program = NULL;
 	Shader shader;
 private:

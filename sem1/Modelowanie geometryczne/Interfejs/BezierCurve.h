@@ -7,7 +7,7 @@ class BezierCurve : public Figure
 {
 public:
 	BezierCurve();
-	bool virtual GetGuiInternal(bool fromMainGui) override;
+	bool virtual GetGuiInternal(Figure* par) override;
 	virtual void Draw() override;
 	void AddPoint(Point* point);
 	void CleanUp();

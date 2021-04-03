@@ -4,7 +4,7 @@ class MiddlePoint : public Figure
 {
 public:
 	MiddlePoint();
-	bool virtual GetGuiInternal(bool fromMainGui) override;
+	bool virtual GetGuiInternal(Figure* par) override;
 	void Reset();
 	void Add(Figure* figure);
 	virtual void Draw() override;

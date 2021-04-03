@@ -4,7 +4,7 @@ class Torus : public Figure
 {
 public:
 	Torus();
-	bool virtual GetGuiInternal(bool fromMainGui) override;
+	bool virtual GetGuiInternal(Figure* par) override;
 	virtual void Draw() override;
 	void virtual Initialize(Program* _program) override;
 private:

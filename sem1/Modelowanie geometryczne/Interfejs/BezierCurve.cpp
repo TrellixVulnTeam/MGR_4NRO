@@ -18,7 +18,7 @@ void BezierCurve::Initialize(Program* _program)
 	pointsLine->Initialize(program);
 }
 
-bool BezierCurve::GetGuiInternal(bool fromMainGui)
+bool BezierCurve::GetGuiInternal(Figure* par)
 {
 	bool b = false;
 
@@ -36,7 +36,7 @@ bool BezierCurve::GetGuiInternal(bool fromMainGui)
 	{
 		for (int i = 0; i < points.size(); ++i)
 		{
-			if (points[i]->GetGui(i, false))
+			if (points[i]->GetGui(i, this))
 			{
 				to_del = i;
 			}
@@ -71,7 +71,7 @@ void BezierCurve::AddPoint(Point* point)
 void BezierCurve::CleanUp()
 {
 	for (int i = 0; i < points.size(); ++i)
-		points[i]->Unpin();
+		points[i]->Unpin(this);
 	delete pointsLine;
 }
 
