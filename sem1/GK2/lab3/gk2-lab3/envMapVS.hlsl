@@ -33,6 +33,12 @@ PSInput main(VSInput i)
 	o.pos = mul(worldMatrix, o.pos);
 
 	// TODO : 1.23 Calculate cube map texture coordinates
+	float4 sceneNorm = float4(i.norm, 0.0f);
+	sceneNorm = normalize(mul(worldMatrix, sceneNorm));
+	float3 camPos = mul(invViewMatrix, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
+	float3 dir = normalize(camPos - o.pos.xyz);
+	float3 refl = reflect(dir,sceneNorm);
+	o.tex = -refl;
 
 	o.pos = mul(viewMatrix, o.pos);
 	o.pos = mul(projMatrix, o.pos);
