@@ -13,7 +13,8 @@
 #include "Torus.h"
 #include "Point.h"
 #include "Camera.h"
-#include "BezierCurve.h"
+#include "BezierCurveC0.h"
+#include "BezierCurveC2.h"
 #include "Program.h"
 #include "MiddlePoint.h"
 #include "Cursor.h"
@@ -275,23 +276,37 @@ void RenderGui()
 			program->figures.push_back(f);
 			for (int i = 0; i < program->figures.size(); ++i)
 			{
-				if (program->figures[i]->GetSelected() && program->figures[i]->figureType == FigureType::BezierCurve)
+				if (program->figures[i]->GetSelected() && program->figures[i]->isCurve)
 				{
-					((BezierCurve*)program->figures[i])->AddPoint((Point*)f);
+					((SomeCurve*)program->figures[i])->AddPoint((Point*)f);
 					((Point*)f)->AddParent(program->figures[i]);
 				}
 			}
 		}
-		if (ImGui::Button("New Bezier Curve"))
+		if (ImGui::Button("New Bezier Curve C0"))
 		{
-			Figure* f = new BezierCurve();
+			Figure* f = new BezierCurveC0();
 			f->Initialize(program);
 			program->figures.push_back(f);
 			for (int i = 0; i < program->figures.size(); ++i)
 			{
 				if (program->figures[i]->GetSelected() && program->figures[i]->figureType == FigureType::Point)
 				{
-					((BezierCurve*)f)->AddPoint((Point*)program->figures[i]);
+					((BezierCurveC0*)f)->AddPoint((Point*)program->figures[i]);
+					((Point*)program->figures[i])->AddParent(f);
+				}
+			}
+		}
+		if (ImGui::Button("New Bezier Curve C2"))
+		{
+			Figure* f = new BezierCurveC2();
+			f->Initialize(program);
+			program->figures.push_back(f);
+			for (int i = 0; i < program->figures.size(); ++i)
+			{
+				if (program->figures[i]->GetSelected() && program->figures[i]->figureType == FigureType::Point)
+				{
+					((BezierCurveC2*)f)->AddPoint((Point*)program->figures[i]);
 					((Point*)program->figures[i])->AddParent(f);
 				}
 			}

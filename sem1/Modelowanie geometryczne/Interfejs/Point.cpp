@@ -1,7 +1,7 @@
 #include "Point.h"
 #include "imgui\imgui.h"
 #include <string>
-#include "BezierCurve.h"
+#include "SomeCurve.h"
 
 Point::Point() : Figure()
 {
@@ -24,7 +24,7 @@ bool Point::GetGuiInternal(Figure* par)
 	{
 		for (int i = 0; i < program->figures.size(); i++)
 		{
-			if (program->figures[i]->figureType == FigureType::BezierCurve
+			if (program->figures[i]->isCurve
 				&& !(std::find(parents.begin(), parents.end(), program->figures[i]) != parents.end()))
 				if (ImGui::Button(program->figures[i]->gui_name))
 				{
@@ -34,7 +34,7 @@ bool Point::GetGuiInternal(Figure* par)
 		if (selectedBezier != -1)
 		{
 			AddParent(program->figures[selectedBezier]);
-			((BezierCurve*)program->figures[selectedBezier])->AddPoint(this);
+			((SomeCurve*)program->figures[selectedBezier])->AddPoint(this);
 		}
 		ImGui::TreePop();
 	}
@@ -71,9 +71,9 @@ void Point::RecalcParent()
 {
 	for (int i = 0; i < parents.size(); ++i)
 	{
-		if (parents[i]->figureType == FigureType::BezierCurve)
+		if (parents[i]->isCurve)
 		{
-			((BezierCurve*)parents[i])->Recalc();
+			((SomeCurve*)parents[i])->Recalc();
 		}
 	}
 }

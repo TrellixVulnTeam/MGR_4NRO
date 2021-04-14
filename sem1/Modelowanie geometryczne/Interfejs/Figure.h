@@ -14,7 +14,7 @@
 
 enum class FigureType
 {
-	Torus, Point, MiddlePoint, Cursor, BezierCurve, PointsLine
+	Torus, Point, MiddlePoint, Cursor, BezierCurveC0, PointsLine, BezierCurveC2
 };
 
 class Program;
@@ -53,6 +53,7 @@ public:
 	bool keepOpen = false;
 	char name[STRMAX] = "";
 	char gui_name[STRMAX];
+	bool isCurve = false;
 protected:
 	virtual bool Create();
 	void RecalcModel();

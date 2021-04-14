@@ -1,58 +1,21 @@
-#include "BezierCurve.h"
+#include "BezierCurveC0.h"
 #include "imgui\imgui.h"
 #include <string>
 
-BezierCurve::BezierCurve() : Figure()
+BezierCurveC0::BezierCurveC0() : SomeCurve()
 {
-	sprintf_s(name, STRMAX, "BezierCurve");
-	_name = "BezierCurve";
-	figureType = FigureType::BezierCurve;
-	canMove = false;
-	pointsLine = new PointsLine();
+	sprintf_s(name, STRMAX, "BezierCurveC0");
+	_name = "BezierCurveC0";
+	figureType = FigureType::BezierCurveC0;
 }
 
-void BezierCurve::Initialize(Program* _program)
+void BezierCurveC0::Initialize(Program* _program)
 {
-	Figure::Initialize(_program);
-	shader = Shader(program->bezierShader);
+	SomeCurve::Initialize(_program);
 	pointsLine->Initialize(program);
 }
 
-bool BezierCurve::GetGuiInternal(Figure* par)
-{
-	bool b = false;
-
-	ImGui::Checkbox("Draw line", &drawLine);
-	if (ImGui::Button("Select all points"))
-	{
-		for (int i = 0; i < points.size(); ++i)points[i]->Select();
-	}
-	if (ImGui::Button("Unselect all points"))
-	{
-		for (int i = 0; i < points.size(); ++i)points[i]->Unselect();
-	}
-	int to_del = -1;
-	if (ImGui::TreeNode("Points"))
-	{
-		for (int i = 0; i < points.size(); ++i)
-		{
-			if (points[i]->GetGui(i, this))
-			{
-				to_del = i;
-			}
-		}
-		ImGui::TreePop();
-	}
-	if (to_del != -1)
-	{
-		pointsLine->RemoveAt(to_del);
-		points.erase(points.begin() + to_del);
-		first = true;
-	}
-	return b;
-}
-
-void BezierCurve::Draw()
+void BezierCurveC0::Draw()
 {
 	Figure::Draw();
 	glDrawElements(GL_LINES_ADJACENCY, indices.size(), GL_UNSIGNED_INT, 0);
@@ -61,21 +24,21 @@ void BezierCurve::Draw()
 		pointsLine->Draw();
 }
 
-void BezierCurve::AddPoint(Point* point)
+void BezierCurveC0::AddPoint(Point* point)
 {
 	points.push_back(point);
 	first = true;
 	pointsLine->AddPoint(point);
 }
 
-void BezierCurve::CleanUp()
+void BezierCurveC0::CleanUp()
 {
 	for (int i = 0; i < points.size(); ++i)
 		points[i]->Unpin(this);
 	delete pointsLine;
 }
 
-bool BezierCurve::Create()
+bool BezierCurveC0::Create()
 {
 	bool fCreate = Figure::Create();
 	if (!fCreate && !first) return false;

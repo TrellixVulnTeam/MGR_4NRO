@@ -153,7 +153,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BezierCurve.cpp" />
+    <ClCompile Include="BezierCurveC0.cpp" />
+    <ClCompile Include="BezierCurveC2.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Cursor.cpp" />
     <ClCompile Include="Figure.cpp" />
@@ -172,10 +173,12 @@
     <ClCompile Include="processing.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Shader.h" />
+    <ClCompile Include="SomeCurve.cpp" />
     <ClCompile Include="Torus.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BezierCurve.h" />
+    <ClInclude Include="BezierCurveC0.h" />
+    <ClInclude Include="BezierCurveC2.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cursor.h" />
     <ClInclude Include="Figure.h" />
@@ -193,6 +196,7 @@
     <ClInclude Include="PointsLine.h" />
     <ClInclude Include="processing.h" />
     <ClInclude Include="Program.h" />
+    <ClInclude Include="SomeCurve.h" />
     <ClInclude Include="Torus.h" />
   </ItemGroup>
   <ItemGroup>

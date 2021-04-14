@@ -1,6 +1,6 @@
 #include "Figure.h"
 #include "imgui/imgui.h"
-#include "BezierCurve.h"
+#include "SomeCurve.h"
 
 
 
@@ -58,15 +58,15 @@ bool Figure::GetGui(int i, Figure* par)
 			if (figureType != FigureType::Cursor)
 			{
 				ImGui::Checkbox("Selected", &selected);
-				if (selected && !selected_old && figureType == FigureType::BezierCurve)
+				if (selected && !selected_old && figureType == FigureType::BezierCurveC0)
 				{
-					for (int j = 0; j < program->figures.size(); ++j) if (j!=i && program->figures[j]->figureType == FigureType::BezierCurve) program->figures[j]->Unselect();
+					for (int j = 0; j < program->figures.size(); ++j) if (j!=i && program->figures[j]->figureType == FigureType::BezierCurveC0) program->figures[j]->Unselect();
 				}
 				if (par==nullptr) {
 					if (ImGui::Button("Remove"))
 					{
-						if (figureType == FigureType::BezierCurve)
-							((BezierCurve*)this)->CleanUp();
+						if (isCurve)
+							((SomeCurve*)this)->CleanUp();
 						to_ret = true;
 					}
 				}
