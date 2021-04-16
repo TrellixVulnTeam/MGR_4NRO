@@ -11,7 +11,7 @@ const XMFLOAT3 RoomDemo::TEAPOT_POS{ -1.3f, -0.74f, -0.6f };
 const XMFLOAT4 RoomDemo::TABLE_POS{ 0.5f, -0.96f, 0.5f, 1.0f };
 
 RoomDemo::RoomDemo(HINSTANCE appInstance)
-	: DxApplication(appInstance, 1280, 720, L"Pokój"), 
+	: DxApplication(appInstance, 1280, 720, L"Pokój"),
 	//Constant Buffers
 	m_cbWorldMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 	m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
@@ -34,31 +34,46 @@ RoomDemo::RoomDemo(HINSTANCE appInstance)
 	UpdateCameraCB();
 
 	// TODO : 1.02 Calculate light projection matrix;
+	XMStoreFloat4x4(&m_lightProjMtx, XMMatrixPerspectiveFovLH(LIGHT_FOV_ANGLE, 1.0f, LIGHT_NEAR, LIGHT_FAR));
 
 	//Sampler States
 	SamplerDescription sd;
 
 	// TODO : 1.05 Create sampler with appropriate border color and addressing (border) and filtering (bilinear) modes
-
+	sd.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	sd.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	sd.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	sd.BorderColor[0] = 0.0f;
+	sd.BorderColor[1] = 0.0f;
+	sd.BorderColor[2] = 0.0f;
+	sd.BorderColor[3] = 0.0f;
+	sd.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
 	m_sampler = m_device.CreateSamplerState(sd);
 
 	//Textures
 	// TODO : 1.10 Create shadow texture with appropriate width, height, format, mip levels and bind flags
 	Texture2DDescription td;
-
-	//auto shadowTexture = m_device.CreateTexture(td);
+	td.Width = MAP_SIZE;
+	td.Height = MAP_SIZE;
+	td.Format = DXGI_FORMAT_R32_TYPELESS;
+	td.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	td.MipLevels = 1;
+	auto shadowTexture = m_device.CreateTexture(td);
 
 	DepthStencilViewDescription dvd;
-
+	dvd.Format = DXGI_FORMAT_D32_FLOAT;
 	// TODO : 1.11 Create depth-stencil-view for the shadow texture with appropriate format
 
-	//m_shadowDepthBuffer = m_device.CreateDepthStencilView(shadowTexture, dvd);
+	m_shadowDepthBuffer = m_device.CreateDepthStencilView(shadowTexture, dvd);
 
 	ShaderResourceViewDescription srvd;
-
+	srvd.Format = DXGI_FORMAT_R32_FLOAT;
+	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvd.Texture2D.MipLevels = 1;
+	srvd.Texture2D.MostDetailedMip = 0;
 	// TODO : 1.12 Create shader resource view for the shadow texture with appropriate format, view dimensions, mip levels and most detailed mip level
 
-	//m_shadowMap = m_device.CreateShaderResourceView(shadowTexture, srvd);
+	m_shadowMap = m_device.CreateShaderResourceView(shadowTexture, srvd);
 
 	//Meshes
 	vector<VertexPositionNormal> vertices;
@@ -82,25 +97,25 @@ RoomDemo::RoomDemo(HINSTANCE appInstance)
 	auto temp = XMMatrixTranslation(0.0f, 0.0f, 2.0f);
 	auto a = 0.f;
 	for (auto i = 0U; i < 4U; ++i, a += XM_PIDIV2)
-		XMStoreFloat4x4(&m_wallsMtx[i], temp * XMMatrixRotationY(a));
-	XMStoreFloat4x4(&m_wallsMtx[4], temp * XMMatrixRotationX(XM_PIDIV2));
-	XMStoreFloat4x4(&m_wallsMtx[5], temp * XMMatrixRotationX(-XM_PIDIV2));
-	XMStoreFloat4x4(&m_teapotMtx, XMMatrixTranslation(0.0f, -2.3f, 0.f) * XMMatrixScaling(0.1f, 0.1f, 0.1f) *
-		XMMatrixRotationY(-XM_PIDIV2) * XMMatrixTranslation(-1.3f, -0.74f, -0.6f));
-	
-	XMStoreFloat4x4(&m_sphereMtx, XMMatrixRotationY(-XM_PIDIV2) * XMMatrixTranslation(TEAPOT_POS.x, TEAPOT_POS.y, TEAPOT_POS.z));
+		XMStoreFloat4x4(&m_wallsMtx[i], temp* XMMatrixRotationY(a));
+	XMStoreFloat4x4(&m_wallsMtx[4], temp* XMMatrixRotationX(XM_PIDIV2));
+	XMStoreFloat4x4(&m_wallsMtx[5], temp* XMMatrixRotationX(-XM_PIDIV2));
+	XMStoreFloat4x4(&m_teapotMtx, XMMatrixTranslation(0.0f, -2.3f, 0.f)* XMMatrixScaling(0.1f, 0.1f, 0.1f)*
+		XMMatrixRotationY(-XM_PIDIV2)* XMMatrixTranslation(-1.3f, -0.74f, -0.6f));
+
+	XMStoreFloat4x4(&m_sphereMtx, XMMatrixRotationY(-XM_PIDIV2)* XMMatrixTranslation(TEAPOT_POS.x, TEAPOT_POS.y, TEAPOT_POS.z));
 	XMStoreFloat4x4(&m_boxMtx, XMMatrixTranslation(-1.4f, -1.46f, -0.6f));
-	XMStoreFloat4x4(&m_chairMtx, XMMatrixRotationY(XM_PI + XM_PI / 9 ) *
+	XMStoreFloat4x4(&m_chairMtx, XMMatrixRotationY(XM_PI + XM_PI / 9)*
 		XMMatrixTranslation(-0.1f, -1.06f, -1.3f));
-	XMStoreFloat4x4(&m_monitorMtx, XMMatrixRotationY(XM_PIDIV4) *
+	XMStoreFloat4x4(&m_monitorMtx, XMMatrixRotationY(XM_PIDIV4)*
 		XMMatrixTranslation(TABLE_POS.x, TABLE_POS.y + 0.42f, TABLE_POS.z));
 	a = XM_PIDIV4;
 	for (auto i = 0U; i < 4U; ++i, a += XM_PIDIV2)
-		XMStoreFloat4x4(&m_tableLegsMtx[i], XMMatrixTranslation(0.0f, 0.0f, TABLE_R - 0.35f) * XMMatrixRotationY(a) *
+		XMStoreFloat4x4(&m_tableLegsMtx[i], XMMatrixTranslation(0.0f, 0.0f, TABLE_R - 0.35f)* XMMatrixRotationY(a)*
 			XMMatrixTranslation(TABLE_POS.x, TABLE_POS.y - (TABLE_H + TABLE_TOP_H) / 2, TABLE_POS.z));
-	XMStoreFloat4x4(&m_tableSideMtx, XMMatrixRotationY(XM_PIDIV4 / 4) *
+	XMStoreFloat4x4(&m_tableSideMtx, XMMatrixRotationY(XM_PIDIV4 / 4)*
 		XMMatrixTranslation(TABLE_POS.x, TABLE_POS.y - TABLE_TOP_H / 2, TABLE_POS.z));
-	XMStoreFloat4x4(&m_tableTopMtx, XMMatrixRotationY(XM_PIDIV4 / 4) *
+	XMStoreFloat4x4(&m_tableTopMtx, XMMatrixRotationY(XM_PIDIV4 / 4)*
 		XMMatrixTranslation(TABLE_POS.x, TABLE_POS.y, TABLE_POS.z));
 
 	//Constant buffers content
@@ -160,8 +175,8 @@ void RoomDemo::UpdateLamp(float dt)
 {
 	static auto time = 0.0f;
 	time += dt;
-	auto swing = 0.3f * XMScalarSin(XM_2PI*time / 8);
-	auto rot = XM_2PI*time / 20;
+	auto swing = 0.3f * XMScalarSin(XM_2PI * time / 8);
+	auto rot = XM_2PI * time / 20;
 	auto lamp = XMMatrixTranslation(0.0f, -0.4f, 0.0f) * XMMatrixRotationX(swing) * XMMatrixRotationY(rot) *
 		XMMatrixTranslation(0.0f, 2.0f, 0.0f);
 
@@ -174,16 +189,25 @@ void RoomDemo::UpdateLamp(float dt)
 	XMFLOAT4X4 texMtx;
 
 	// TODO : 1.04 Calculate new light position in world coordinates
-
-	UpdateBuffer(m_cbLightPos, lightPos);
+	UpdateBuffer(m_cbLightPos, XMVector3TransformCoord(XMLoadFloat4(&lightPos), lamp));
 
 	// TODO : 1.01 Calculate light's view and inverted view matrix
+	
+	auto pos = XMVector3TransformCoord(XMLoadFloat4(&lightPos), lamp);
+	auto target = XMVector3TransformCoord(XMLoadFloat4(&lightTarget), lamp);
+	auto up = XMVector3TransformNormal(XMLoadFloat4(&upDir), lamp);
+	auto view = XMMatrixLookAtLH(pos, target, up);
+	XMVECTOR det;
+	XMMATRIX invView = XMMatrixInverse(&det, view);
+	XMStoreFloat4x4(m_lightViewMtx, view);
+	XMStoreFloat4x4(m_lightViewMtx + 1, invView);
 
 	// TODO : 1.03 Calculate map transform matrix
+	auto mapTransform = view * XMLoadFloat4x4(&m_lightProjMtx) * XMMatrixScaling(0.5f, -0.5f, 1.0f) * XMMatrixTranslation(0.5f, 0.5f, -0.00001f);
 
 	// TODO : 1.19 Modify map transform to fix z-fighting
 
-	XMStoreFloat4x4(&texMtx, XMMatrixIdentity());
+	XMStoreFloat4x4(&texMtx, mapTransform);
 
 	UpdateBuffer(m_cbMapMtx, texMtx);
 
@@ -278,21 +302,29 @@ void RoomDemo::Render()
 	Base::Render();
 
 	// TODO : 1.13 Copy light's view/inverted view and projection matrix to constant buffers
-
+	UpdateBuffer(m_cbViewMtx, m_lightViewMtx);
+	UpdateBuffer(m_cbProjMtx, m_lightProjMtx);
 	// TODO : 1.14 Set up view port of the appropriate size
-
+	auto v = Viewport(SIZE(MAP_SIZE, MAP_SIZE));
+	m_device.context().get()->RSSetViewports(1, &v);
 	// TODO : 1.15 Bind no render targets and the shadow map as depth buffer
+	m_device.context().get()->OMSetRenderTargets(0,0, m_shadowDepthBuffer.get());
 
 	// TODO : 1.16 Clear the depth buffer
+	m_device.context().get()->ClearDepthStencilView(m_shadowDepthBuffer.get(), D3D10_CLEAR_DEPTH, 1.0f, 1);
 
 	// TODO : 1.17 Render objects and particles (w/o blending) to the shadow map using Phong shaders
+	SetShaders(m_phongVS, m_phongPS);
+	DrawScene();
+
 
 	ResetRenderTarget();
 	UpdateBuffer(m_cbProjMtx, m_projMtx);
 	UpdateCameraCB();
 
 	// TODO : 1.08 Bind m_lightMap and m_shadowMap textures then draw objects and particles using light&shadow pixel shader
-	SetShaders(m_phongVS, m_phongPS);
+	SetTextures({ m_lightMap.get(), m_shadowMap.get() });
+	SetShaders(m_phongVS, m_lightShadowPS);
 
 	DrawScene();
 

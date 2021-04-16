@@ -35,7 +35,8 @@ static const float kd = 0.5, ks = 0.2f, m = 100.0f;
 float4 main(PSInput i) : SV_TARGET
 {
 	// TODO : 1.06 Calculate texture coordinates
-
+	float4 texPos = mul(mapMtx,float4(i.worldPos,1.0f));
+	texPos /= texPos.w;
 	float3 viewVec = normalize(i.viewVec);
 	float3 normal = normalize(i.norm);
 	float3 lightVec = normalize(lightPos.xyz - i.worldPos);
@@ -45,10 +46,19 @@ float4 main(PSInput i) : SV_TARGET
 	float4 lightColor = defLightColor;
 
 	// TODO : 1.07 Determine light color based on light map
+	lightColor = lightMap.Sample(colorSampler, texPos.xy);
+	if (defLightColor.x > lightColor.x)
+		lightColor = defLightColor;
+
+	if (i.worldPos.y > lightPos.y)
+		lightColor = defLightColor;
 
 	// TODO : 1.09 Take into account the clipping plane when determining light color
 
 	// TODO : 1.18 Include shadow map in light color calculation
+	float shadowColor = shadowMap.Sample(colorSampler, texPos.xy);
+	if (shadowColor < texPos.z)
+		lightColor = defLightColor;
 
 	color += lightColor.rgb * surfaceColor.xyz * kd * saturate(dot(normal, lightVec)); //diffuse color
 	float nh = dot(normal, halfVec);
@@ -59,7 +69,7 @@ float4 main(PSInput i) : SV_TARGET
 	//specular reflection multiplied by fourth component of light color
 	//there will be no specular reflection for default light color
 	//and where lightMap is transparent
-	color += lightColor.rgb*lightColor.a * nh;
+	color += lightColor.rgb * lightColor.a * nh;
 
 	return float4(saturate(color), surfaceColor.a);
 }
