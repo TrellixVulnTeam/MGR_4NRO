@@ -36,16 +36,8 @@ bool SomeCurve::GetGuiInternal(Figure* par)
 	}
 	if (to_del != -1)
 	{
-		pointsLine->RemoveAt(to_del);
-		points.erase(points.begin() + to_del);
-		first = true;
+		RemovePoint(to_del);
 	}
 	return b;
 }
 
-void SomeCurve::AddPoint(Point* point)
-{
-	points.push_back(point);
-	first = true;
-	pointsLine->AddPoint(point);
-}

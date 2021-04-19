@@ -31,6 +31,13 @@ void BezierCurveC0::AddPoint(Point* point)
 	pointsLine->AddPoint(point);
 }
 
+void BezierCurveC0::RemovePoint(int to_del)
+{
+	pointsLine->RemoveAt(to_del);
+	points.erase(points.begin() + to_del);
+	first = true;
+}
+
 void BezierCurveC0::CleanUp()
 {
 	for (int i = 0; i < points.size(); ++i)

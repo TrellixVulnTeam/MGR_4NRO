@@ -31,6 +31,11 @@ void PointsLine::RemoveAt(int i)
 	points.erase(points.begin() + i);
 }
 
+void PointsLine::Clear()
+{
+	points.clear();
+}
+
 bool PointsLine::Create()
 {
 	vertices.clear();

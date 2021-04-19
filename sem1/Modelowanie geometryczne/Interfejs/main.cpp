@@ -43,12 +43,65 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	double xDiff = (double)diff.x / program->current_width;
 	double yDiff = (double)diff.y / program->current_height;
 	int lShiftState = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
+	int lAltState = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 	{
 		if (lShiftState == GLFW_PRESS)
 		{
 			//TODO
 			program->cur->ForceRecalcScreenPos();
+		}
+		else if (lAltState == GLFW_PRESS)
+		{
+			glm::vec4 lRayStart_NDC(
+				((float)mousePosOld.x / (float)program->current_width - 0.5f) * 2.0f,
+				-((float)mousePosOld.y / (float)program->current_height - 0.5f) * 2.0f,
+				-1.0,
+				1.0f
+			);
+			glm::vec4 lRayEnd_NDC(
+				((float)mousePosOld.x / (float)program->current_width - 0.5f) * 2.0f,
+				-((float)mousePosOld.y / (float)program->current_height - 0.5f) * 2.0f,
+				0.0,
+				1.0f
+			);
+
+			glm::vec4 lRayStart_camera = program->cam->GetInvProjectionMatrix() * lRayStart_NDC;    lRayStart_camera /= -lRayStart_camera.w;
+			glm::vec4 lRayStart_world = program->cam->GetInvViewportMatrix() * lRayStart_camera; lRayStart_world /= lRayStart_world.w;
+			glm::vec4 lRayEnd_camera = program->cam->GetInvProjectionMatrix() * lRayEnd_NDC;      lRayEnd_camera /= -lRayEnd_camera.w;
+			glm::vec4 lRayEnd_world = program->cam->GetInvViewportMatrix() * lRayEnd_camera;   lRayEnd_world /= lRayEnd_world.w;
+			glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
+			lRayDir_world = glm::normalize(lRayDir_world);
+
+			float minLength = 9999.0f;
+			int minInd_i = -1;
+			int minInd_j = -1;
+			for (int i = 0; i < program->figures.size(); ++i)
+			{
+				if (program->figures[i]->figureType == FigureType::BezierCurveC2)
+				{
+
+					for(int j=0; j<((BezierCurveC2*)program->figures[i])->bernsteinPoints.size();++j)
+					{
+						glm::vec3 point = ((BezierCurveC2*)program->figures[i])->bernsteinPoints[j]->GetPos();
+						glm::vec3 toPoint(point - glm::vec3(lRayStart_world));
+						glm::vec3 crossp = glm::cross(lRayDir_world, toPoint);
+						float length = glm::length(crossp);
+						if (length < minLength)
+						{
+							minLength = length;
+							minInd_i = i;
+							minInd_j = j;
+						}
+					}
+				}
+			}
+			if (minInd_i != -1)
+			{
+				((BezierCurveC2*)program->figures[minInd_i])->bernsteinPoints[minInd_j]->MoveVec(8 * xDiff, program->cam->right);
+				((BezierCurveC2*)program->figures[minInd_i])->bernsteinPoints[minInd_j]->MoveVec(-8 * yDiff, program->cam->up);
+				((BezierCurveC2*)program->figures[minInd_i])->BernsteinMoved(minInd_j);
+			}
 		}
 		else
 		{
@@ -126,6 +179,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 	int lCtrlState = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
+	int lAltState = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && lCtrlState == GLFW_PRESS)
 	{
 		glm::vec4 lRayStart_NDC(

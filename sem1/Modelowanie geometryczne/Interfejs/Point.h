@@ -10,6 +10,7 @@ public:
 	void RecalcParent();
 	void AddParent(Figure* f);
 	void virtual Initialize(Program* _program) override;
+	bool virtualPoint = false;
 private:
 	bool virtual Create() override;
 	bool firstTime = true;

@@ -10,6 +10,7 @@ public:
 	virtual void Draw() override;
 	void AddPoint(Point* point);
 	void RemoveAt(int i);
+	void Clear();
 	void Recalc() { Create(); };
 	void virtual Initialize(Program* _program) override;
 private:

@@ -24,3 +24,16 @@ glm::ivec3 GetScreenPos(Program* program, glm::vec4 pos)
 	_posScreen.z = posScreen.z;
 	return _posScreen;
 }
+
+void DeBoorToBernstein(float a, float b, float c, float d, glm::vec4& bernsteins)
+{
+	float p1 = a + 2.0f / 3.0f * (b - a);
+	float p2 = b + 1.0f / 3.0f * (c - b);
+	float p3 = b + 2.0f / 3.0f * (c - b);
+	float p4 = c + 1.0f / 3.0f * (d - c);
+
+	bernsteins.x = (p1 + p2) / 2.0f;
+	bernsteins.y = p2;
+	bernsteins.z = p3;
+	bernsteins.w = (p3 + p4) / 2.0f;
+}
