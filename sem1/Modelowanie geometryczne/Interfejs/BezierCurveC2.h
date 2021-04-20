@@ -14,7 +14,9 @@ public:
 	void virtual Initialize(Program* _program) override;
 	std::vector<Point*> bernsteinPoints;
 	void BernsteinMoved(int j);
+	bool drawDeBoorLine = true;
 private:
 	bool virtual Create() override;
+	PointsLine* deBoorLine;
 };
 

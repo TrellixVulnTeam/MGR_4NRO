@@ -1,6 +1,7 @@
 #include "SomeCurve.h"
 #include "imgui\imgui.h"
 #include <string>
+#include "BezierCurveC2.h"
 
 SomeCurve::SomeCurve() :Figure()
 {
@@ -14,6 +15,10 @@ bool SomeCurve::GetGuiInternal(Figure* par)
 	bool b = false;
 
 	ImGui::Checkbox("Draw line", &drawLine);
+	if (figureType == FigureType::BezierCurveC2)
+	{
+	ImGui::Checkbox("Draw DeBoor line", &(((BezierCurveC2*)this)->drawDeBoorLine));
+	}
 	if (ImGui::Button("Select all points"))
 	{
 		for (int i = 0; i < points.size(); ++i)points[i]->Select();

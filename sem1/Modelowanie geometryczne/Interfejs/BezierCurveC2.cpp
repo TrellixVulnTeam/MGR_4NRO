@@ -7,12 +7,14 @@ BezierCurveC2::BezierCurveC2() : SomeCurve()
 	sprintf_s(name, STRMAX, "BezierCurveC2");
 	_name = "BezierCurveC2";
 	figureType = FigureType::BezierCurveC2;
+	deBoorLine = new PointsLine();
 }
 
 void BezierCurveC2::Initialize(Program* _program)
 {
 	SomeCurve::Initialize(_program);
 	pointsLine->Initialize(program);
+	deBoorLine->Initialize(program);
 }
 
 void BezierCurveC2::BernsteinMoved(int j)
@@ -59,6 +61,8 @@ void BezierCurveC2::Draw()
 	glBindVertexArray(0);
 	if (drawLine)
 		pointsLine->Draw();
+	if (drawDeBoorLine)
+		deBoorLine->Draw();
 
 	for (int i = 0; i < bernsteinPoints.size(); ++i)
 	{
@@ -83,6 +87,7 @@ void BezierCurveC2::CleanUp()
 	for (int i = 0; i < points.size(); ++i)
 		points[i]->Unpin(this);
 	delete pointsLine;
+	delete deBoorLine;
 
 	for (int i = 0; i < bernsteinPoints.size(); ++i)
 	{
@@ -98,8 +103,15 @@ bool BezierCurveC2::Create()
 	for (int i = 0; i < bernsteinPoints.size(); ++i) delete bernsteinPoints[i];
 	bernsteinPoints.clear();
 	pointsLine->Clear();
+	deBoorLine->Clear();
 	vertices.clear();
 	indices.clear();
+
+	for (int i = 0; i < points.size(); ++i)
+	{
+		deBoorLine->AddPoint(points[i]);
+	}
+	deBoorLine->RecalcFigure();
 
 	if (points.size() < 4) {
 		pointsLine->RecalcFigure();
@@ -144,6 +156,8 @@ bool BezierCurveC2::Create()
 	}
 
 	int k = 0;
+	float from=0.0f;
+	float to=1.0f;
 	for (int i = 0; i < bernsteinPoints.size() - 1; i += 4)
 	{
 		for (int j = i; j < i + 4 && j < bernsteinPoints.size(); ++j)
@@ -152,9 +166,18 @@ bool BezierCurveC2::Create()
 			vertices.push_back(pos.x);
 			vertices.push_back(pos.y);
 			vertices.push_back(pos.z);
-			vertices.push_back(0.0f);
-			vertices.push_back(0.0f);
-			vertices.push_back(1.0f);
+			if (k % 4 == 0)
+			{
+				vertices.push_back(0.0f);
+				vertices.push_back(0.0f);
+				vertices.push_back(1.0f);
+			}
+			else
+			{
+				vertices.push_back(0.0f);
+				vertices.push_back(from);
+				vertices.push_back(to);
+			}
 			indices.push_back(k);
 			++k;
 		}
@@ -165,8 +188,8 @@ bool BezierCurveC2::Create()
 		vertices.push_back(0.0f);
 		vertices.push_back(0.0f);
 		vertices.push_back(-1.0f);
-		vertices.push_back(-1.0f);
-		vertices.push_back(-1.0f);
+		vertices.push_back(from);
+		vertices.push_back(to);
 		indices.push_back(k);
 		++k;
 	}

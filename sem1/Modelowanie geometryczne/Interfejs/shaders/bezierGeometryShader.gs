@@ -29,6 +29,8 @@ void main() {
     float coeffs_x[4];
     float coeffs_y[4];
     float coeffs_z[4];
+    float from = gs_in[1].color.y;
+    float to = gs_in[1].color.z;
 
     coeffs_x[0]=gl_in[0].gl_Position.x;
     coeffs_y[0]=gl_in[0].gl_Position.y;
@@ -55,18 +57,17 @@ void main() {
     int vertices =4;
     if(gs_in[3].color.x==-1.0) vertices =3;
     if(gs_in[2].color.x==-1.0) vertices =2;
-    int n =250;
-    float j =0;
-    for(int i=0; i<=n;++i)
+    float diff = (to-from)/250.0;
+    float t=from;
+    for(int i=0; i<=250;++i)
     {
-        float t = j/n;
         gl_Position.x = DeCasteljau(coeffs_x,t,vertices);
         gl_Position.y = DeCasteljau(coeffs_y,t,vertices);
         gl_Position.z = DeCasteljau(coeffs_z,t,vertices);
         gl_Position.w=1.0;
         gl_Position = persp*view*gl_Position;
         EmitVertex();
-        ++j;
+        t+=diff;
     }
     EndPrimitive();
 

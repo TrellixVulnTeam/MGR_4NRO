@@ -58,7 +58,9 @@ bool BezierCurveC0::Create()
 	int total_n = 0;
 
 	int k = 0;
-	for (int i = 0; i < points.size()-1; i += 3)
+	float from = 0.0f;
+	float to = 1.0f;
+	for (int i = 0; i < points.size() - 1; i += 3)
 	{
 		for (int j = i; j < i + 4 && j < points.size(); ++j)
 		{
@@ -66,9 +68,18 @@ bool BezierCurveC0::Create()
 			vertices.push_back(pos.x);
 			vertices.push_back(pos.y);
 			vertices.push_back(pos.z);
-			vertices.push_back(0.0f);
-			vertices.push_back(0.0f);
-			vertices.push_back(1.0f);
+			if (k % 4 == 0)
+			{
+				vertices.push_back(0.0f);
+				vertices.push_back(0.0f);
+				vertices.push_back(1.0f);
+			}
+			else
+			{
+				vertices.push_back(0.0f);
+				vertices.push_back(from);
+				vertices.push_back(to);
+			}
 			indices.push_back(k);
 			++k;
 		}
@@ -79,8 +90,8 @@ bool BezierCurveC0::Create()
 		vertices.push_back(0.0f);
 		vertices.push_back(0.0f);
 		vertices.push_back(-1.0f);
-		vertices.push_back(-1.0f);
-		vertices.push_back(-1.0f);
+		vertices.push_back(from);
+		vertices.push_back(to);
 		indices.push_back(k);
 		++k;
 	}
