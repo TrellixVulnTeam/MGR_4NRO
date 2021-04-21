@@ -127,6 +127,8 @@ bool BezierCurveC2::Create()
 		glm::vec3 pos1 = points[i - 2]->GetPos();
 		glm::vec3 pos2 = points[i - 1]->GetPos();
 		glm::vec3 pos3 = points[i]->GetPos();
+
+
 		DeBoorToBernstein(pos0.x, pos1.x, pos2.x, pos3.x, xs);
 		DeBoorToBernstein(pos0.y, pos1.y, pos2.y, pos3.y, ys);
 		DeBoorToBernstein(pos0.z, pos1.z, pos2.z, pos3.z, zs);
@@ -156,42 +158,61 @@ bool BezierCurveC2::Create()
 	}
 
 	int k = 0;
-	float from=0.0f;
-	float to=1.0f;
+	float from = 0.0f;
+	float to = 1.0f;
 	for (int i = 0; i < bernsteinPoints.size() - 1; i += 4)
 	{
-		for (int j = i; j < i + 4 && j < bernsteinPoints.size(); ++j)
+		int n = 0;
+		for (int j = i + 1; j < i + 4 && j < bernsteinPoints.size(); ++j)
 		{
-			auto pos = bernsteinPoints[j]->GetPos();
-			vertices.push_back(pos.x);
-			vertices.push_back(pos.y);
-			vertices.push_back(pos.z);
-			if (k % 4 == 0)
+			glm::ivec3 pos_a = GetScreenPos(program, glm::vec4(bernsteinPoints[j - 1]->GetPos(), 1.0f));
+			glm::ivec3 pos_b = GetScreenPos(program, glm::vec4(bernsteinPoints[j]->GetPos(), 1.0f));
+			int x, y, z;
+			x = pos_b.x - pos_a.x;
+			y = pos_b.y - pos_a.y;
+			z = pos_b.z - pos_a.z;
+			n += sqrt(x * x + y * y + z * z);
+		}
+		if (n > 100000 || n < 0) n = 100000;
+		for (int l = 0; l < n; l += 250)
+		{
+			from = (float)l / n;
+			to = (float)(l + 250) / n;
+			if (to > 1.0f)to = 1.0f;
+			for (int j = i; j < i + 4 && j < bernsteinPoints.size(); ++j)
 			{
-				vertices.push_back(0.0f);
-				vertices.push_back(0.0f);
-				vertices.push_back(1.0f);
+				auto pos = bernsteinPoints[j]->GetPos();
+				vertices.push_back(pos.x);
+				vertices.push_back(pos.y);
+				vertices.push_back(pos.z);
+				if (k % 4 == 0)
+				{
+					vertices.push_back(0.0f);
+					vertices.push_back(0.0f);
+					vertices.push_back(1.0f);
+				}
+				else
+				{
+					vertices.push_back(0.0f);
+					vertices.push_back(from);
+					vertices.push_back(to);
+				}
+				indices.push_back(k);
+				++k;
 			}
-			else
+
+			while (indices.size() % 4 != 0)
 			{
 				vertices.push_back(0.0f);
+				vertices.push_back(0.0f);
+				vertices.push_back(0.0f);
+				vertices.push_back(-1.0f);
 				vertices.push_back(from);
 				vertices.push_back(to);
+				indices.push_back(k);
+				++k;
 			}
-			indices.push_back(k);
-			++k;
 		}
-	}
-	while (indices.size() % 4 != 0)
-	{
-		vertices.push_back(0.0f);
-		vertices.push_back(0.0f);
-		vertices.push_back(0.0f);
-		vertices.push_back(-1.0f);
-		vertices.push_back(from);
-		vertices.push_back(to);
-		indices.push_back(k);
-		++k;
 	}
 	pointsLine->RecalcFigure();
 	return true;

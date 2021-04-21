@@ -62,38 +62,57 @@ bool BezierCurveC0::Create()
 	float to = 1.0f;
 	for (int i = 0; i < points.size() - 1; i += 3)
 	{
-		for (int j = i; j < i + 4 && j < points.size(); ++j)
+		int n = 0;
+		for (int j = i + 1; j < i + 4 && j < points.size(); ++j)
 		{
-			auto pos = points[j]->GetPos();
-			vertices.push_back(pos.x);
-			vertices.push_back(pos.y);
-			vertices.push_back(pos.z);
-			if (k % 4 == 0)
+			glm::ivec3 pos_a = GetScreenPos(program, glm::vec4(points[j - 1]->GetPos(), 1.0f));
+			glm::ivec3 pos_b = GetScreenPos(program, glm::vec4(points[j]->GetPos(), 1.0f));
+			int x, y, z;
+			x = pos_b.x - pos_a.x;
+			y = pos_b.y - pos_a.y;
+			z = pos_b.z - pos_a.z;
+			n += sqrt(x * x + y * y + z * z);
+		}
+		if (n > 100000 || n < 0) n = 100000;
+
+		for (int l = 0; l < n; l += 250)
+		{
+			from = (float)l / n;
+			to = (float)(l + 250) / n;
+			if (to > 1.0f)to = 1.0f;
+			for (int j = i; j < i + 4 && j < points.size(); ++j)
 			{
-				vertices.push_back(0.0f);
-				vertices.push_back(0.0f);
-				vertices.push_back(1.0f);
+				auto pos = points[j]->GetPos();
+				vertices.push_back(pos.x);
+				vertices.push_back(pos.y);
+				vertices.push_back(pos.z);
+				if (k % 4 == 0)
+				{
+					vertices.push_back(0.0f);
+					vertices.push_back(0.0f);
+					vertices.push_back(1.0f);
+				}
+				else
+				{
+					vertices.push_back(0.0f);
+					vertices.push_back(from);
+					vertices.push_back(to);
+				}
+				indices.push_back(k);
+				++k;
 			}
-			else
+			while (indices.size() % 4 != 0)
 			{
 				vertices.push_back(0.0f);
+				vertices.push_back(0.0f);
+				vertices.push_back(0.0f);
+				vertices.push_back(-1.0f);
 				vertices.push_back(from);
 				vertices.push_back(to);
+				indices.push_back(k);
+				++k;
 			}
-			indices.push_back(k);
-			++k;
 		}
-	}
-	while (indices.size() % 4 != 0)
-	{
-		vertices.push_back(0.0f);
-		vertices.push_back(0.0f);
-		vertices.push_back(0.0f);
-		vertices.push_back(-1.0f);
-		vertices.push_back(from);
-		vertices.push_back(to);
-		indices.push_back(k);
-		++k;
 	}
 	return true;
 
