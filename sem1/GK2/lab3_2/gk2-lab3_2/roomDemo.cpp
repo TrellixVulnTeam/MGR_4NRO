@@ -316,6 +316,7 @@ void RoomDemo::Render()
 	// TODO : 1.17 Render objects and particles (w/o blending) to the shadow map using Phong shaders
 	SetShaders(m_phongVS, m_phongPS);
 	DrawScene();
+	DrawParticles();
 
 
 	ResetRenderTarget();
