@@ -2,6 +2,7 @@
 #include "imgui\imgui.h"
 #include <string>
 #include "BezierCurveC2.h"
+#include "InterpolationCurveC2.h"
 
 SomeCurve::SomeCurve() :Figure()
 {
@@ -18,6 +19,14 @@ bool SomeCurve::GetGuiInternal(Figure* par)
 	if (figureType == FigureType::BezierCurveC2)
 	{
 	ImGui::Checkbox("Draw DeBoor line", &(((BezierCurveC2*)this)->drawDeBoorLine));
+	}
+	if (figureType == FigureType::InterpolationCurveC2)
+	{
+		ImGui::Checkbox("Draw Bernstein line", &(((InterpolationCurveC2*)this)->drawBernsteinLine));
+	}
+	if (figureType == FigureType::InterpolationCurveC2)
+	{
+		ImGui::Checkbox("Draw Bernstein points", &(((InterpolationCurveC2*)this)->drawBernsteinPoints));
 	}
 	if (ImGui::Button("Select all points"))
 	{

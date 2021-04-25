@@ -15,6 +15,7 @@
 #include "Camera.h"
 #include "BezierCurveC0.h"
 #include "BezierCurveC2.h"
+#include "InterpolationCurveC2.h"
 #include "Program.h"
 #include "MiddlePoint.h"
 #include "Cursor.h"
@@ -361,6 +362,20 @@ void RenderGui()
 				if (program->figures[i]->GetSelected() && program->figures[i]->figureType == FigureType::Point)
 				{
 					((BezierCurveC2*)f)->AddPoint((Point*)program->figures[i]);
+					((Point*)program->figures[i])->AddParent(f);
+				}
+			}
+		}		
+		if (ImGui::Button("New Interpolation Curve C2"))
+		{
+			Figure* f = new InterpolationCurveC2();
+			f->Initialize(program);
+			program->figures.push_back(f);
+			for (int i = 0; i < program->figures.size(); ++i)
+			{
+				if (program->figures[i]->GetSelected() && program->figures[i]->figureType == FigureType::Point)
+				{
+					((InterpolationCurveC2*)f)->AddPoint((Point*)program->figures[i]);
 					((Point*)program->figures[i])->AddParent(f);
 				}
 			}
