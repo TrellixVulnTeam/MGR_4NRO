@@ -203,44 +203,127 @@ std::vector<VertexPositionNormal> mini::Mesh::CylinderVerts(float radius, float 
 	return res;
 }
 
-std::vector<unsigned short> mini::Mesh::CylinderIdxs(int radiusSplit, int lengthSplit)
+Mesh mini::Mesh::Cylinder(const DxDevice& device, float radius, float length, int radiusSplit, int lengthSplit)
 {
-	auto res = std::vector<unsigned short>();
+	auto indices = std::vector<unsigned short>();
+	auto verts = CylinderVerts(radius, length, radiusSplit, lengthSplit);
+	Shadows cylinderShadows;
+	Triangle t;
+	Edge e;
 	int zero = 0;
+	int triangles = 0;
+	int p1, p2, p3;
 
 	for (int i = 0; i < radiusSplit; ++i)
 	{
-		res.push_back(zero);
-		res.push_back(zero + 1 + i);
-		res.push_back(zero + 1 + (i + 1) % radiusSplit);
+		p1 = zero;
+		p2 = zero + 1 + i;
+		p3 = zero + 1 + (i + 1) % radiusSplit;
+		indices.push_back(p1);
+		indices.push_back(p2);
+		indices.push_back(p3);
+
+		t.p1 = verts[p1].position;
+		t.p2 = verts[p2].position;
+		t.p3 = verts[p3].position;
+		cylinderShadows.triangles.push_back(t);
+
+		e.posFrom = t.p1;
+		e.posTo = t.p3;
+		e.tr1 = triangles + i;
+		e.tr2 = triangles + (i + 1) % radiusSplit;
+		cylinderShadows.edges.push_back(e);
+
+		e.posFrom = t.p2;
+		e.posTo = t.p3;
+		e.tr1 = triangles + i;
+		e.tr2 = triangles + 2 * radiusSplit + 2 * i;
+		cylinderShadows.edges.push_back(e);
 	}
 	zero += radiusSplit + 1;
+	triangles += radiusSplit;
 
 	for (int i = 0; i < radiusSplit; ++i)
 	{
-		res.push_back(zero);
-		res.push_back(zero + 1 + ((i + 1) % radiusSplit));
-		res.push_back(zero + 1 + i);
+		p1 = zero;
+		p2 = zero + 1 + ((i + 1) % radiusSplit);
+		p3 = zero + 1 + i;
+		indices.push_back(p1);
+		indices.push_back(p2);
+		indices.push_back(p3);
+
+		t.p1 = verts[p1].position;
+		t.p2 = verts[p2].position;
+		t.p3 = verts[p3].position;
+		cylinderShadows.triangles.push_back(t);
+
+		e.posFrom = t.p1;
+		e.posTo = t.p2;
+		e.tr1 = triangles + i;
+		e.tr2 = triangles + (i + 1) % radiusSplit;
+		cylinderShadows.edges.push_back(e);
+
+		e.posFrom = t.p2;
+		e.posTo = t.p3;
+		e.tr1 = triangles + i;
+		e.tr2 = triangles + radiusSplit + (lengthSplit - 1) * radiusSplit * 2 + 2 * i;
+		cylinderShadows.edges.push_back(e);
 	}
 	zero += radiusSplit + 1;
+	triangles += radiusSplit;
 
 	for (int i = 0; i < lengthSplit; ++i)
 	{
 		for (int j = 0; j < radiusSplit; ++j)
 		{
-			res.push_back(zero + i * radiusSplit + j);
-			res.push_back(zero + (i + 1) * radiusSplit + j);
-			res.push_back(zero + i * radiusSplit + (j + 1) % radiusSplit);
+			p1 = zero + i * radiusSplit + j;
+			p2 = zero + (i + 1) * radiusSplit + j;
+			p3 = zero + i * radiusSplit + (j + 1) % radiusSplit;
+			indices.push_back(p1);
+			indices.push_back(p2);
+			indices.push_back(p3);
 
+			t.p1 = verts[p1].position;
+			t.p2 = verts[p2].position;
+			t.p3 = verts[p3].position;
+			cylinderShadows.triangles.push_back(t);
 
-			res.push_back(zero + (i + 1) * radiusSplit + j);
-			res.push_back(zero + (i + 1) * radiusSplit + (j + 1) % radiusSplit);
-			res.push_back(zero + i * radiusSplit + (j + 1) % radiusSplit);
+			p1 = zero + (i + 1) * radiusSplit + j;
+			p2 = zero + (i + 1) * radiusSplit + (j + 1) % radiusSplit;
+			p3 = zero + i * radiusSplit + (j + 1) % radiusSplit;
+			indices.push_back(p1);
+			indices.push_back(p2);
+			indices.push_back(p3);
 
+			t.p1 = verts[p1].position;
+			t.p2 = verts[p2].position;
+			t.p3 = verts[p3].position;
+			cylinderShadows.triangles.push_back(t);
+
+			e.posFrom = verts[p1].position;
+			e.posTo = verts[p3].position;
+			e.tr1 = triangles + 2 * i * radiusSplit + 2 * j;
+			e.tr2 = triangles + 2 * i * radiusSplit + 2 * j + 1;
+			cylinderShadows.edges.push_back(e);
+
+			e.posFrom = verts[p2].position;
+			e.posTo = verts[p3].position;
+			e.tr1 = triangles + 2 * i * radiusSplit + 2 * j + 1;
+			e.tr2 = triangles + 2 * i * radiusSplit + 2 * ((j + 1) % radiusSplit);
+			cylinderShadows.edges.push_back(e);
+
+			if (i < lengthSplit - 1)
+			{
+				e.posFrom = verts[p1].position;
+				e.posTo = verts[p2].position;
+				e.tr1 = triangles + 2 * i * radiusSplit + 2 * j + 1;
+				e.tr2 = triangles + 2 * (i + 1) * radiusSplit + 2 * j;
+				cylinderShadows.edges.push_back(e);
+			}
 		}
 	}
 
-	return res;
+	return SimpleTriMesh(device, verts, indices, cylinderShadows);
 }
 
 std::vector<VertexPositionNormal> mini::Mesh::RectangleVerts(float width, float height)
@@ -262,8 +345,8 @@ std::vector<unsigned short> mini::Mesh::RectangleIdxs()
 }
 
 Mesh mini::Mesh::Rectangle(const DxDevice& device, float width, float height)
-{ 
-	auto verts =RectangleVerts(width, height);
+{
+	auto verts = RectangleVerts(width, height);
 	Shadows rectangleShadows;
 	Triangle t;
 	t.p1 = verts[1].position;
@@ -292,13 +375,13 @@ Mesh mini::Mesh::Rectangle(const DxDevice& device, float width, float height)
 	e.tr1 = 0;
 	e.tr2 = 2;
 	rectangleShadows.edges.push_back(e);
-	
+
 	e.posFrom = verts[0].position;
 	e.posTo = verts[1].position;
 	e.tr1 = 0;
 	e.tr2 = 2;
 	rectangleShadows.edges.push_back(e);
-	
+
 	e.posFrom = verts[1].position;
 	e.posTo = verts[3].position;
 	e.tr1 = 1;
@@ -311,7 +394,7 @@ Mesh mini::Mesh::Rectangle(const DxDevice& device, float width, float height)
 	e.tr2 = 3;
 	rectangleShadows.edges.push_back(e);
 
-	return SimpleTriMesh(device, verts, RectangleIdxs(), rectangleShadows); 
+	return SimpleTriMesh(device, verts, RectangleIdxs(), rectangleShadows);
 }
 
 Mesh mini::Mesh::ShadowBox(const DxDevice& device, Mesh& source, DirectX::XMFLOAT4 lightPosition, DirectX::XMFLOAT4X4 world)
