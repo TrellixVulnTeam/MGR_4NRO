@@ -75,5 +75,5 @@ void ThomasAlgorithm(std::vector<float>& a, std::vector<float>& b, std::vector<f
 	{
 		res.push_back(x[i]);
 	}
-	delete x;
+	delete[] x;
 }
