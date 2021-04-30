@@ -243,24 +243,6 @@ std::vector<unsigned short> mini::Mesh::CylinderIdxs(int radiusSplit, int length
 	return res;
 }
 
-std::vector<DirectX::XMFLOAT3> mini::Mesh::BillboardVerts(float width, float height)
-{
-	return {
-		{-0.5f * width,-0.5f * height,0.0f},
-		{-0.5f * width, 0.5f * height,0.0f},
-		{0.5f * width ,-0.5f * height,0.0f},
-		{0.5f * width , 0.5f * height,0.0f}
-	};
-}
-
-std::vector<unsigned short> mini::Mesh::BillboardIdx()
-{
-	return {
-	1,2,0,
-	2,1,3
-	};
-}
-
 std::vector<VertexPositionNormal> mini::Mesh::RectangleVerts(float width, float height)
 {
 	return {
@@ -277,6 +259,59 @@ std::vector<unsigned short> mini::Mesh::RectangleIdxs()
 	1,2,0,
 	2,1,3
 	};
+}
+
+Mesh mini::Mesh::Rectangle(const DxDevice& device, float width, float height)
+{ 
+	auto verts =RectangleVerts(width, height);
+	Shadows rectangleShadows;
+	Triangle t;
+	t.p1 = verts[1].position;
+	t.p2 = verts[2].position;
+	t.p3 = verts[0].position;
+	rectangleShadows.triangles.push_back(t);
+
+	t.p1 = verts[2].position;
+	t.p2 = verts[1].position;
+	t.p3 = verts[3].position;
+	rectangleShadows.triangles.push_back(t);
+
+	t.p1 = verts[1].position;
+	t.p2 = verts[0].position;
+	t.p3 = verts[2].position;
+	rectangleShadows.triangles.push_back(t);
+
+	t.p1 = verts[2].position;
+	t.p2 = verts[3].position;
+	t.p3 = verts[1].position;
+	rectangleShadows.triangles.push_back(t);
+
+	Edge e;
+	e.posFrom = verts[2].position;
+	e.posTo = verts[0].position;
+	e.tr1 = 0;
+	e.tr2 = 2;
+	rectangleShadows.edges.push_back(e);
+	
+	e.posFrom = verts[0].position;
+	e.posTo = verts[1].position;
+	e.tr1 = 0;
+	e.tr2 = 2;
+	rectangleShadows.edges.push_back(e);
+	
+	e.posFrom = verts[1].position;
+	e.posTo = verts[3].position;
+	e.tr1 = 1;
+	e.tr2 = 3;
+	rectangleShadows.edges.push_back(e);
+
+	e.posFrom = verts[3].position;
+	e.posTo = verts[2].position;
+	e.tr1 = 1;
+	e.tr2 = 3;
+	rectangleShadows.edges.push_back(e);
+
+	return SimpleTriMesh(device, verts, RectangleIdxs(), rectangleShadows); 
 }
 
 Mesh mini::Mesh::ShadowBox(const DxDevice& device, Mesh& source, DirectX::XMFLOAT4 lightPosition, DirectX::XMFLOAT4X4 world)

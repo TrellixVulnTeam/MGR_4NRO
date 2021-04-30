@@ -695,8 +695,10 @@ void mini::gk2::Robot::DrawShadowVolumes()
 {
 	XMFLOAT4X4 armMtx{};
 	XMFLOAT4X4 cylMtx{};
+	XMFLOAT4X4 sheetMtx{};
 	XMStoreFloat4x4(&armMtx, XMMatrixIdentity());
 	XMStoreFloat4x4(&cylMtx, m_cylinderMtx);
+	XMStoreFloat4x4(&sheetMtx, m_sheetMtx);
 
 	XMVECTOR xRot = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
 	XMVECTOR yRot = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
@@ -721,7 +723,7 @@ void mini::gk2::Robot::DrawShadowVolumes()
 	DrawMesh(Mesh::ShadowBox(m_device, m_arm5, LightPos, armMtx), armMtx);
 
 
-	//DrawMesh(Mesh::ShadowBox(m_device, m_cylinder, LightPos, cylMtx), cylMtx);
+	DrawMesh(Mesh::ShadowBox(m_device, m_sheet, LightPos, sheetMtx), sheetMtx);
 
 }
 

@@ -141,7 +141,7 @@ namespace mini
 
 		static std::vector<VertexPositionNormal> RectangleVerts(float width, float height);
 		static std::vector<unsigned short> RectangleIdxs();
-		static Mesh Rectangle(const DxDevice& device, float width = 1.0f, float height = 1.0f) { return SimpleTriMesh(device, RectangleVerts(width, height), RectangleIdxs()); }
+		static Mesh Rectangle(const DxDevice& device, float width = 1.0f, float height = 1.0f);
 
 		//Shadow Box
 		static Mesh ShadowBox(const DxDevice& device, Mesh& source, DirectX::XMFLOAT4 lightPosition, DirectX::XMFLOAT4X4 world);
@@ -151,13 +151,6 @@ namespace mini
 		static std::vector<VertexPositionNormal> CylinderVerts(float radius, float length, int radiusSplit, int lengthSplit);
 		static std::vector<unsigned short> CylinderIdxs(int radiusSplit, int lengthSplit);
 		static Mesh Cylinder(const DxDevice& device, float radius = 1.0f, float length = 1.0f, int radiusSplit = 100, int lengthSplit = 100) { return SimpleTriMesh(device, CylinderVerts(radius, length, radiusSplit, lengthSplit), CylinderIdxs(radiusSplit, lengthSplit)); }
-
-		//Single-side Rectangle Bilboard Mesh Creation
-		static std::vector<DirectX::XMFLOAT3> BillboardVerts(float width, float height);
-		static std::vector<DirectX::XMFLOAT3> BillboardVerts(float side = 1.0f) { return BillboardVerts(side, side); }
-		static std::vector<unsigned short> BillboardIdx();
-		static Mesh Billboard(const DxDevice& device, float width, float height) { return SimpleTriMesh(device, BillboardVerts(width, height), BillboardIdx()); }
-		static Mesh Billboard(const DxDevice& device, float side = 1.0f) { return Billboard(device, side, side); }
 
 		static Mesh LoadMesh(const DxDevice& device, const std::wstring& meshPath);
 	private:
