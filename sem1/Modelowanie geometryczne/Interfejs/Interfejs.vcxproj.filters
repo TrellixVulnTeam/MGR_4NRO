@@ -175,5 +175,11 @@
     <None Include="shaders\bezierVertexShader.vs">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="textureVertexShader.vs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="textureFragmentShader.fs">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
