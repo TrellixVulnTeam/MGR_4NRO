@@ -30,10 +30,11 @@ glm::vec3 lookAt;
 Program* program;
 
 
-glm::vec3 ArbitraryRotate(glm::vec3 p, float angle , glm::vec3 axis)
+
+glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
 {
-	glm::quat quat= glm::angleAxis(angle, axis);
-	return quat*p;
+	glm::quat quat = glm::angleAxis(angle, axis);
+	return quat * p;
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -45,6 +46,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	double yDiff = (double)diff.y / program->current_height;
 	int lShiftState = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
 	int lAltState = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
+	int rAltState = glfwGetKey(window, GLFW_KEY_RIGHT_ALT);
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 	{
 		if (lShiftState == GLFW_PRESS)
@@ -82,7 +84,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 				if (program->figures[i]->figureType == FigureType::BezierCurveC2)
 				{
 
-					for(int j=0; j<((BezierCurveC2*)program->figures[i])->bernsteinPoints.size();++j)
+					for (int j = 0; j < ((BezierCurveC2*)program->figures[i])->bernsteinPoints.size(); ++j)
 					{
 						glm::vec3 point = ((BezierCurveC2*)program->figures[i])->bernsteinPoints[j]->GetPos();
 						glm::vec3 toPoint(point - glm::vec3(lRayStart_world));
@@ -111,7 +113,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 				if (program->figures[i]->GetSelected() && program->figures[i]->CanMove())
 				{
 					program->figures[i]->MoveVec(8 * xDiff, program->cam->right);
-					program->figures[i]->MoveVec(-8 * yDiff, program->cam->up);
+					if (rAltState == GLFW_PRESS)
+						program->figures[i]->MoveVec(-8 * yDiff, program->cam->front);
+					else
+						program->figures[i]->MoveVec(-8 * yDiff, program->cam->up);
 				}
 			}
 		}
@@ -311,6 +316,8 @@ void RenderGui()
 
 	ImGui::Begin("Menu");
 	ImGui::Checkbox("Transformate around cursor", &rotate);
+	ImGui::SliderFloat("eyeDist", &program->eyeDist, 0.001f, 0.4f);
+	ImGui::SliderFloat("d", &program->d, 0.005f, 5.0f);
 	program->cur->GetGui(-1, nullptr);
 	if (ImGui::TreeNode("Adding"))
 	{
@@ -365,7 +372,7 @@ void RenderGui()
 					((Point*)program->figures[i])->AddParent(f);
 				}
 			}
-		}		
+		}
 		if (ImGui::Button("New Interpolation Curve C2"))
 		{
 			Figure* f = new InterpolationCurveC2();
@@ -439,9 +446,9 @@ int main()
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetKeyCallback(window, key_callback);
-	glEnable(GL_LINE_SMOOTH); 
+	glEnable(GL_LINE_SMOOTH);
 
-	program->shader= Shader("shaders/vertexShader.vs"
+	program->shader = Shader("shaders/vertexShader.vs"
 		, "shaders/fragShader.fs"
 		, nullptr);
 	program->bezierShader = Shader("shaders/bezierVertexShader.vs"
@@ -456,10 +463,9 @@ int main()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	program->cam = new Camera();
-	lookAt = { 0,0,0 };
 	program->cam->LookAt({ 0,0,3 }, { 0,0,-1 }, { 0,1,0 });
 	float aspect = (float)program->current_width / (float)program->current_height;
-	program->cam->SetPerspective(aspect);
+	//program->cam->SetPerspective(program->current_width, program->current_height,eyeDist);
 	glm::mat4 view = program->cam->GetViewportMatrix();
 	glm::mat4 persp = program->cam->GetProjectionMatrix();
 	glm::mat4 view2 = program->cam->GetViewportMatrix();
@@ -530,7 +536,7 @@ int main()
 
 	// draw as wireframe
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	
+
 #pragma endregion
 #pragma region blue
 
@@ -571,17 +577,18 @@ int main()
 		//ImGui::ShowDemoWindow();
 		proc.processInput(window);
 		RenderGui();
-#pragma region red
 
+#pragma region red
+		program->cam->SetPerspective(3.0f, 2.0f * program->eyeDist, program->d, 3.0f / program->current_width * program->current_height, false);
+		program->cam->LookAt({ program->eyeDist,0,3 }, { 0,0,-1 }, { 0,1,0 });
 
 		glBindFramebuffer(GL_FRAMEBUFFER, framebufferRed);
 		//glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
 		// make sure we clear the framebuffer's content
-	//	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		program->cam->LookAt({ 0.1,0,3 }, { 0,0,-1 }, { 0,1,0 });
 		program->shader.use();
 		unsigned int perspLoc = glGetUniformLocation(program->shader.ID, "persp");
 		unsigned int viewLoc = glGetUniformLocation(program->shader.ID, "view");
@@ -609,17 +616,17 @@ int main()
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 #pragma endregion
 #pragma region blue
-
+		program->cam->SetPerspective(3.0f, 2.0f * program->eyeDist, program->d, 3.0f / program->current_width * program->current_height, true);
+		program->cam->LookAt({ -program->eyeDist,0,3 }, { 0,0,-1 }, { 0,1,0 });
 
 		glBindFramebuffer(GL_FRAMEBUFFER, framebufferBlue);
 		//glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
 		// make sure we clear the framebuffer's content
-		//glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 
 		glClear(GL_COLOR_BUFFER_BIT);
-		program->cam->LookAt({ -0.1,0,3 }, { 0,0,-1 }, { 0,1,0 });
 
 		program->shader.use();
 		perspLoc = glGetUniformLocation(program->shader.ID, "persp");
@@ -647,7 +654,7 @@ int main()
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 #pragma endregion
-		
+
 		// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -672,7 +679,7 @@ int main()
 		glActiveTexture(GL_TEXTURE0 + 1); // Texture unit 1
 		glBindTexture(GL_TEXTURE_2D, textureColorbufferBlue);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		
+
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
