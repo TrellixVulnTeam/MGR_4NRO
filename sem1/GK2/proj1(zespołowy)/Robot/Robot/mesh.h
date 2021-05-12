@@ -149,8 +149,7 @@ namespace mini
 		//Cylinder Mesh Creation
 
 		static std::vector<VertexPositionNormal> CylinderVerts(float radius, float length, int radiusSplit, int lengthSplit);
-		static std::vector<unsigned short> CylinderIdxs(int radiusSplit, int lengthSplit);
-		static Mesh Cylinder(const DxDevice& device, float radius = 1.0f, float length = 1.0f, int radiusSplit = 100, int lengthSplit = 100) { return SimpleTriMesh(device, CylinderVerts(radius, length, radiusSplit, lengthSplit), CylinderIdxs(radiusSplit, lengthSplit)); }
+		static Mesh Cylinder(const DxDevice& device, float radius = 1.0f, float length = 1.0f, int radiusSplit = 100, int lengthSplit = 100);
 
 		static Mesh LoadMesh(const DxDevice& device, const std::wstring& meshPath);
 	private:

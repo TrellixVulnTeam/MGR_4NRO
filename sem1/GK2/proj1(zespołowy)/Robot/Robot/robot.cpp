@@ -725,6 +725,7 @@ void mini::gk2::Robot::DrawShadowVolumes()
 
 	DrawMesh(Mesh::ShadowBox(m_device, m_sheet, LightPos, sheetMtx), sheetMtx);
 
+	DrawMesh(Mesh::ShadowBox(m_device, m_cylinder, LightPos, cylMtx), cylMtx);
 }
 
 void Robot::Render()
@@ -742,21 +743,21 @@ void Robot::Render()
 
 
 	TurnOffVision();
-	//1. Rysowanie ca�ej sceny do depth buffora
+	//1. Rysowanie całej sceny do depth buffora
 	
 	//m_device.context()->OMSetRenderTargets(0, 0,0);
 	m_device.context()->OMSetDepthStencilState(m_dssDepthWrite.get(), 0);
 	DrawSheet(true);
 	DrawWorld();
 
-	//2. Rysowanie bry� cienia do stencil buffer
+	//2. Rysowanie brył cienia do stencil buffer
 	m_device.context()->OMSetDepthStencilState(m_dssStencilWriteSh.get(), 0);
 	m_device.context()->RSSetState(m_rsCCW_backSh.get());
 	// 	   Dla front face stencil++
 	// 	   Dla back face stencil--
 	DrawShadowVolumes();
 	//DrawBox();
-	//3. Render ca�ej sceny z uwzgl�dnieniem warto�ci w stencilu
+	//3. Render całej sceny z uwzględnieniem wartości w stencilu
 	ResetRenderTarget();
 	
 	m_device.context()->OMSetDepthStencilState(m_dssStencilTestSh.get(), 0);
