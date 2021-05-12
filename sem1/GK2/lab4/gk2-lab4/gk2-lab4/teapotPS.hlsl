@@ -1,12 +1,20 @@
 #define NLIGHTS 2
 SamplerState samp : register(s0);
 Texture2D normTex : register(t0);
+Texture2D albedoTex;
+Texture2D roughnessTex;
+Texture2D metallicTex;
+
+TextureCube irMap;
+TextureCube pfEnvMap;
+Texture2D brdfTex;
 
 float4 lightPos[NLIGHTS];
 float3 lightColor[NLIGHTS];
-float3 albedo;
-float metallness;
-float roughness;
+
+
+
+
 static float PI = 3.14159265f;
 
 float normalDistributionGGX(float3 N, float3 H, float r)
@@ -27,20 +35,18 @@ float geometrySmith(float3 N, float3 V, float3 L, float r)
 {
 	return geometrySchlickGGX(N, V, r) * geometrySchlickGGX(N, L, r);
 }
-
 float3 fresnel(float3 f0, float3 N, float3 L)
 {
 	float dott = dot(N, L);
-	return f0 + (1.0f - f0) * pow((1.0f - dott), 5);
+	return f0 + (1.0f - f0) * pow((1.0f - max(dott, 0)), 5);
 }
 
 float CT(float3 f0, float3 N, float3 V, float3 L, float3 H, float r)
 {
 	float mx1 = max(dot(N, V), 0);
 	float mx2 = max(dot(N, L), 0);
-	if (mx1 * mx2 == 0) return 0;
 	return fresnel(f0, H, L) * normalDistributionGGX(N, H, r) * geometrySmith(N, V, L, r)
-		/ (4 * mx1 * mx2);
+		/ (4 * mx1 * mx2 + 1e-3);
 }
 /*
 float4 phong(float3 worldPos, float3 norm, float3 view)
@@ -70,12 +76,24 @@ struct PSInput
 
 float4 main(PSInput i) : SV_TARGET
 {
-	float3 a = pow(albedo, 2.2f);
-	float m = metallness;
-	float3 n = i.norm;
+	float3 a = pow(albedoTex.Sample(samp, i.tex).xyz, 2.2f);
+	float m = metallicTex.Sample(samp, i.tex).r;
+	float r = roughnessTex.Sample(samp, i.tex).r;
+	float3 n = normalize(i.norm);
 	float3 v = normalize(i.view);
+	float3 Iir = irMap.Sample(samp, n).rgb;
 	float3 f0 = float3(0.04f, 0.04f, 0.04f);
 	f0 = f0 * (1.0f - m) + a * m;
+
+	float3 kdv = (float3(1.0f, 1.0f, 1.0f) - fresnel(f0, n/*n lub v*/, v)) * (1.0f - m);
+	float3 R = reflect(-v,n);
+	float3 Ii = pfEnvMap.SampleLevel(samp, R, r * 6.0f).rgb;
+	float2 brdf2 = brdfTex.Sample(samp,float2(max(dot(n, v), 0.0f), r)).rg;
+	
+	float3 Id = kdv * a * Iir;
+	
+	float3 Is = Ii * (f0 * brdf2.x + brdf2.y);
+	float3 Io = Id + Is;
 
 	float3 color = float3(0.0f, 0.0f, 0.0f);
 	for (int j = 0; j < NLIGHTS; ++j)
@@ -87,11 +105,13 @@ float4 main(PSInput i) : SV_TARGET
 		float3 h = normalize(v + li);
 
 		float3 kd = (float3(1.0f, 1.0f, 1.0f) - fresnel(f0, n/*n lub v*/, li)) * (1.0f - m);
-		float fL = a / PI;
-		float3 brdf = fL * kd + CT(f0, n, v, li, h, roughness);
 
-		color = color + brdf * Li;
+		float3 fL = a / PI;
+		float3 brdf = fL * kd + CT(f0, n, v, li, h, roughnessTex.Sample(samp, i.tex).r);
+
+		color = color + (brdf * Li);
 	}
+	color = color + Io;
 	color = color + 0.03f * a;
 	color = pow(color, 0.4545f);
 

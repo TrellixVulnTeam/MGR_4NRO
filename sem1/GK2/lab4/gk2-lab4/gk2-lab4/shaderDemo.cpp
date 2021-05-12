@@ -18,9 +18,6 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 	XMFLOAT3 lightColor[2] = {{ 12.f, 9.f, 10.f },{ 1.f, 0.f, 30.f } };
 	m_variables.AddGuiVariable("lightPos",lightPos, -10, 10);
 	m_variables.AddGuiVariable("lightColor",lightColor, 0, 100, 1);
-	m_variables.AddGuiColorVariable("albedo",XMFLOAT3{ 1.f, 1.f, 1.f });
-	m_variables.AddGuiVariable("metallness", 1.0f);
-	m_variables.AddGuiVariable("roughness", .3f, .1f);
 	m_variables.AddGuiColorVariable("surfaceColor", XMFLOAT3{ 0.5f, 1.0f, 0.8f });
 	m_variables.AddGuiVariable("ks", 0.8f);
 	m_variables.AddGuiVariable("kd", 0.5f);
@@ -62,7 +59,12 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 	m_variables.AddTexture(m_device, "normTex", L"textures/texture2.png");
 	m_variables.AddTexture(m_device, "envMap", L"textures/cubeMap.dds");
 	m_variables.AddTexture(m_device, "perlin", L"textures/NoiseVolume.dds");
-
+	m_variables.AddTexture(m_device, "albedoTex", L"textures/rustediron2_basecolor.png");
+	m_variables.AddTexture(m_device, "roughnessTex", L"textures/rustediron2_roughness.png");
+	m_variables.AddTexture(m_device, "metallicTex", L"textures/rustediron2_metallic.png");
+	m_variables.AddTexture(m_device, "irMap", L"textures/cubeMapIrradiance.dds");
+	m_variables.AddTexture(m_device, "pfEnvMap", L"textures/cubeMapRadiance.dds");
+	m_variables.AddTexture(m_device, "brdfTex", L"textures/brdf_lut.png");
 
 	//Render Passes
 	/*const auto passSphere = addPass(L"sphereVS.cso", L"spherePS.cso");
