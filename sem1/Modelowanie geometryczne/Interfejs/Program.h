@@ -14,6 +14,8 @@ public:
 
 	int current_width = 0;
 	int current_height = 0;
+	float eyeDist = 0.01f;
+	float d = 3.0f;
 	std::vector<Figure*> figures;
 	MiddlePoint* mp = NULL;
 	Cursor* cur = NULL;

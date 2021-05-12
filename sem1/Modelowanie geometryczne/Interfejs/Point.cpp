@@ -95,7 +95,7 @@ bool Point::Create()
 		vertices[1] = 0.0f;
 		vertices[2] = 0.0f;
 		vertices[3] = selected ? 0.0f : 1.0f;
-		vertices[4] = selected ? 1.0f : 0.0f;
+		vertices[4] = selected ? 1.0f : 1.0f;
 		vertices[5] = !virtualPoint ? 0.0f : 1.0f;
 
 		indices.clear();

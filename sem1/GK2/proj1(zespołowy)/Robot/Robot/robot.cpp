@@ -23,7 +23,7 @@ const XMFLOAT4 Robot::SHEET_COLOR = XMFLOAT4(0.1f, 0.1f, 0.1f, 140.0f / 255.0f);
 
 const float Robot::WALL_SIZE = 8.0f;
 const XMFLOAT3 Robot::WALLS_POS = XMFLOAT3(0.0f, 3.0f, 0.0f);
-const XMFLOAT4 LightPos = XMFLOAT4(-1.0f, 3.0f, -3.0f, 1.0f);
+const XMFLOAT4 LightPos = XMFLOAT4(-1.0f, 2.0f, -3.0f, 1.0f);
 
 const float Robot::CYLINDER_RADIUS = 1.0f;
 const float Robot::CYLINDER_LENGTH = 4.0f;
@@ -724,6 +724,7 @@ void mini::gk2::Robot::DrawShadowVolumes()
 
 
 	DrawMesh(Mesh::ShadowBox(m_device, m_sheet, LightPos, sheetMtx), sheetMtx);
+	DrawMesh(Mesh::ShadowBox(m_device, m_cylinder, LightPos, cylMtx), cylMtx);
 
 	DrawMesh(Mesh::ShadowBox(m_device, m_cylinder, LightPos, cylMtx), cylMtx);
 }

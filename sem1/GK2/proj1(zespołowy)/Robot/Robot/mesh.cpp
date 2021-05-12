@@ -237,7 +237,7 @@ Mesh mini::Mesh::Cylinder(const DxDevice& device, float radius, float length, in
 		e.posFrom = t.p2;
 		e.posTo = t.p3;
 		e.tr1 = triangles + i;
-		e.tr2 = triangles + 2 * radiusSplit + i;
+		e.tr2 = triangles + 2 * radiusSplit + 2 * i;
 		cylinderShadows.edges.push_back(e);
 	}
 	zero += radiusSplit + 1;
@@ -304,6 +304,12 @@ Mesh mini::Mesh::Cylinder(const DxDevice& device, float radius, float length, in
 			e.posTo = verts[p3].position;
 			e.tr1 = triangles + 2 * i * radiusSplit + 2 * j;
 			e.tr2 = triangles + 2 * i * radiusSplit + 2 * j + 1;
+			cylinderShadows.edges.push_back(e);
+
+			e.posFrom = verts[p2].position;
+			e.posTo = verts[p3].position;
+			e.tr1 = triangles + 2 * i * radiusSplit + 2 * j + 1;
+			e.tr2 = triangles + 2 * i * radiusSplit + 2 * ((j + 1) % radiusSplit);
 			cylinderShadows.edges.push_back(e);
 
 			if (i < lengthSplit - 1)

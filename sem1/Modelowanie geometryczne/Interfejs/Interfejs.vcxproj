@@ -183,6 +183,10 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cursor.h" />
     <ClInclude Include="Figure.h" />
+    <None Include="textureFragmentShader.fs" />
+    <None Include="textureVertexShader.vs">
+      <FileType>Document</FileType>
+    </None>
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_impl_glfw.h" />
