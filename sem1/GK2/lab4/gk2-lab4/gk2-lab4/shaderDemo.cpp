@@ -14,10 +14,10 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 	m_variables.AddSemanticVariable("viewProjMtx", VariableSemantic::MatVP);
 	m_variables.AddSemanticVariable("camPos", VariableSemantic::Vec4CamPos);
 
-	XMFLOAT4 lightPos[2] = {{ -1.f, 0.0f, -3.5f, 1.f },{ 0.f, 3.5f, 0.0f, 1.f } };
-	XMFLOAT3 lightColor[2] = {{ 12.f, 9.f, 10.f },{ 1.f, 0.f, 30.f } };
-	m_variables.AddGuiVariable("lightPos",lightPos, -10, 10);
-	m_variables.AddGuiVariable("lightColor",lightColor, 0, 100, 1);
+	XMFLOAT4 lightPos[2] = { { -1.f, 0.0f, -3.5f, 1.f },{ 0.f, 3.5f, 0.0f, 1.f } };
+	XMFLOAT3 lightColor[2] = { { 12.f, 9.f, 10.f },{ 1.f, 0.f, 30.f } };
+	m_variables.AddGuiVariable("lightPos", lightPos, -10, 10);
+	m_variables.AddGuiVariable("lightColor", lightColor, 0, 100, 1);
 	m_variables.AddGuiColorVariable("surfaceColor", XMFLOAT3{ 0.5f, 1.0f, 0.8f });
 	m_variables.AddGuiVariable("ks", 0.8f);
 	m_variables.AddGuiVariable("kd", 0.5f);
@@ -50,7 +50,7 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 	model(plane).applyTransform(modelMtx);
 
 	auto quad = addModelFromString("pp 4\n1 0 1 0 1 0\n1 0 -1 0 1 0\n" "-1 0 -1 0 1 0\n-1 0 1 0 1 0\n");
-	auto envModel =	addModelFromString("hex 0 0 0 1.73205");
+	auto envModel = addModelFromString("hex 0 0 0 1.73205");
 	XMStoreFloat4x4(&modelMtx, XMMatrixScaling(20, 20, 20));
 	model(quad).applyTransform(modelMtx);
 	model(envModel).applyTransform(modelMtx);
@@ -66,11 +66,28 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 	m_variables.AddTexture(m_device, "pfEnvMap", L"textures/cubeMapRadiance.dds");
 	m_variables.AddTexture(m_device, "brdfTex", L"textures/brdf_lut.png");
 
-	//Render Passes
-	/*const auto passSphere = addPass(L"sphereVS.cso", L"spherePS.cso");
-	addModelToPass(passSphere, sphere);*/
+	auto screenSize = m_window.getClientSize();
+	m_variables.AddRenderableTexture(m_device, "screen", screenSize);
+	m_variables.AddRenderableTexture(m_device, "halfscreen1", SIZE{ screenSize.cx / 2,screenSize.cy / 2 });
+	m_variables.AddRenderableTexture(m_device, "halfscreen2", SIZE{ screenSize.cx / 2,screenSize.cy / 2 });
+	
 
-	auto passTeapot = addPass(L"teapotVS.cso", L"teapotPS.cso");
+	m_variables.AddSemanticVariable("viewportDim", VariableSemantic::Vec2ViewportDims);
+	m_variables.AddGuiVariable("blurScale", 1.0f, 0.1f, 2.0f);
+	
+
+	SamplerDescription sDesc;
+	sDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	m_variables.AddSampler(m_device,"blurSampler", sDesc);
+	//Render Passes
+	//const auto passSphere = addPass(L"sphereVS.cso", L"spherePS.cso");
+	//addModelToPass(passSphere, sphere);
+
+	auto passTeapot = addPass(L"teapotVS.cso", L"teapotPS.cso", "halfscreen1");
+
 	addModelToPass(passTeapot, teapot);
 	auto passSpring = addPass(L"springVS.cso", L"springPS.cso");
 	addModelToPass(passSpring, plane);
@@ -84,5 +101,11 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 	RasterizerDescription rs;
 	rs.CullMode = D3D11_CULL_NONE;
 	addRasterizerState(passWater, rs);
+
+	auto passDownsample = addPass(L"fullScreenQuadVS.cso", L"hblurPS.cso", "halfscreen2");
+	addModelToPass(passDownsample, quad);
+
+	auto passVBlur = addPass(L"fullScreenQuadVS.cso", L"vblurPS.cso", getDefaultRenderTarget());
+	addModelToPass(passVBlur, quad);
 
 }
