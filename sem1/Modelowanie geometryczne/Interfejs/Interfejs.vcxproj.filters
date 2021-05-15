@@ -93,6 +93,18 @@
     <ClCompile Include="IntepolationCurveC2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SomePatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BezierPatchC0.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PointsLines.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BezierPatchC0Cylinder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="processing.h">
@@ -159,6 +171,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="InterpolationCurveC2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BezierPatchC0.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SomePatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PointsLines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BezierPatchC0Cylinder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

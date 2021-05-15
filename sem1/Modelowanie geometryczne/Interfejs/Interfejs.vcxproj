@@ -126,13 +126,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\piotr.onyszczuk\Desktop\Projekty\priv\MGR\sem1\Modelowanie geometryczne\Interfejs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Piotrek\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <AdditionalDependencies>glfw3_dbg.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\piotr.onyszczuk\Desktop\Projekty\priv\MGR\sem1\Modelowanie geometryczne\Interfejs\LIBS;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Piotrek\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\LIBS;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -155,6 +155,8 @@
   <ItemGroup>
     <ClCompile Include="BezierCurveC0.cpp" />
     <ClCompile Include="BezierCurveC2.cpp" />
+    <ClCompile Include="BezierPatchC0.cpp" />
+    <ClCompile Include="BezierPatchC0Cylinder.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Cursor.cpp" />
     <ClCompile Include="Figure.cpp" />
@@ -171,15 +173,19 @@
     <ClCompile Include="MiddlePoint.cpp" />
     <ClCompile Include="Point.cpp" />
     <ClCompile Include="PointsLine.cpp" />
+    <ClCompile Include="PointsLines.cpp" />
     <ClCompile Include="processing.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Shader.h" />
     <ClCompile Include="SomeCurve.cpp" />
+    <ClCompile Include="SomePatch.cpp" />
     <ClCompile Include="Torus.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BezierCurveC0.h" />
     <ClInclude Include="BezierCurveC2.h" />
+    <ClInclude Include="BezierPatchC0.h" />
+    <ClInclude Include="BezierPatchC0Cylinder.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cursor.h" />
     <ClInclude Include="Figure.h" />
@@ -200,9 +206,11 @@
     <ClInclude Include="MiddlePoint.h" />
     <ClInclude Include="Point.h" />
     <ClInclude Include="PointsLine.h" />
+    <ClInclude Include="PointsLines.h" />
     <ClInclude Include="processing.h" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="SomeCurve.h" />
+    <ClInclude Include="SomePatch.h" />
     <ClInclude Include="Torus.h" />
   </ItemGroup>
   <ItemGroup>

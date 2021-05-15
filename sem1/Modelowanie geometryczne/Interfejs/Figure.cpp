@@ -1,6 +1,7 @@
 #include "Figure.h"
 #include "imgui/imgui.h"
 #include "SomeCurve.h"
+#include "SomePatch.h"
 
 
 
@@ -67,6 +68,8 @@ bool Figure::GetGui(int i, Figure* par)
 					{
 						if (isCurve)
 							((SomeCurve*)this)->CleanUp();
+						if (isPatch)
+							((SomePatch*)this)->CleanUp();
 						to_ret = true;
 					}
 				}

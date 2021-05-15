@@ -13,6 +13,20 @@ void Camera::ResetPosition()
 	up = { 0,-1,0 };
 }
 
+void Camera::SetPerspective(float aspect)
+{
+	glm::mat4 persp = glm::mat4(1.0f);
+	float e = 1 / tan(fov / 2);
+	persp[0][0] = e / aspect;
+	persp[1][1] = e;
+	persp[2][2] = (_far + _near) / (_far - _near);
+	persp[2][3] = -((_far * _near * 2) / (_far - _near));
+	persp[3][3] = 0;
+	persp[3][2] = 1;
+	m_projection_matrix = persp;
+	m_inv_projection_matrix = glm::inverse(m_projection_matrix);
+}
+
 void Camera::SetPerspective(float w, float ipd, float d, float h, bool left)
 {
 	glm::mat4 persp = glm::mat4(1.0f);

@@ -19,6 +19,8 @@
 #include "Program.h"
 #include "MiddlePoint.h"
 #include "Cursor.h"
+#include "BezierPatchC0.h"
+#include "BezierPatchC0Cylinder.h"
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
 
@@ -315,9 +317,11 @@ void RenderGui()
 	int to_delete = -1;
 
 	ImGui::Begin("Menu");
+	ImGui::Checkbox("Anaglyph", &program->anaglyph);
 	ImGui::Checkbox("Transformate around cursor", &rotate);
 	ImGui::SliderFloat("eyeDist", &program->eyeDist, 0.001f, 0.4f);
 	ImGui::SliderFloat("d", &program->d, 0.005f, 5.0f);
+	ImGui::SliderFloat("w", &program->w, 1.0f, 30.0f);
 	program->cur->GetGui(-1, nullptr);
 	if (ImGui::TreeNode("Adding"))
 	{
@@ -387,6 +391,27 @@ void RenderGui()
 				}
 			}
 		}
+
+		ImGui::SliderInt("patches_n", &program->patches_n, 1, 30);
+		ImGui::SliderInt("patches_m", &program->patches_m, 1, 30);
+
+		ImGui::SliderFloat("width", &program->bezierC0width, 0.5f, 30.0f);
+		ImGui::SliderFloat("r", &program->bezierC0r, 0.3f, 5.0f);
+		ImGui::SliderFloat("length", &program->bezierC0length, 0.5f, 30.0f);
+		if (ImGui::Button("New Bezier Patch C0 Rectangle"))
+		{
+			Figure* f = new BezierPatchC0(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length);
+			f->Initialize(program);
+			program->figures.push_back(f);
+		}
+
+		if (ImGui::Button("New Bezier Patch C0 Cylinder"))
+		{
+			Figure* f = new BezierPatchC0Cylinder(program->patches_n, program->patches_m, program->bezierC0r, program->bezierC0length);
+			f->Initialize(program);
+			program->figures.push_back(f);
+		}
+
 		ImGui::TreePop();
 	}
 	if (ImGui::TreeNode("Figures"))
@@ -408,6 +433,66 @@ void RenderGui()
 	}
 
 	ImGui::End();
+}
+
+void CreateColorbuffer(unsigned int& framebuffer, unsigned int& textureColorbuffer)
+{
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	// create a color attachment texture
+	glGenTextures(1, &textureColorbuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	/*
+	unsigned int rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, DEFAULT_WIDTH, DEFAULT_WIDTH); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
+	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+	*/
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+
+	// draw as wireframe
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+}
+
+void DrawScene()
+{
+	// make sure we clear the framebuffer's content
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	program->shader.use();
+	unsigned int perspLoc = glGetUniformLocation(program->shader.ID, "persp");
+	unsigned int viewLoc = glGetUniformLocation(program->shader.ID, "view");
+	glm::mat4 persp = program->cam->GetProjectionMatrix();
+	glm::mat4 view = program->cam->GetViewportMatrix();
+	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+	program->bezierShader.use();
+	perspLoc = glGetUniformLocation(program->bezierShader.ID, "persp");
+	viewLoc = glGetUniformLocation(program->bezierShader.ID, "view");
+	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+	program->mp->Reset();
+	for (int i = 0; i < program->figures.size(); ++i)
+	{
+		program->figures[i]->RecalcFigure();
+		program->figures[i]->Draw();
+		program->mp->Add(program->figures[i]);
+	}
+
+	program->mp->Draw();
+	program->cur->Draw();
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 int main()
@@ -460,16 +545,8 @@ int main()
 	program->cur = new Cursor();
 	program->cur->Initialize(program);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 	program->cam = new Camera();
 	program->cam->LookAt({ 0,0,3 }, { 0,0,-1 }, { 0,1,0 });
-	float aspect = (float)program->current_width / (float)program->current_height;
-	//program->cam->SetPerspective(program->current_width, program->current_height,eyeDist);
-	glm::mat4 view = program->cam->GetViewportMatrix();
-	glm::mat4 persp = program->cam->GetProjectionMatrix();
-	glm::mat4 view2 = program->cam->GetViewportMatrix();
-	glm::mat4 persp2 = program->cam->GetProjectionMatrix();
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -480,7 +557,7 @@ int main()
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
-#pragma region MyRegion  
+#pragma region quad  
 	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
 	// positions   // texCoords
 	-1.0f, 1.0f, 0.0f, 1.0f,
@@ -508,66 +585,12 @@ int main()
 	screenShader.setInt("screenTexture", 0);
 #pragma endregion
 
-#pragma region red
+	unsigned int framebufferRed, textureColorbufferRed;
+	CreateColorbuffer(framebufferRed, textureColorbufferRed);
 
+	unsigned int framebufferBlue, textureColorbufferBlue;
+	CreateColorbuffer(framebufferBlue, textureColorbufferBlue);
 
-	unsigned int framebufferRed;
-	glGenFramebuffers(1, &framebufferRed);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebufferRed);
-	// create a color attachment texture
-	unsigned int textureColorbufferRed;
-	glGenTextures(1, &textureColorbufferRed);
-	glBindTexture(GL_TEXTURE_2D, textureColorbufferRed);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbufferRed, 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	/*
-	unsigned int rbo;
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, DEFAULT_WIDTH, DEFAULT_WIDTH); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	*/
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-
-	// draw as wireframe
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-#pragma endregion
-#pragma region blue
-
-
-	unsigned int framebufferBlue;
-	glGenFramebuffers(1, &framebufferBlue);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebufferBlue);
-	// create a color attachment texture
-	unsigned int textureColorbufferBlue;
-	glGenTextures(1, &textureColorbufferBlue);
-	glBindTexture(GL_TEXTURE_2D, textureColorbufferBlue);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbufferBlue, 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	/*
-	unsigned int rbo;
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, DEFAULT_WIDTH, DEFAULT_WIDTH); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	*/
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-
-	// draw as wireframe
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-#pragma endregion
 	while (!glfwWindowShouldClose(window))
 	{
 		ImGui_ImplOpenGL3_NewFrame();
@@ -578,108 +601,59 @@ int main()
 		proc.processInput(window);
 		RenderGui();
 
-#pragma region red
-		program->cam->SetPerspective(3.0f, 2.0f * program->eyeDist, program->d, 3.0f / program->current_width * program->current_height, false);
-		program->cam->LookAt({ program->eyeDist,0,3 }, { 0,0,-1 }, { 0,1,0 });
-
-		glBindFramebuffer(GL_FRAMEBUFFER, framebufferRed);
-		//glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
-
-		// make sure we clear the framebuffer's content
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		program->shader.use();
-		unsigned int perspLoc = glGetUniformLocation(program->shader.ID, "persp");
-		unsigned int viewLoc = glGetUniformLocation(program->shader.ID, "view");
-		persp = program->cam->GetProjectionMatrix();
-		view = program->cam->GetViewportMatrix();
-		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		program->bezierShader.use();
-		perspLoc = glGetUniformLocation(program->bezierShader.ID, "persp");
-		viewLoc = glGetUniformLocation(program->bezierShader.ID, "view");
-		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-		program->mp->Reset();
-		for (int i = 0; i < program->figures.size(); ++i)
+		if (program->anaglyph)
 		{
-			program->figures[i]->RecalcFigure();
-			program->figures[i]->Draw();
-			program->mp->Add(program->figures[i]);
-		}
+#pragma region red
+			program->cam->SetPerspective(program->w, 2.0f * program->eyeDist, program->d, program->w / program->current_width * program->current_height, false);
+			program->cam->LookAt({ program->eyeDist,0,3 }, { 0,0,-1 }, { 0,1,0 });
 
-		program->mp->Draw();
-		program->cur->Draw();
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+			glBindFramebuffer(GL_FRAMEBUFFER, framebufferRed);
+			//glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+			DrawScene();
 #pragma endregion
 #pragma region blue
-		program->cam->SetPerspective(3.0f, 2.0f * program->eyeDist, program->d, 3.0f / program->current_width * program->current_height, true);
-		program->cam->LookAt({ -program->eyeDist,0,3 }, { 0,0,-1 }, { 0,1,0 });
+			program->cam->SetPerspective(program->w, 2.0f * program->eyeDist, program->d, program->w / program->current_width * program->current_height, true);
+			program->cam->LookAt({ -program->eyeDist,0,3 }, { 0,0,-1 }, { 0,1,0 });
 
-		glBindFramebuffer(GL_FRAMEBUFFER, framebufferBlue);
-		//glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+			glBindFramebuffer(GL_FRAMEBUFFER, framebufferBlue);
+			//glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
-		// make sure we clear the framebuffer's content
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
-
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		program->shader.use();
-		perspLoc = glGetUniformLocation(program->shader.ID, "persp");
-		viewLoc = glGetUniformLocation(program->shader.ID, "view");
-		persp = program->cam->GetProjectionMatrix();
-		view = program->cam->GetViewportMatrix();
-		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		program->bezierShader.use();
-		perspLoc = glGetUniformLocation(program->bezierShader.ID, "persp");
-		viewLoc = glGetUniformLocation(program->bezierShader.ID, "view");
-		glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-		program->mp->Reset();
-		for (int i = 0; i < program->figures.size(); ++i)
-		{
-			program->figures[i]->RecalcFigure();
-			program->figures[i]->Draw();
-			program->mp->Add(program->figures[i]);
-		}
-
-		program->mp->Draw();
-		program->cur->Draw();
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+			DrawScene();
 #pragma endregion
 
-		// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-		// clear all relevant buffers
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
-		glClear(GL_COLOR_BUFFER_BIT);
+			// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+			// clear all relevant buffers
+			glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+			glClear(GL_COLOR_BUFFER_BIT);
 
-		screenShader.use();
-		glBindVertexArray(quadVAO);
+			screenShader.use();
+			glBindVertexArray(quadVAO);
 
-		// Get the uniform variables location. You've probably already done that before...
-		auto redTexLocation = glGetUniformLocation(screenShader.ID, "screenTextureRed");
-		auto blueTexLocation = glGetUniformLocation(screenShader.ID, "screenTextureBlue");
+			// Get the uniform variables location. You've probably already done that before...
+			auto redTexLocation = glGetUniformLocation(screenShader.ID, "screenTextureRed");
+			auto blueTexLocation = glGetUniformLocation(screenShader.ID, "screenTextureBlue");
 
-		// Then bind the uniform samplers to texture units:
-		glUniform1i(redTexLocation, 0);
-		glUniform1i(blueTexLocation, 1);
-		glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
-		glBindTexture(GL_TEXTURE_2D, textureColorbufferRed);
+			// Then bind the uniform samplers to texture units:
+			glUniform1i(redTexLocation, 0);
+			glUniform1i(blueTexLocation, 1);
+			glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
+			glBindTexture(GL_TEXTURE_2D, textureColorbufferRed);
 
-		glActiveTexture(GL_TEXTURE0 + 1); // Texture unit 1
-		glBindTexture(GL_TEXTURE_2D, textureColorbufferBlue);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
+			glActiveTexture(GL_TEXTURE0 + 1); // Texture unit 1
+			glBindTexture(GL_TEXTURE_2D, textureColorbufferBlue);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+		else
+		{
+			float aspect = (float)program->current_width / (float)program->current_height;
+			program->cam->SetPerspective(aspect);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			DrawScene();
+		}
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

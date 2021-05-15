@@ -2,6 +2,7 @@
 #include "imgui\imgui.h"
 #include <string>
 #include "SomeCurve.h"
+#include "SomePatch.h"
 
 Point::Point() : Figure()
 {
@@ -38,7 +39,7 @@ bool Point::GetGuiInternal(Figure* par)
 		}
 		ImGui::TreePop();
 	}
-	if (par != nullptr)
+	if (par != nullptr && !par->isPatch)
 	{
 		if (ImGui::Button("Unpin"))
 		{
@@ -74,6 +75,10 @@ void Point::RecalcParent()
 		if (parents[i]->isCurve)
 		{
 			((SomeCurve*)parents[i])->Recalc();
+		}
+		if (parents[i]->isPatch)
+		{
+			((SomePatch*)parents[i])->Recalc();
 		}
 	}
 }
