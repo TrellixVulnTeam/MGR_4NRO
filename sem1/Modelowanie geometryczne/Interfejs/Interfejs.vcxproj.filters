@@ -205,5 +205,11 @@
     <None Include="textureFragmentShader.fs">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shaders\patchVertexShader.vs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\patchGeometryShader.gs">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

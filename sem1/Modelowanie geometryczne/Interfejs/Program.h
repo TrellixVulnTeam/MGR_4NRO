@@ -29,5 +29,6 @@ public:
 	Camera* cam = NULL;
 	Shader shader;
 	Shader bezierShader;
+	Shader patchShader;
 };
 

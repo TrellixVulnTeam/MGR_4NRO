@@ -10,6 +10,10 @@ Figure::Figure() :shader()
 	
 }
 
+void Figure::CleanUp()
+{
+}
+
 bool Figure::Create()
 {
 	if (selected_old != selected)
@@ -66,10 +70,6 @@ bool Figure::GetGui(int i, Figure* par)
 				if (par==nullptr) {
 					if (ImGui::Button("Remove"))
 					{
-						if (isCurve)
-							((SomeCurve*)this)->CleanUp();
-						if (isPatch)
-							((SomePatch*)this)->CleanUp();
 						to_ret = true;
 					}
 				}

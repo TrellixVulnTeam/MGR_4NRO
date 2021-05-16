@@ -16,19 +16,26 @@ public:
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
     Shader() {}
-    Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr)
+    Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr, const char* controlPath = nullptr, const char* evaluationPath = nullptr)
     {
         // 1. retrieve the vertex/fragment source code from filePath
         std::string vertexCode;
         std::string fragmentCode;
         std::string geometryCode;
+        std::string controlCode;
+        std::string evaluationCode;
         std::ifstream vShaderFile;
         std::ifstream fShaderFile;
         std::ifstream gShaderFile;
+        std::ifstream tcShaderFile;
+        std::ifstream teShaderFile;
         // ensure ifstream objects can throw exceptions:
         vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
         fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
         gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        tcShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        teShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
         try
         {
             // open files
@@ -52,6 +59,22 @@ public:
                 gShaderStream << gShaderFile.rdbuf();
                 gShaderFile.close();
                 geometryCode = gShaderStream.str();
+            }
+            if (controlPath != nullptr)
+            {
+                tcShaderFile.open(controlPath);
+                std::stringstream tcShaderStream;
+                tcShaderStream << tcShaderFile.rdbuf();
+                tcShaderFile.close();
+                controlCode = tcShaderStream.str();
+            }
+            if (evaluationPath != nullptr)
+            {
+                teShaderFile.open(evaluationPath);
+                std::stringstream teShaderStream;
+                teShaderStream << teShaderFile.rdbuf();
+                teShaderFile.close();
+                evaluationCode = teShaderStream.str();
             }
         }
         catch (std::ifstream::failure& e)
@@ -82,19 +105,46 @@ public:
             glCompileShader(geometry);
             checkCompileErrors(geometry, "GEOMETRY");
         }
+        unsigned int control;
+        if (controlPath != nullptr)
+        {
+            const char* tcShaderCode = controlCode.c_str();
+            control = glCreateShader(GL_TESS_CONTROL_SHADER);
+            glShaderSource(control, 1, &tcShaderCode, NULL);
+            glCompileShader(control);
+            checkCompileErrors(control, "TESS_CONTROL");
+        }
+        unsigned int evaluation;
+        if (evaluationPath != nullptr)
+        {
+            const char* teShaderCode = evaluationCode.c_str();
+            evaluation = glCreateShader(GL_TESS_EVALUATION_SHADER);
+            glShaderSource(evaluation, 1, &teShaderCode, NULL);
+            glCompileShader(evaluation);
+            checkCompileErrors(evaluation, "TESS_EVALUATION");
+        }
         // shader Program
         ID = glCreateProgram();
         glAttachShader(ID, vertex);
         glAttachShader(ID, fragment);
         if (geometryPath != nullptr)
             glAttachShader(ID, geometry);
+        if (controlPath != nullptr)
+            glAttachShader(ID, control);
+        if (evaluationPath != nullptr)
+            glAttachShader(ID, evaluation);
+
         glLinkProgram(ID);
         checkCompileErrors(ID, "PROGRAM");
         // delete the shaders as they're linked into our program now and no longer necessery
         glDeleteShader(vertex);
         glDeleteShader(fragment);
         if (geometryPath != nullptr)
-            glDeleteShader(geometry);
+            glDeleteShader(geometry);   
+        if (controlPath != nullptr)
+            glDeleteShader(control);
+        if (evaluationPath != nullptr)
+            glDeleteShader(evaluation);
 
     }
     // activate the shader

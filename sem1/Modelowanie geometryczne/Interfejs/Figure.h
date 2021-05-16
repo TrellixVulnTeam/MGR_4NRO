@@ -14,7 +14,7 @@
 
 enum class FigureType
 {
-	Torus, Point, MiddlePoint, Cursor, BezierCurveC0, PointsLine, BezierCurveC2, InterpolationCurveC2, BezierPatchC0
+	Torus, Point, MiddlePoint, Cursor, BezierCurveC0, PointsLine, BezierCurveC2, InterpolationCurveC2, BezierPatchC0, BezierPatchC0Cylinder
 };
 
 class Program;
@@ -42,7 +42,7 @@ public:
 	glm::vec3 GetPos();
 	virtual void Draw();
 	void virtual Initialize(Program* _program);
-	void RecalcFigure();
+	void virtual RecalcFigure();
 	bool CanMove() { return canMove; };
 	bool HasParent() { return parents.size() > 0; };
 
@@ -55,6 +55,7 @@ public:
 	char gui_name[STRMAX];
 	bool isCurve = false;
 	bool isPatch = false;
+	void virtual CleanUp();
 protected:
 	virtual bool Create();
 	void RecalcModel();
@@ -71,9 +72,9 @@ protected:
 	std::vector<Figure*> parents;
 	Program* program = NULL;
 	Shader shader;
-private:
-	bool selected_old = false;
 	unsigned int VBO;
 	unsigned int VAO;
 	unsigned int EBO;
+private:
+	bool selected_old = false;
 };

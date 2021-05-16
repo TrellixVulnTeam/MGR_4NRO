@@ -11,7 +11,6 @@ public:
 	virtual void Draw() override = 0;
 	void virtual AddPoint(Point* point) = 0;
 	void virtual RemovePoint(int to_del) = 0;
-	void virtual CleanUp() = 0;
 	void virtual Recalc() final { first = true; }
 	void virtual Initialize(Program* _program) override { Figure::Initialize(_program); shader = Shader(program->bezierShader);};
 protected:

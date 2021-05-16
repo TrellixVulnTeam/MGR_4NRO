@@ -11,6 +11,7 @@ public:
 	void AddParent(Figure* f);
 	void virtual Initialize(Program* _program) override;
 	bool virtualPoint = false;
+	bool toDel = false;
 private:
 	bool virtual Create() override;
 	bool firstTime = true;

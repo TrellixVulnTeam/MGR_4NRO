@@ -189,6 +189,8 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cursor.h" />
     <ClInclude Include="Figure.h" />
+    <None Include="shaders\patchGeometryShader.gs" />
+    <None Include="shaders\patchVertexShader.vs" />
     <None Include="textureFragmentShader.fs" />
     <None Include="textureVertexShader.vs">
       <FileType>Document</FileType>

@@ -392,22 +392,16 @@ void RenderGui()
 			}
 		}
 
-		ImGui::SliderInt("patches_n", &program->patches_n, 1, 30);
-		ImGui::SliderInt("patches_m", &program->patches_m, 1, 30);
-
-		ImGui::SliderFloat("width", &program->bezierC0width, 0.5f, 30.0f);
-		ImGui::SliderFloat("r", &program->bezierC0r, 0.3f, 5.0f);
-		ImGui::SliderFloat("length", &program->bezierC0length, 0.5f, 30.0f);
 		if (ImGui::Button("New Bezier Patch C0 Rectangle"))
 		{
-			Figure* f = new BezierPatchC0(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length);
+			Figure* f = new BezierPatchC0();
 			f->Initialize(program);
 			program->figures.push_back(f);
 		}
 
 		if (ImGui::Button("New Bezier Patch C0 Cylinder"))
 		{
-			Figure* f = new BezierPatchC0Cylinder(program->patches_n, program->patches_m, program->bezierC0r, program->bezierC0length);
+			Figure* f = new BezierPatchC0Cylinder();
 			f->Initialize(program);
 			program->figures.push_back(f);
 		}
@@ -428,8 +422,10 @@ void RenderGui()
 
 	if (to_delete >= 0)
 	{
-		delete program->figures[to_delete];
+		Figure* f = program->figures[to_delete];
 		program->figures.erase(program->figures.begin() + to_delete);
+		f->CleanUp();
+		delete f;
 	}
 
 	ImGui::End();
@@ -478,6 +474,11 @@ void DrawScene()
 	program->bezierShader.use();
 	perspLoc = glGetUniformLocation(program->bezierShader.ID, "persp");
 	viewLoc = glGetUniformLocation(program->bezierShader.ID, "view");
+	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+	program->patchShader.use();
+	perspLoc = glGetUniformLocation(program->patchShader.ID, "persp");
+	viewLoc = glGetUniformLocation(program->patchShader.ID, "view");
 	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
@@ -539,6 +540,11 @@ int main()
 	program->bezierShader = Shader("shaders/bezierVertexShader.vs"
 		, "shaders/fragShader.fs"
 		, "shaders/bezierGeometryShader.gs");
+
+	program->patchShader = Shader("shaders/patchVertexShader.vs"
+		, "shaders/fragShader.fs"
+		, "shaders/patchGeometryShader.gs"
+		);
 
 	program->mp = new MiddlePoint();
 	program->mp->Initialize(program);
