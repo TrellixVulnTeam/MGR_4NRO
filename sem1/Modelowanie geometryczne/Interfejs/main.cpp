@@ -391,17 +391,21 @@ void RenderGui()
 				}
 			}
 		}
-
+		ImGui::SliderInt("patches_n", &program->patches_n, 1, 100);
+		ImGui::SliderInt("patches_m", &program->patches_m, 1, 100);
+		ImGui::SliderFloat("r", &program->bezierC0r, 0.5f, 5.0f);
+		ImGui::SliderFloat("length", &program->bezierC0length, 0.5f, 5.0f);
+		ImGui::SliderFloat("width", &program->bezierC0width, 0.5f, 5.0f);
 		if (ImGui::Button("New Bezier Patch C0 Rectangle"))
 		{
-			Figure* f = new BezierPatchC0();
+			Figure* f = new BezierPatchC0(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length);
 			f->Initialize(program);
 			program->figures.push_back(f);
 		}
 
 		if (ImGui::Button("New Bezier Patch C0 Cylinder"))
 		{
-			Figure* f = new BezierPatchC0Cylinder();
+			Figure* f = new BezierPatchC0Cylinder(program->patches_n, program->patches_m, program->bezierC0r, program->bezierC0length);
 			f->Initialize(program);
 			program->figures.push_back(f);
 		}
@@ -609,6 +613,7 @@ int main()
 
 		if (program->anaglyph)
 		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 #pragma region red
 			program->cam->SetPerspective(program->w, 2.0f * program->eyeDist, program->d, program->w / program->current_width * program->current_height, false);
 			program->cam->LookAt({ program->eyeDist,0,3 }, { 0,0,-1 }, { 0,1,0 });
@@ -627,9 +632,9 @@ int main()
 			DrawScene();
 #pragma endregion
 
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 			// clear all relevant buffers
 			glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)

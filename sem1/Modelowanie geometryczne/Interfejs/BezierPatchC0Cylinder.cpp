@@ -40,10 +40,6 @@ void BezierPatchC0Cylinder::ClearPoints()
 }
 
 void BezierPatchC0Cylinder::GeneratePoints() {
-	rOld = r;
-	lengthOld = length;
-	mOld = m;
-	nOld = n;
 	ClearPoints();
 	points.clear();
 	pointsLines->Clear();
@@ -145,7 +141,6 @@ void BezierPatchC0Cylinder::RecalcFigure()
 bool BezierPatchC0Cylinder::Create()
 {
 	if (splitAold != splitA || splitBold != splitB) first = true;
-	if (mOld != m || nOld != n || rOld != r || lengthOld != length) GeneratePoints();
 	bool fCreate = Figure::Create();
 	if (!fCreate && !first) return false;
 	if (points.size() == 0) return false;

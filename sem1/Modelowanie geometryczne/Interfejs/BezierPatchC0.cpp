@@ -13,6 +13,7 @@ void BezierPatchC0::Initialize(Program* _program)
 {
 	SomePatch::Initialize(_program);
 	pointsLines->Initialize(program);
+	GeneratePoints();
 }
 
 void BezierPatchC0::ClearPoints()
@@ -44,10 +45,6 @@ void BezierPatchC0::GeneratePoints()
 	ClearPoints();
 	points.clear();
 	pointsLines->Clear();
-	widthOld = width;
-	lengthOld = length;
-	mOld = m;
-	nOld = n;
 	float x = 0.0f;
 	float y = 0.0f;
 	float xdiff = width / (3 * n);
@@ -142,7 +139,6 @@ void BezierPatchC0::CleanUp()
 bool BezierPatchC0::Create()
 {
 	if (splitAold != splitA || splitBold != splitB) first = true;
-	if (mOld != m || nOld != n || widthOld != width || lengthOld != length) GeneratePoints();
 	bool fCreate = Figure::Create();
 	if (!fCreate && !first) return false;
 	if (points.size() == 0) return false;
