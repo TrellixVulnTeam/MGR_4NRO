@@ -4,7 +4,6 @@
 
 #include "dxApplication.h"
 #include "mesh.h"
-#include "particleSystem.h"
 
 namespace mini::gk2
 {
@@ -24,7 +23,6 @@ namespace mini::gk2
 		static const unsigned int BS_MASK;
 		void CreateRenderStates();
 
-		static const float SHEET_ANGLE;
 		static const DirectX::XMFLOAT3 SHEET_POS;
 		static const float SHEET_SIZE;
 		static constexpr unsigned int MAP_SIZE = 1024;
@@ -32,6 +30,8 @@ namespace mini::gk2
 
 		static const float WALL_SIZE;
 		static const DirectX::XMFLOAT3 WALLS_POS;
+
+		static const float DUCK_SCALING;
 #pragma endregion
 
 #pragma region D3D Resources
@@ -60,9 +60,9 @@ namespace mini::gk2
 		dx_ptr<ID3D11SamplerState> m_sampler;
 
 
-		dx_ptr<ID3D11VertexShader> m_vs;
-		dx_ptr<ID3D11PixelShader> m_ps;
-		dx_ptr<ID3D11InputLayout> m_il;
+		dx_ptr<ID3D11VertexShader>m_envVS, m_duckVS;
+		dx_ptr<ID3D11PixelShader> m_envPS, m_duckPS;
+		dx_ptr<ID3D11InputLayout> m_envIL, m_duckIL;
 
 		dx_ptr<ID3D11SamplerState> m_samplerWrap;
 		dx_ptr<ID3D11SamplerState> m_samplerWrap_back;
@@ -70,7 +70,7 @@ namespace mini::gk2
 		Mesh m_wall;
 		//Wall mesh
 		Mesh m_sheet;
-
+		Mesh m_duck;
 		//Depth stencil state used for drawing billboards without writing to the depth buffer
 		dx_ptr<ID3D11DepthStencilState> m_dssNoDepthWrite;
 		dx_ptr<ID3D11DepthStencilState> m_dssDepthWrite;
@@ -97,11 +97,10 @@ namespace mini::gk2
 
 		dx_ptr<ID3D11ShaderResourceView> m_shadowMap;
 
-		dx_ptr<ID3D11Buffer> m_vbParticles;
-		ParticleSystem m_particles;
-
 		dx_ptr<ID3D11Texture2D> waterTex;
 		dx_ptr<ID3D11ShaderResourceView> m_waterTexture;
+		dx_ptr<ID3D11ShaderResourceView> m_envTexture;
+		dx_ptr<ID3D11ShaderResourceView> m_duckTexture;
 
 		dx_ptr<ID3D11VertexShader> m_waterVS;
 		dx_ptr<ID3D11PixelShader> m_waterPS;
@@ -113,29 +112,34 @@ namespace mini::gk2
 		DirectX::XMMATRIX m_wallsMtx[6];
 		DirectX::XMMATRIX m_sheetMtx;
 		DirectX::XMMATRIX m_revSheetMtx;
-		DirectX::XMMATRIX m_cylinderMtx;
 #pragma endregion
 		float d[WATER_N][WATER_N];
 		float heights[WATER_N][WATER_N];
 		float heightsOld[WATER_N][WATER_N];
+		float xPos, yPos, t, lastXPos, lastYPos;
+		DirectX::XMFLOAT2 deBoor0, deBoor1, deBoor2, deBoor3;
+		DirectX::XMFLOAT4 bernsteinXs, bernsteinYs;
 		std::vector<BYTE> normalMap;
 		void SetWorldMtx(DirectX::XMFLOAT4X4 mtx);
 		void DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx);
 		void UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx);
 		void UpdatePlaneCB(DirectX::XMFLOAT4 pos, DirectX::XMFLOAT4 dir);
-		void SetShaders();
 		void CreateWallsMtx();
 		void DrawWalls();
 		void CreateSheetMtx();
 		void DrawSheet(bool colors);
 
 
-		void SetShaders(const dx_ptr<ID3D11VertexShader>& vs, const dx_ptr<ID3D11PixelShader>& ps);
+		void SetShaders(const dx_ptr<ID3D11InputLayout>& il,const dx_ptr<ID3D11VertexShader>& vs, const dx_ptr<ID3D11PixelShader>& ps);
 		void SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resList, const dx_ptr<ID3D11SamplerState>& sampler);
 		void SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resList) { SetTextures(std::move(resList), m_sampler); }
 		
 		void RandomDrops();
+		DirectX::XMFLOAT4 DeBoorToBernstein(float a, float b, float c, float d);
+		DirectX::XMFLOAT2 RandPoint();
+		void SimDuck(float dt);
 		void InitializeWater();
 		void UpdateHeights(float dt);
+		void InitializeSimDuck();
 	};
 }

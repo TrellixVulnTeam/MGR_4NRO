@@ -1,5 +1,4 @@
 #include "kaczka.h"
-#include "particleSystem.h"
 
 
 using namespace mini;
@@ -10,9 +9,8 @@ using namespace std;
 #pragma region Constants
 const unsigned int Kaczka::BS_MASK = 0xffffffff;
 
-const float Kaczka::SHEET_ANGLE = DirectX::XM_PIDIV4;
-const XMFLOAT3 Kaczka::SHEET_POS = XMFLOAT3(-1.5f, 0.0f, 0.0f);
-const float Kaczka::SHEET_SIZE = 1.5f;
+const float Kaczka::SHEET_SIZE = 2.0f;
+const float Kaczka::DUCK_SCALING = 0.005f;
 const XMFLOAT4 Kaczka::SHEET_COLOR = XMFLOAT4(0.1f, 0.1f, 0.1f, 140.0f / 255.0f);
 
 const float Kaczka::WALL_SIZE = 8.0f;
@@ -59,12 +57,11 @@ Kaczka::Kaczka(HINSTANCE hInstance)
 	m_samplerWrap_back = m_device.CreateSamplerState(sd);
 
 	//Regular shaders
-	auto vsCode = m_device.LoadByteCode(L"vs.cso");
-	auto psCode = m_device.LoadByteCode(L"ps.cso");
-	m_vs = m_device.CreateVertexShader(vsCode);
-	m_ps = m_device.CreatePixelShader(psCode);
-
-	m_il = m_device.CreateInputLayout(VertexPositionNormal::Layout, vsCode);
+	auto vsCode = m_device.LoadByteCode(L"envVS.cso");
+	auto psCode = m_device.LoadByteCode(L"envPS.cso");
+	m_envVS = m_device.CreateVertexShader(vsCode);
+	m_envPS = m_device.CreatePixelShader(psCode);
+	m_envIL = m_device.CreateInputLayout(VertexPositionNormal::Layout, vsCode);
 
 
 	vsCode = m_device.LoadByteCode(L"waterVS.cso");
@@ -72,6 +69,12 @@ Kaczka::Kaczka(HINSTANCE hInstance)
 	m_waterVS = m_device.CreateVertexShader(vsCode);
 	m_waterPS = m_device.CreatePixelShader(psCode);
 	m_waterIL = m_device.CreateInputLayout(VertexPositionNormal::Layout, vsCode);
+
+	vsCode = m_device.LoadByteCode(L"duckVS.cso");
+	psCode = m_device.LoadByteCode(L"duckPS.cso");
+	m_duckVS = m_device.CreateVertexShader(vsCode);
+	m_duckPS = m_device.CreatePixelShader(psCode);
+	m_duckIL = m_device.CreateInputLayout(VertexPositionNormalTex::Layout, vsCode);
 	//Render states
 	CreateRenderStates();
 
@@ -79,9 +82,9 @@ Kaczka::Kaczka(HINSTANCE hInstance)
 
 	m_wall = Mesh::Rectangle(m_device);
 	m_sheet = Mesh::Rectangle(m_device, SHEET_SIZE, SHEET_SIZE);
+	m_duck = Mesh::LoadMesh(m_device, L"resources/duck/duck.txt");
 
-
-	SetShaders();
+	//	SetShaders();
 	ID3D11Buffer* vsb[] = { m_cbWorld.get(),  m_cbView.get(), m_cbProj.get(), m_cbPlane.get() };
 	m_device.context()->VSSetConstantBuffers(0, 4, vsb);
 	m_device.context()->GSSetConstantBuffers(0, 1, vsb + 2);
@@ -137,8 +140,11 @@ Kaczka::Kaczka(HINSTANCE hInstance)
 	texDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 	waterTex = m_device.CreateTexture(texDesc);
 	m_waterTexture = m_device.CreateShaderResourceView(waterTex);
+	m_envTexture = m_device.CreateShaderResourceView(L"resources/textures/envMap.dds");
+	m_duckTexture = m_device.CreateShaderResourceView(L"resources/duck/ducktex.jpg");
 
 	InitializeWater();
+	InitializeSimDuck();
 }
 
 void Kaczka::CreateRenderStates()
@@ -249,8 +255,8 @@ void Kaczka::Update(const Clock& c)
 	}
 
 	RandomDrops();
+	SimDuck(dt);
 	UpdateHeights(dt);
-
 }
 
 
@@ -271,19 +277,13 @@ void Kaczka::UpdatePlaneCB(DirectX::XMFLOAT4 pos, DirectX::XMFLOAT4 dir)
 }
 #pragma endregion
 #pragma region Frame Rendering Setup
-void Kaczka::SetShaders()
+void Kaczka::SetShaders(const dx_ptr<ID3D11InputLayout>& il, const dx_ptr<ID3D11VertexShader>& vs, const dx_ptr<ID3D11PixelShader>& ps)
 {
-	m_device.context()->IASetInputLayout(m_il.get());
-	m_device.context()->VSSetShader(m_vs.get(), 0, 0);
-	m_device.context()->PSSetShader(m_ps.get(), 0, 0);
-	m_device.context()->GSSetShader(nullptr, nullptr, 0);
-	m_device.context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-}
-
-void Kaczka::SetShaders(const dx_ptr<ID3D11VertexShader>& vs, const dx_ptr<ID3D11PixelShader>& ps)
-{
+	m_device.context()->IASetInputLayout(il.get());
 	m_device.context()->VSSetShader(vs.get(), nullptr, 0);
 	m_device.context()->PSSetShader(ps.get(), nullptr, 0);
+	m_device.context()->GSSetShader(nullptr, nullptr, 0);
+	m_device.context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 void Kaczka::SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resList, const dx_ptr<ID3D11SamplerState>& sampler)
@@ -363,21 +363,112 @@ void Kaczka::DrawSheet(bool colors)
 
 void Kaczka::CreateSheetMtx()
 {
-	m_sheetMtx = XMMatrixRotationX(SHEET_ANGLE) * XMMatrixRotationY(-DirectX::XM_PIDIV2) * XMMatrixTranslationFromVector(XMLoadFloat3(&SHEET_POS));
+	m_sheetMtx = XMMatrixRotationX(DirectX::XM_PIDIV2) * XMMatrixScaling(WALL_SIZE / 2.0f, WALL_SIZE / 2.0f, WALL_SIZE / 2.0f);
 	m_revSheetMtx = XMMatrixRotationY(-DirectX::XM_PI) * m_sheetMtx;
 }
 
-void mini::gk2::Kaczka::RandomDrops()
+void Kaczka::RandomDrops()
 {
+	//	heights[100][100] = 0.25f;
 	for (int i = 0; i < WATER_N; ++i)
 		for (int j = 0; j < WATER_N; ++j)
 		{
 			if (rand() % 1000 == 1)
-				if (rand() % 200 == 1)
+				if (rand() % 1000 == 1)
 				{
-					heights[i][j] = 0.25f;
+					//heights[i][j] = 0.25f;
 				}
 		}
+}
+
+XMFLOAT4 Kaczka::DeBoorToBernstein(float a, float b, float c, float d)
+{
+	float p1 = a + 2.0f / 3.0f * (b - a);
+	float p2 = b + 1.0f / 3.0f * (c - b);
+	float p3 = b + 2.0f / 3.0f * (c - b);
+	float p4 = c + 1.0f / 3.0f * (d - c);
+
+	XMFLOAT4 bernsteins;
+	bernsteins.x = (p1 + p2) / 2.0f;
+	bernsteins.y = p2;
+	bernsteins.z = p3;
+	bernsteins.w = (p3 + p4) / 2.0f;
+	return bernsteins;
+}
+
+XMFLOAT2 Kaczka::RandPoint()
+{
+	XMFLOAT2 res;
+	res.x = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+	//res.x *= 0.6f;
+	//res.x += 0.2f;
+	res.y = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+	//res.y *= 0.6f;
+	//res.y += 0.2f;
+	return res;
+}
+
+void Kaczka::InitializeSimDuck()
+{
+	t = 0.0f;
+
+	deBoor0 = RandPoint();
+	deBoor1 = RandPoint();
+	deBoor2 = RandPoint();
+	deBoor3 = RandPoint();
+
+	bernsteinXs = DeBoorToBernstein(deBoor0.x, deBoor1.x, deBoor2.x, deBoor3.x);
+	bernsteinYs = DeBoorToBernstein(deBoor0.y, deBoor1.y, deBoor2.y, deBoor3.y);
+}
+
+void Kaczka::SimDuck(float dt)
+{
+	if (t >= 1.0f)
+	{
+		deBoor0 = deBoor1;
+		deBoor1 = deBoor2;
+		deBoor2 = deBoor3;
+		deBoor3 = RandPoint();
+		while (abs(deBoor3.x - deBoor2.x) + abs(deBoor3.y - deBoor2.y) < 0.8f) deBoor3 = RandPoint();
+		bernsteinXs = DeBoorToBernstein(deBoor0.x, deBoor1.x, deBoor2.x, deBoor3.x);
+		bernsteinYs = DeBoorToBernstein(deBoor0.y, deBoor1.y, deBoor2.y, deBoor3.y);
+		t = 0.0f;
+	}
+
+	float coeffs[4];
+	coeffs[0] = bernsteinXs.x;
+	coeffs[1] = bernsteinXs.y;
+	coeffs[2] = bernsteinXs.z;
+	coeffs[3] = bernsteinXs.w;
+
+	for (int i = 4; i > 0; --i)
+	{
+		for (int j = 0; j < i - 1; ++j)
+		{
+			coeffs[j] = (1 - t) * coeffs[j] + t * coeffs[j + 1];
+		}
+	}
+	lastXPos = xPos;
+	lastYPos = yPos;
+	xPos = coeffs[0];
+
+	coeffs[0] = bernsteinYs.x;
+	coeffs[1] = bernsteinYs.y;
+	coeffs[2] = bernsteinYs.z;
+	coeffs[3] = bernsteinYs.w;
+	for (int i = 4; i > 0; --i)
+	{
+		for (int j = 0; j < i - 1; ++j)
+		{
+			coeffs[j] = (1 - t) * coeffs[j] + t * coeffs[j + 1];
+		}
+	}
+	yPos = coeffs[0];
+
+	int i = (int)round(xPos * WATER_N);
+	int j = (int)round(yPos * WATER_N);
+	heights[i][j] = 0.25f;
+	t += dt / 2;
 }
 
 void Kaczka::InitializeWater()
@@ -425,7 +516,7 @@ void Kaczka::UpdateHeights(float dt)
 	for (int i = 0; i < WATER_N; i++) {
 		for (int j = 0; j < WATER_N; j++) {
 			float h = heights[i][j] + 1.0f;
-			//h /= 2.0f;
+			h /= 2.0f;
 			*(data++) = static_cast<BYTE>(h * 255.0f);
 			*(data++) = static_cast<BYTE>(h * 255.0f);
 			*(data++) = static_cast<BYTE>(h * 255.0f);
@@ -443,8 +534,24 @@ void Kaczka::UpdateHeights(float dt)
 void Kaczka::Render()
 {
 	Base::Render();
-	SetShaders(m_waterVS, m_waterPS);
+	SetShaders(m_waterIL, m_waterVS, m_waterPS);
 	SetTextures({ m_waterTexture.get() }, m_samplerWrap);
 	DrawSheet(true);
+
+	SetShaders(m_envIL, m_envVS, m_envPS);
+	SetTextures({ m_envTexture.get() }, m_samplerWrap_back);
+	UpdateBuffer(m_cbSurfaceColor, XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f));
+	DrawWalls();
+
+	SetShaders(m_duckIL, m_duckVS, m_duckPS);
+	SetTextures({ m_duckTexture.get() }, m_samplerWrap);
+	XMFLOAT4X4 duckMtx{};
+
+	XMFLOAT2 vec = { xPos - lastXPos,yPos - lastYPos };
+	XMFLOAT2 len; XMStoreFloat2(&len, XMVector2Length(XMLoadFloat2(&vec)));
+	float angle = atan2(vec.x, -vec.y);
+	//XMStoreFloat4x4(&duckMtx, XMMatrixTranslation(WALL_SIZE / DUCK_SCALING * xPos, 0.0f, WALL_SIZE / DUCK_SCALING * xPos) * XMMatrixTranslation(-400.0f, 0.0f, -400.0f) * XMMatrixScaling(DUCK_SCALING, DUCK_SCALING, DUCK_SCALING));
+	XMStoreFloat4x4(&duckMtx, XMMatrixScaling(DUCK_SCALING, DUCK_SCALING, DUCK_SCALING) * XMMatrixRotationY(angle) * XMMatrixTranslation(WALL_SIZE * yPos, 0.0f, WALL_SIZE * xPos) * XMMatrixTranslation(-WALL_SIZE / 2, 0.0f, -WALL_SIZE / 2));
+	DrawMesh(m_duck, duckMtx);
 }
 #pragma endregion

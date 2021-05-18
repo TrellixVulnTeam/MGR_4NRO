@@ -7,6 +7,18 @@
     <FxCompile Include="waterPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="envPS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="envVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="duckVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="duckPS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -40,16 +52,16 @@
       <Filter>Source Files\d3dx</Filter>
     </ClCompile>
     <ClCompile Include="keyboard.cpp">
-      <Filter>Source Files\dinput</Filter>
+      <Filter>Source Files\d3dx\dinput</Filter>
     </ClCompile>
     <ClCompile Include="diDeviceBase.cpp">
-      <Filter>Source Files\dinput</Filter>
+      <Filter>Source Files\d3dx\dinput</Filter>
     </ClCompile>
     <ClCompile Include="diInstance.cpp">
-      <Filter>Source Files\dinput</Filter>
+      <Filter>Source Files\d3dx\dinput</Filter>
     </ClCompile>
     <ClCompile Include="mouse.cpp">
-      <Filter>Source Files\dinput</Filter>
+      <Filter>Source Files\d3dx\dinput</Filter>
     </ClCompile>
     <ClCompile Include="exceptions.cpp">
       <Filter>Source Files\utils</Filter>
@@ -163,7 +175,7 @@
     <Filter Include="Source Files\win32">
       <UniqueIdentifier>{ace5785c-1b10-49a8-bffc-d9b8651fe125}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\dinput">
+    <Filter Include="Source Files\d3dx\dinput">
       <UniqueIdentifier>{8e9e8e4a-f550-468d-9ee5-672950a584a0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
