@@ -10,12 +10,6 @@ using namespace std;
 #pragma region Constants
 const unsigned int Kaczka::BS_MASK = 0xffffffff;
 
-const XMFLOAT4 Kaczka::GREEN_LIGHT_POS = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-const XMFLOAT4 Kaczka::RED_LIGHT_POS = XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f);
-
-const float Kaczka::ARM_SPEED = 2.0f;
-const float Kaczka::CIRCLE_RADIUS = 0.5f;
-
 const float Kaczka::SHEET_ANGLE = DirectX::XM_PIDIV4;
 const XMFLOAT3 Kaczka::SHEET_POS = XMFLOAT3(-1.5f, 0.0f, 0.0f);
 const float Kaczka::SHEET_SIZE = 1.5f;
@@ -25,11 +19,6 @@ const float Kaczka::WALL_SIZE = 8.0f;
 const XMFLOAT3 Kaczka::WALLS_POS = XMFLOAT3(0.0f, 3.0f, 0.0f);
 const XMFLOAT4 LightPos = XMFLOAT4(-1.0f, 3.0f, -3.0f, 1.0f);
 
-const float Kaczka::CYLINDER_RADIUS = 1.0f;
-const float Kaczka::CYLINDER_LENGTH = 4.0f;
-const int Kaczka::CYLINDER_RADIUS_SPLIT = 20;
-const int Kaczka::CYLINDER_LENGTH_SPLIT = 1;
-const XMFLOAT3 Kaczka::CYLINDER_POS = XMFLOAT3(0.0f, -1.0f, 2.0f);
 #pragma endregion
 
 #pragma region Initalization
@@ -37,11 +26,8 @@ Kaczka::Kaczka(HINSTANCE hInstance)
 	: Base(hInstance, 1280, 720, L"Kaczka"),
 	m_cbWorld(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 	m_cbView(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
-	m_cbLighting(m_device.CreateConstantBuffer<Lighting>()),
 	m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
-	m_cbPlane(m_device.CreateConstantBuffer<XMFLOAT4, 2>()),
-	m_particles{ {m_sheetMtx}, {XMFLOAT3(0.0f,0.0f,0.0f)} },
-	m_dropTexture(m_device.CreateShaderResourceView(L"resources/textures/drop.png"))
+	m_cbPlane(m_device.CreateConstantBuffer<XMFLOAT4, 2>())
 {
 	//Projection matrix
 	auto s = m_window.getClientSize();
@@ -72,11 +58,6 @@ Kaczka::Kaczka(HINSTANCE hInstance)
 	sd.MipLODBias = 0.5f;
 	m_samplerWrap_back = m_device.CreateSamplerState(sd);
 
-	m_vbParticles = m_device.CreateVertexBuffer<ParticleVertex>(ParticleSystem::MAX_PARTICLES);
-
-	//Camera Plane
-	SetCameraPlane();
-
 	//Regular shaders
 	auto vsCode = m_device.LoadByteCode(L"vs.cso");
 	auto psCode = m_device.LoadByteCode(L"ps.cso");
@@ -85,42 +66,30 @@ Kaczka::Kaczka(HINSTANCE hInstance)
 
 	m_il = m_device.CreateInputLayout(VertexPositionNormal::Layout, vsCode);
 
-	vsCode = m_device.LoadByteCode(L"particleVS.cso");
-	psCode = m_device.LoadByteCode(L"particlePS.cso");
-	auto gsCode = m_device.LoadByteCode(L"particleGS.cso");
-	m_particleVS = m_device.CreateVertexShader(vsCode);
-	m_particlePS = m_device.CreatePixelShader(psCode);
-	m_particleGS = m_device.CreateGeometryShader(gsCode);
-	m_particleLayout = m_device.CreateInputLayout<ParticleVertex>(vsCode);
 
+	vsCode = m_device.LoadByteCode(L"waterVS.cso");
+	psCode = m_device.LoadByteCode(L"waterPS.cso");
+	m_waterVS = m_device.CreateVertexShader(vsCode);
+	m_waterPS = m_device.CreatePixelShader(psCode);
+	m_waterIL = m_device.CreateInputLayout(VertexPositionNormal::Layout, vsCode);
 	//Render states
 	CreateRenderStates();
 
 	//Meshes
 
-	m_box = Mesh::ShadedBox(m_device);
 	m_wall = Mesh::Rectangle(m_device);
-	m_cylinder = Mesh::Cylinder(m_device, CYLINDER_RADIUS, CYLINDER_LENGTH, CYLINDER_RADIUS_SPLIT, CYLINDER_LENGTH_SPLIT);
 	m_sheet = Mesh::Rectangle(m_device, SHEET_SIZE, SHEET_SIZE);
 
-	m_arm0 = Mesh::LoadMesh(m_device, L"resources/puma/mesh1.txt");
-	m_arm1 = Mesh::LoadMesh(m_device, L"resources/puma/mesh2.txt");
-	m_arm2 = Mesh::LoadMesh(m_device, L"resources/puma/mesh3.txt");
-	m_arm3 = Mesh::LoadMesh(m_device, L"resources/puma/mesh4.txt");
-	m_arm4 = Mesh::LoadMesh(m_device, L"resources/puma/mesh5.txt");
-	m_arm5 = Mesh::LoadMesh(m_device, L"resources/puma/mesh6.txt");
 
 	SetShaders();
 	ID3D11Buffer* vsb[] = { m_cbWorld.get(),  m_cbView.get(), m_cbProj.get(), m_cbPlane.get() };
 	m_device.context()->VSSetConstantBuffers(0, 4, vsb);
-	m_device.context()->GSSetConstantBuffers(0, 1, vsb+2);
+	m_device.context()->GSSetConstantBuffers(0, 1, vsb + 2);
 	ID3D11Buffer* psb[] = { m_cbSurfaceColor.get(), m_cbLighting.get() };
 	m_device.context()->PSSetConstantBuffers(0, 2, psb);
 
 	CreateSheetMtx();
 	CreateWallsMtx();
-	CreateCylinderMtx();
-
 	SamplerDescription sd2;
 
 	// TODO : 1.05 Create sampler with appropriate border color and addressing (border) and filtering (bilinear) modes
@@ -151,8 +120,6 @@ Kaczka::Kaczka(HINSTANCE hInstance)
 	// TODO : 1.11 Create depth-stencil-view for the shadow texture with appropriate format
 	dvd.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
-	m_shadowDepthBuffer = m_device.CreateDepthStencilView(shadowTexture, dvd);
-
 	//ShaderResourceViewDescription srvd;
 
 	//// TODO : 1.12 Create shader resource view for the shadow texture with appropriate format, view dimensions, mip levels and most detailed mip level
@@ -162,6 +129,16 @@ Kaczka::Kaczka(HINSTANCE hInstance)
 	//srvd.Texture2D.MostDetailedMip = 0;
 
 	//m_shadowMap = m_device.CreateShaderResourceView(shadowTexture, srvd);
+
+	normalMap = vector<BYTE>(WATER_N * WATER_N * 4U);
+
+	auto texDesc = Texture2DDescription(WATER_N, WATER_N);
+	texDesc.BindFlags |= D3D11_BIND_RENDER_TARGET;
+	texDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+	waterTex = m_device.CreateTexture(texDesc);
+	m_waterTexture = m_device.CreateShaderResourceView(waterTex);
+
+	InitializeWater();
 }
 
 void Kaczka::CreateRenderStates()
@@ -170,7 +147,7 @@ void Kaczka::CreateRenderStates()
 	DepthStencilDescription dssDesc;
 	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; //Enable writing to depth buffer
 	m_dssNoDepthWrite = m_device.CreateDepthStencilState(dssDesc);
-	
+
 	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL; //Enable writing to depth buffer
 	m_dssDepthWrite = m_device.CreateDepthStencilState(dssDesc);
 	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
@@ -259,7 +236,6 @@ void Kaczka::CreateRenderStates()
 }
 
 #pragma endregion
-
 #pragma region Per-Frame Update
 void Kaczka::Update(const Clock& c)
 {
@@ -271,56 +247,13 @@ void Kaczka::Update(const Clock& c)
 		XMStoreFloat4x4(&cameraMtx, m_camera.getViewMatrix());
 		UpdateCameraCB(cameraMtx);
 	}
-	HandleArmsInput(dt);
 
-	if (automaticArmsMovement)
-	{
-		circleAngle = fmod((circleAngle + dt * ARM_SPEED), DirectX::XM_2PI);
-		XMFLOAT3 pos(CIRCLE_RADIUS * sin(circleAngle), CIRCLE_RADIUS * cos(circleAngle), 0.0f);
-		XMFLOAT3 norm(0.0f, 0.0f, -1.0f);
+	RandomDrops();
+	UpdateHeights(dt);
 
-		XMStoreFloat3(&pos, XMVector3TransformCoord(XMLoadFloat3(&pos), m_sheetMtx));
-		XMStoreFloat3(&norm, XMVector3TransformNormal(XMLoadFloat3(&norm), m_sheetMtx));
-		m_particles.UpdateEmitter(pos, m_sheetMtx);
-		InverseKinematics(&pos, &norm);
-		UpdateParticles(dt);
-	}
-}
-
-void Kaczka::UpdateParticles(float dt)
-{
-	auto particles = m_particles.Update(dt, m_camera.getCameraPosition());
-	UpdateBuffer(m_vbParticles, particles);
 }
 
 
-void Kaczka::InverseKinematics(XMFLOAT3* position, XMFLOAT3* normal)
-{
-	auto norm = XMLoadFloat3(normal);
-	auto pos = XMLoadFloat3(position);
-	float l1 = .91f, l2 = .81f, l3 = .33f, dy = .27f, dz = .26f;
-	norm = XMVector3Normalize(norm);
-	XMFLOAT3 norm_v;
-	XMStoreFloat3(&norm_v, norm);
-	XMFLOAT3 pos1;
-	XMStoreFloat3(&pos1, pos + norm * l3);
-	float e = sqrtf(pos1.z * pos1.z + pos1.x * pos1.x - dz * dz);
-	a1 = atan2(pos1.z, -pos1.x) + atan2(dz, e);
-	XMFLOAT3 pos2(e, pos1.y - dy, .0f);
-	a3 = -acosf(min(1.0f, (pos2.x * pos2.x + pos2.y * pos2.y - l1 * l1 - l2 * l2) / (2.0f * l1 * l2)));
-	float k = l1 + l2 * cosf(a3), l = l2 * sinf(a3);
-	a2 = -atan2(pos2.y, sqrtf(pos2.x * pos2.x + pos2.z * pos2.z)) - atan2(l, k);
-
-	XMVECTOR normal1;
-	XMFLOAT3 normal1_v;
-
-	normal1 = XMVector3TransformNormal(norm, XMMatrixRotationY(-a1));
-	XMStoreFloat3(&normal1_v, XMVector3TransformNormal(normal1, XMMatrixRotationZ(-(a2 + a3))));
-
-
-	a5 = acosf(normal1_v.x);
-	a4 = atan2(normal1_v.z, normal1_v.y);
-}
 
 void Kaczka::UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx)
 {
@@ -347,13 +280,10 @@ void Kaczka::SetShaders()
 	m_device.context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void Kaczka::SetParticlesShaders()
+void Kaczka::SetShaders(const dx_ptr<ID3D11VertexShader>& vs, const dx_ptr<ID3D11PixelShader>& ps)
 {
-	m_device.context()->IASetInputLayout(m_particleLayout.get());
-	m_device.context()->VSSetShader(m_particleVS.get(), 0, 0);
-	m_device.context()->PSSetShader(m_particlePS.get(), 0, 0);
-	m_device.context()->GSSetShader(m_particleGS.get(), nullptr, 0);
-	m_device.context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	m_device.context()->VSSetShader(vs.get(), nullptr, 0);
+	m_device.context()->PSSetShader(ps.get(), nullptr, 0);
 }
 
 void Kaczka::SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resList, const dx_ptr<ID3D11SamplerState>& sampler)
@@ -363,48 +293,9 @@ void Kaczka::SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resLis
 	m_device.context()->PSSetSamplers(0, 1, &s_ptr);
 }
 
-void Kaczka::Set1Light(XMFLOAT4 poition)
-//Setup one positional light at the camera
-{
-	Lighting l{
-		/*.ambientColor = */ XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		/*.surface = */ XMFLOAT4(0.2f, 0.8f, 0.8f, 200.0f),
-		/*.lights =*/ {
-			{ /*.position =*/ poition, /*.color =*/ XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) }
-			//other 2 lights set to 0
-		}
-	};
-	ZeroMemory(&l.lights[1], sizeof(Light) * 2);
-	UpdateBuffer(m_cbLighting, l);
-}
-
-void Kaczka::Set3Lights()
-//Setup one white positional light at the camera
-{
-	Lighting l{
-		/*.ambientColor = */ XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		/*.surface = */ XMFLOAT4(0.2f, 0.8f, 0.8f, 200.0f),
-		/*.lights =*/ {
-			{ /*.position =*/ XMFLOAT4(-2.0f,3.0f,-2.0f,1.0f), /*.color =*/ XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f) }
-			//other 2 lights set to 0
-		}
-	};
-
-	//comment the following line when structure is filled
-	ZeroMemory(&l.lights[1], sizeof(Light) * 2);
-
-	UpdateBuffer(m_cbLighting, l);
-}
 #pragma endregion
 
 #pragma region Drawing
-void Kaczka::DrawBox()
-{
-	XMFLOAT4X4 worldMtx;
-	XMStoreFloat4x4(&worldMtx, XMMatrixIdentity());
-	UpdateBuffer(m_cbWorld, worldMtx);
-	m_box.Render(m_device.context());
-}
 
 void Kaczka::SetWorldMtx(DirectX::XMFLOAT4X4 mtx)
 {
@@ -415,113 +306,6 @@ void Kaczka::DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx)
 {
 	SetWorldMtx(worldMtx);
 	m.Render(m_device.context());
-}
-
-bool Kaczka::HandleArmsInput(float dt)
-{
-	KeyboardState kstate;
-	bool moved = false;
-	if (!m_keyboard.GetState(kstate))
-		return false;
-	for (int i = 0; i < 256; ++i)
-	{
-		if (kstate.isKeyDown(i))
-		{
-			int a = 0;
-		}
-	}
-	float unit = 0.001f;
-
-	if (kstate.isKeyDown(DIK_RBRACKET))// ]
-	{
-		moved = true;
-		a1 += unit;
-	}
-	else if (kstate.isKeyDown(DIK_LBRACKET))// [
-	{
-		moved = true;
-		a1 -= unit;
-	}
-	if (kstate.isKeyDown(DIK_APOSTROPHE))// '
-	{
-		moved = true;
-		a2 += unit;
-	}
-	else if (kstate.isKeyDown(DIK_SEMICOLON))// ;
-	{
-		moved = true;
-		a2 -= unit;
-	}
-	if (kstate.isKeyDown(DIK_PERIOD))// ,
-	{
-		moved = true;
-		a3 += unit;
-	}
-	else if (kstate.isKeyDown(DIK_COMMA))// .
-	{
-		moved = true;
-		a3 -= unit;
-	}
-	if (kstate.isKeyDown(DIK_P))// P
-	{
-		moved = true;
-		a4 += unit;
-	}
-	else if (kstate.isKeyDown(DIK_O))// O
-	{
-		moved = true;
-		a4 -= unit;
-	}
-	if (kstate.isKeyDown(DIK_L))// L
-	{
-		moved = true;
-		a5 += unit;
-	}
-	else if (kstate.isKeyDown(DIK_K))// K
-	{
-		moved = true;
-		a5 -= unit;
-	}
-
-	if (kstate.isKeyDown(DIK_SPACE))//SPACE
-	{
-		automaticArmsMovement = !automaticArmsMovement;
-	}
-
-	a1 = fmod(a1, DirectX::XM_2PI);
-	a2 = fmod(a2, DirectX::XM_2PI);
-	a3 = fmod(a3, DirectX::XM_2PI);
-	a4 = fmod(a4, DirectX::XM_2PI);
-	a5 = fmod(a5, DirectX::XM_2PI);
-
-	return moved;
-}
-
-void Kaczka::DrawArms()
-{
-	XMFLOAT4X4 armMtx{};
-	XMStoreFloat4x4(&armMtx, XMMatrixIdentity());
-
-	XMVECTOR xRot = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-	XMVECTOR yRot = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	XMVECTOR zRot = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-
-	DrawMesh(m_arm0, armMtx);
-
-	XMStoreFloat4x4(&armMtx, XMMatrixRotationAxis(yRot, a1) * XMLoadFloat4x4(&armMtx));
-	DrawMesh(m_arm1, armMtx);
-
-	XMStoreFloat4x4(&armMtx, XMMatrixTranslation(0.0f, -0.27f, 0.0f) * XMMatrixRotationAxis(zRot, a2) * XMMatrixTranslation(0.0f, 0.27f, 0.0f) * XMLoadFloat4x4(&armMtx));
-	DrawMesh(m_arm2, armMtx);
-
-	XMStoreFloat4x4(&armMtx, XMMatrixTranslation(0.91f, -0.27f, 0.0f) * XMMatrixRotationAxis(zRot, a3) * XMMatrixTranslation(-0.91f, 0.27f, 0.0f) * XMLoadFloat4x4(&armMtx));
-	DrawMesh(m_arm3, armMtx);
-
-	XMStoreFloat4x4(&armMtx, XMMatrixTranslation(0.0f, -0.27f, 0.26f) * XMMatrixRotationAxis(xRot, a4) * XMMatrixTranslation(0.0f, 0.27f, -0.26f) * XMLoadFloat4x4(&armMtx));
-	DrawMesh(m_arm4, armMtx);
-
-	XMStoreFloat4x4(&armMtx, XMMatrixTranslation(1.72f, -0.27f, 0.0f) * XMMatrixRotationAxis(zRot, a5) * XMMatrixTranslation(-1.72f, 0.27f, 0.0f) * XMLoadFloat4x4(&armMtx));
-	DrawMesh(m_arm5, armMtx);
 }
 
 void Kaczka::CreateWallsMtx()
@@ -560,18 +344,6 @@ void Kaczka::DrawWalls()
 	}
 }
 
-void mini::gk2::Kaczka::CreateCylinderMtx()
-{
-	m_cylinderMtx = XMMatrixTranslation(CYLINDER_POS.x, CYLINDER_POS.y, CYLINDER_POS.z);
-}
-
-void Kaczka::DrawCylinder()
-{
-	UpdateBuffer(m_cbWorld, m_cylinderMtx);
-	UpdateBuffer(m_cbSurfaceColor, XMFLOAT4(0.1f, 1.0f, 0.1f, 0.5f));
-	m_cylinder.Render(m_device.context());
-}
-
 void Kaczka::DrawSheet(bool colors)
 {
 	if (colors)
@@ -595,178 +367,84 @@ void Kaczka::CreateSheetMtx()
 	m_revSheetMtx = XMMatrixRotationY(-DirectX::XM_PI) * m_sheetMtx;
 }
 
-void Kaczka::DrawParticles()
+void mini::gk2::Kaczka::RandomDrops()
 {
-	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, UINT_MAX);
-	m_device.context()->OMSetDepthStencilState(m_dssNoDepthWrite.get(), 0);
-	UpdateBuffer(m_cbSurfaceColor, XMFLOAT4(0.1f, 0.1f, 0.1f, 0.9f));
-
-	if (m_particles.particlesCount() == 0)
-		return;
-	//Set input layoutv primitive topology, shaders, vertex buffer, and draw particles
-	SetTextures({ m_dropTexture.get()});
-	SetParticlesShaders();
-	unsigned int stride = sizeof(ParticleVertex);
-	unsigned int offset = 0;
-	auto vb = m_vbParticles.get();
-	m_device.context()->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-	m_device.context()->Draw(m_particles.particlesCount(), 0);
-	SetShaders();
-
-	UpdateBuffer(m_cbSurfaceColor, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-	m_device.context()->OMSetBlendState(nullptr, nullptr, UINT_MAX);
-	m_device.context()->OMSetDepthStencilState(nullptr, 0);
+	for (int i = 0; i < WATER_N; ++i)
+		for (int j = 0; j < WATER_N; ++j)
+		{
+			if (rand() % 1000 == 1)
+				if (rand() % 200 == 1)
+				{
+					heights[i][j] = 0.25f;
+				}
+		}
 }
 
-void Kaczka::DrawMirroredWorld(unsigned int i)
-//Draw the mirrored scene reflected in the i-th dodecahedron face
+void Kaczka::InitializeWater()
 {
-	m_device.context()->OMSetDepthStencilState(m_dssStencilWrite.get(), i + 1);
-
-	XMFLOAT4 planePos = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-	XMFLOAT4 planeDir = XMFLOAT4(0.0f, 0.0f, -1.0f, 0.0f);
-
-	XMMATRIX m_mirrorMtx;
-	XMMATRIX m_curSheetMtx;
-
-	if (i == 0)
+	for (int i = 0; i < WATER_N; ++i)
 	{
-		m_curSheetMtx = m_sheetMtx;
+		for (int j = 0; j < WATER_N; ++j)
+		{
+			heights[i][j] = 0.0f;
+			heightsOld[i][j] = 0.0f;
+
+			float l = 2.0f * (float)min(i, min(j, min(WATER_N - 1 - i, WATER_N - 1 - j))) / (WATER_N - 1);
+
+			d[i][j] = 0.95f * min(1, l / 0.2f);
+		}
 	}
-	else
+}
+
+void Kaczka::UpdateHeights(float dt)
+{
+	float c = 1.0f;
+	float h = 2.0f / (WATER_N - 1);
+	dt = 1.0f / WATER_N;
+	float A = c * c * dt * dt / (h * h);
+	float B = 2 - 4 * A;
+	for (int i = 0; i < WATER_N; ++i)
 	{
-		m_curSheetMtx = m_revSheetMtx;
+		for (int j = 0; j < WATER_N; ++j)
+		{
+			if (i == 100 && j == 100)
+			{
+				int xx = 1;
+			}
+			float tmp = 0.0f;
+			if (i > 0) tmp += heightsOld[i - 1][j];
+			if (j > 0) tmp += heightsOld[i][j - 1];
+			if (i < WATER_N - 1) tmp += heightsOld[i + 1][j];
+			if (j < WATER_N - 1) tmp += heightsOld[i][j + 1];
+
+			heights[i][j] = d[i][j] * (A * tmp + B * heightsOld[i][j] - heights[i][j]);
+		}
 	}
 
-	UpdateBuffer(m_cbWorld, m_curSheetMtx);
-	m_mirrorMtx = XMMatrixInverse(nullptr, m_curSheetMtx) * XMMatrixScaling(1.0f, 1.0f, -1.0f) * m_curSheetMtx;
-	XMStoreFloat4(&planePos, XMVector4Transform(XMLoadFloat4(&planePos), m_curSheetMtx));
-	XMStoreFloat4(&planeDir, XMVector4Transform(XMLoadFloat4(&planeDir), m_curSheetMtx));
-	UpdatePlaneCB(planePos, planeDir);
+	auto data = normalMap.data();
+	for (int i = 0; i < WATER_N; i++) {
+		for (int j = 0; j < WATER_N; j++) {
+			float h = heights[i][j] + 1.0f;
+			//h /= 2.0f;
+			*(data++) = static_cast<BYTE>(h * 255.0f);
+			*(data++) = static_cast<BYTE>(h * 255.0f);
+			*(data++) = static_cast<BYTE>(h * 255.0f);
+			*(data++) = 255;
+		}
+	}
 
-	UpdateBuffer(m_cbSurfaceColor, SHEET_COLOR);
-	m_sheet.Render(m_device.context());
+	m_device.context()->UpdateSubresource(waterTex.get(), 0, nullptr, normalMap.data(), WATER_N * 4U, WATER_N * WATER_N * 4U);
+	m_device.context()->GenerateMips(m_waterTexture.get());
 
-	m_device.context()->OMSetDepthStencilState(m_dssStencilTest.get(), i + 1);
-
-	m_device.context()->RSSetState(m_rsCCW.get());
-	XMFLOAT4X4 multiplied;
-	XMFLOAT4X4 camTmp;
-	XMStoreFloat4x4(&camTmp, m_camera.getViewMatrix());
-	XMStoreFloat4x4(&multiplied, m_mirrorMtx * m_camera.getViewMatrix());
-	UpdateCameraCB(multiplied);
-
-	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
-	Set1Light(LightPos);
-	UpdateBuffer(m_cbSurfaceColor, XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f));
-	DrawWorld(i);
-
-	m_device.context()->RSSetState(nullptr);
-
-	m_device.context()->OMSetDepthStencilState(m_dssStencilTestNoDepthWrite.get(), i + 1);
-	//DrawBillboards();
-	XMFLOAT4X4 cameraMtx;
-	XMStoreFloat4x4(&cameraMtx, m_camera.getViewMatrix());
-	UpdateCameraCB(cameraMtx);
-
-	SetCameraPlane();
-
-	m_device.context()->OMSetDepthStencilState(nullptr, 0);
+	std::swap(heights, heightsOld);
 }
 
-void Kaczka::SetCameraPlane()
-{
-	auto camPos = m_camera.getCameraPosition();
-	XMFLOAT4 camDir;
-	XMStoreFloat4(&camDir, m_camera.getForwardDir());
-	UpdatePlaneCB(camPos, camDir);
-}
-void Kaczka::DrawWorld(int i = -1)
-{
-	//DrawBox();
-	DrawArms();
-	DrawWalls();
-	DrawCylinder();
-	if (i != 1)
-		DrawParticles();
-}
-
-void mini::gk2::Kaczka::DrawShadowVolumes()
-{
-	XMFLOAT4X4 armMtx{};
-	XMFLOAT4X4 cylMtx{};
-	XMStoreFloat4x4(&armMtx, XMMatrixIdentity());
-	XMStoreFloat4x4(&cylMtx, m_cylinderMtx);
-
-	XMVECTOR xRot = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-	XMVECTOR yRot = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	XMVECTOR zRot = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-
-	DrawMesh(Mesh::ShadowBox(m_device,m_arm0,LightPos, armMtx), armMtx);
-
-
-	XMStoreFloat4x4(&armMtx, XMMatrixRotationAxis(yRot, a1) * XMLoadFloat4x4(&armMtx));
-	DrawMesh(Mesh::ShadowBox(m_device, m_arm1, LightPos, armMtx), armMtx);
-
-	XMStoreFloat4x4(&armMtx, XMMatrixTranslation(0.0f, -0.27f, 0.0f) * XMMatrixRotationAxis(zRot, a2) * XMMatrixTranslation(0.0f, 0.27f, 0.0f) * XMLoadFloat4x4(&armMtx));
-	DrawMesh(Mesh::ShadowBox(m_device, m_arm2, LightPos, armMtx), armMtx);
-
-	XMStoreFloat4x4(&armMtx, XMMatrixTranslation(0.91f, -0.27f, 0.0f) * XMMatrixRotationAxis(zRot, a3) * XMMatrixTranslation(-0.91f, 0.27f, 0.0f) * XMLoadFloat4x4(&armMtx));
-	DrawMesh(Mesh::ShadowBox(m_device, m_arm3, LightPos, armMtx), armMtx);
-
-	XMStoreFloat4x4(&armMtx, XMMatrixTranslation(0.0f, -0.27f, 0.26f) * XMMatrixRotationAxis(xRot, a4) * XMMatrixTranslation(0.0f, 0.27f, -0.26f) * XMLoadFloat4x4(&armMtx));
-	DrawMesh(Mesh::ShadowBox(m_device, m_arm4, LightPos, armMtx), armMtx);
-
-	XMStoreFloat4x4(&armMtx, XMMatrixTranslation(1.72f, -0.27f, 0.0f) * XMMatrixRotationAxis(zRot, a5) * XMMatrixTranslation(-1.72f, 0.27f, 0.0f) * XMLoadFloat4x4(&armMtx));
-	DrawMesh(Mesh::ShadowBox(m_device, m_arm5, LightPos, armMtx), armMtx);
-
-
-	//DrawMesh(Mesh::ShadowBox(m_device, m_cylinder, LightPos, cylMtx), cylMtx);
-
-}
 
 void Kaczka::Render()
 {
 	Base::Render();
-	SetShaders();
-	DrawMirroredWorld(0);
-	DrawMirroredWorld(1);
-  
-	//render dodecahedron with one light and alpha blendingw
-	m_device.context()->OMSetBlendState(m_bsAlphaInv.get(), nullptr, BS_MASK);
-	Set1Light(LightPos);
+	SetShaders(m_waterVS, m_waterPS);
+	SetTextures({ m_waterTexture.get() }, m_samplerWrap);
 	DrawSheet(true);
-	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
-
-
-	TurnOffVision();
-	//1. Rysowanie ca�ej sceny do depth buffora
-	
-	//m_device.context()->OMSetRenderTargets(0, 0,0);
-	m_device.context()->OMSetDepthStencilState(m_dssDepthWrite.get(), 0);
-	DrawSheet(true);
-	DrawWorld();
-
-	//2. Rysowanie bry� cienia do stencil buffer
-	m_device.context()->OMSetDepthStencilState(m_dssStencilWriteSh.get(), 0);
-	m_device.context()->RSSetState(m_rsCCW_backSh.get());
-	// 	   Dla front face stencil++
-	// 	   Dla back face stencil--
-	DrawShadowVolumes();
-	//DrawBox();
-	//3. Render ca�ej sceny z uwzgl�dnieniem warto�ci w stencilu
-	ResetRenderTarget();
-	
-	m_device.context()->OMSetDepthStencilState(m_dssStencilTestSh.get(), 0);
-	m_device.context()->RSSetState(m_rsCCW_frontSh.get());
-	Set1Light(LightPos);
-	UpdateBuffer(m_cbSurfaceColor, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-	DrawWorld();
-
-	m_device.context()->OMSetDepthStencilState(m_dssStencilTestGreaterSh.get(), 0);
-	m_device.context()->RSSetState(m_rsCCW_frontSh.get());
-	Set3Lights();
-	UpdateBuffer(m_cbSurfaceColor, XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f));
-	DrawWorld();
 }
 #pragma endregion

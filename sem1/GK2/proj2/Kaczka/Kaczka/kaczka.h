@@ -1,5 +1,6 @@
 #pragma once
 #include <DirectXMath.h>
+#define WATER_N 256
 
 #include "dxApplication.h"
 #include "mesh.h"
@@ -7,27 +8,6 @@
 
 namespace mini::gk2
 {
-	//Position and color of a single light
-	struct Light
-	{
-		//Light position coordinates [x, y, z, 1.0f]
-		DirectX::XMFLOAT4 position;
-		//Light color [r, g, b, 1.0f] - on
-		//or [r, g, b, 0.0f] - off
-		DirectX::XMFLOAT4 color;
-	};
-
-	//Lighting parameters (except surface color)
-	struct Lighting
-	{
-		//ambient reflection color [r, g, b, a]
-		DirectX::XMFLOAT4 ambientColor;
-		//surface reflection coefficients [ka, kd, ks, m]
-		DirectX::XMFLOAT4 surface;
-		//Light positions and colors
-		Light lights[3];
-	};
-
 	class Kaczka : public DxApplication
 	{
 	public:
@@ -44,13 +24,6 @@ namespace mini::gk2
 		static const unsigned int BS_MASK;
 		void CreateRenderStates();
 
-		//Static light positions
-		static const DirectX::XMFLOAT4 GREEN_LIGHT_POS;
-		static const DirectX::XMFLOAT4 RED_LIGHT_POS;
-
-		static const float ARM_SPEED;
-		static const float CIRCLE_RADIUS;
-
 		static const float SHEET_ANGLE;
 		static const DirectX::XMFLOAT3 SHEET_POS;
 		static const float SHEET_SIZE;
@@ -59,12 +32,6 @@ namespace mini::gk2
 
 		static const float WALL_SIZE;
 		static const DirectX::XMFLOAT3 WALLS_POS;
-
-		static const float CYLINDER_RADIUS;
-		static const float CYLINDER_LENGTH;
-		static const int CYLINDER_RADIUS_SPLIT;
-		static const int CYLINDER_LENGTH_SPLIT;
-		static const DirectX::XMFLOAT3 CYLINDER_POS;
 #pragma endregion
 
 #pragma region D3D Resources
@@ -93,39 +60,17 @@ namespace mini::gk2
 		dx_ptr<ID3D11SamplerState> m_sampler;
 
 
-		dx_ptr<ID3D11VertexShader> m_vs, m_particleVS;
-		dx_ptr<ID3D11GeometryShader> m_particleGS;
-		dx_ptr<ID3D11PixelShader> m_ps, m_particlePS;
-		dx_ptr<ID3D11InputLayout> m_il, m_particleLayout;
+		dx_ptr<ID3D11VertexShader> m_vs;
+		dx_ptr<ID3D11PixelShader> m_ps;
+		dx_ptr<ID3D11InputLayout> m_il;
 
-		dx_ptr<ID3D11ShaderResourceView> m_dropTexture;
 		dx_ptr<ID3D11SamplerState> m_samplerWrap;
 		dx_ptr<ID3D11SamplerState> m_samplerWrap_back;
-
-		//Box mesh
-		Mesh m_box;
 		//Wall mesh
 		Mesh m_wall;
 		//Wall mesh
 		Mesh m_sheet;
-		//Cylinder mesh
-		Mesh m_cylinder;
-		//Arms meshes
-		Mesh m_arm0;
-		Mesh m_arm1;
-		Mesh m_arm2;
-		Mesh m_arm3;
-		Mesh m_arm4;
-		Mesh m_arm5;
 
-		//Arms angles
-		float a1 = DirectX::XM_PI;
-		float a2 = DirectX::XM_PI;
-		float a3 = 0;
-		float a4 = 0;
-		float a5 = 0;
-		bool automaticArmsMovement = true;
-		float circleAngle = 0.0f;
 		//Depth stencil state used for drawing billboards without writing to the depth buffer
 		dx_ptr<ID3D11DepthStencilState> m_dssNoDepthWrite;
 		dx_ptr<ID3D11DepthStencilState> m_dssDepthWrite;
@@ -154,6 +99,13 @@ namespace mini::gk2
 
 		dx_ptr<ID3D11Buffer> m_vbParticles;
 		ParticleSystem m_particles;
+
+		dx_ptr<ID3D11Texture2D> waterTex;
+		dx_ptr<ID3D11ShaderResourceView> m_waterTexture;
+
+		dx_ptr<ID3D11VertexShader> m_waterVS;
+		dx_ptr<ID3D11PixelShader> m_waterPS;
+		dx_ptr<ID3D11InputLayout> m_waterIL;
 #pragma endregion
 
 #pragma region Matrices
@@ -163,32 +115,27 @@ namespace mini::gk2
 		DirectX::XMMATRIX m_revSheetMtx;
 		DirectX::XMMATRIX m_cylinderMtx;
 #pragma endregion
+		float d[WATER_N][WATER_N];
+		float heights[WATER_N][WATER_N];
+		float heightsOld[WATER_N][WATER_N];
+		std::vector<BYTE> normalMap;
 		void SetWorldMtx(DirectX::XMFLOAT4X4 mtx);
 		void DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx);
 		void UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx);
 		void UpdatePlaneCB(DirectX::XMFLOAT4 pos, DirectX::XMFLOAT4 dir);
-		void Set1Light(DirectX::XMFLOAT4 LightPos);
 		void SetShaders();
-		void SetParticlesShaders();
-		void Set3Lights();
-		void DrawBox();
 		void CreateWallsMtx();
 		void DrawWalls();
-		void CreateCylinderMtx();
-		void DrawCylinder();
 		void CreateSheetMtx();
 		void DrawSheet(bool colors);
-		void DrawArms();
-		bool HandleArmsInput(float dt);
-		void InverseKinematics(DirectX::XMFLOAT3* position, DirectX::XMFLOAT3* normal);
-		void DrawMirroredWorld(unsigned int i);
-		void DrawShadowVolumes();
-		void SetCameraPlane();
 
+
+		void SetShaders(const dx_ptr<ID3D11VertexShader>& vs, const dx_ptr<ID3D11PixelShader>& ps);
 		void SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resList, const dx_ptr<ID3D11SamplerState>& sampler);
 		void SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resList) { SetTextures(std::move(resList), m_sampler); }
-		void DrawWorld(int i);
-		void UpdateParticles(float dt);
-		void DrawParticles();
+		
+		void RandomDrops();
+		void InitializeWater();
+		void UpdateHeights(float dt);
 	};
 }

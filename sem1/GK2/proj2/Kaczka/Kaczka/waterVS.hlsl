@@ -14,11 +14,7 @@ cbuffer cbProj : register(b2) //Vertex Shader constant buffer slot 2 - matches s
 	matrix projMatrix;
 };
 
-cbuffer cbPlane :register(b3)
-{
-	float4 planePos;
-	float4 planeDir;
-};
+
 
 struct VSInput
 {
@@ -29,25 +25,23 @@ struct VSInput
 struct PSInput
 {
 	float4 pos : SV_POSITION;
-	float3 worldPos : POSITION;
-	float3 norm : NORMAL;
-	float3 view : VIEW;
-	float clip : SV_ClipDistance0;
+	float2 tex: NORMAL;
+	float3 worldPos : POSITION0;
+	float3 viewVec : TEXCOORD0;
 };
 PSInput main(VSInput i)
 {
 	PSInput o;
-	o.worldPos = mul(worldMatrix, float4(i.pos, 1.0f)).xyz;
 
 
+
+	o.tex = (i.pos.xy - 1.0f) / 2.0f;
+	o.worldPos = mul(worldMatrix, float4(i.pos, 1.0f));
 	o.pos = mul(viewMatrix, float4(o.worldPos, 1.0f));
 	o.pos = mul(projMatrix, o.pos);
 
-	o.norm = mul(worldMatrix, float4(i.norm, 0.0f)).xyz;
-	o.norm = normalize(o.norm);
-
 	float3 camPos = mul(invViewMatrix, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
-	o.view = camPos - o.worldPos;
-	o.clip = dot(o.worldPos - float3(planePos.x, planePos.y, planePos.z), float3(planeDir.x, planeDir.y, planeDir.z)) + 0.0001f;
+	o.viewVec = camPos - o.worldPos;
+
 	return o;
 }
