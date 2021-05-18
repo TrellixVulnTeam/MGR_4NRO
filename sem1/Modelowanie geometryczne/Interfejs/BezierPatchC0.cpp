@@ -148,8 +148,8 @@ bool BezierPatchC0::Create()
 	pointsLines->RecalcFigure();
 	vertices.clear();
 	indices.clear();
-	int p = 3 * splitA;
-	int q = 3 * splitB;
+	int p = splitA;
+	int q = splitB;
 	int ii = 0;
 	for (int i = 0; i < n; ++i)
 	{
@@ -161,7 +161,7 @@ bool BezierPatchC0::Create()
 				{
 					float from = (float)l / q;
 					float to = (float)(l + 120) / q;
-					int splits = q - l < 120 ? q - l : 120;
+					int splits = ((q - l) < 120) ? (q - l) : 120;
 					if (to > 1.0f)to = 1.0f;
 
 					AddPatch(i, j, (float)k/p,(float)(k+1)/p, from, to, splits, ii);

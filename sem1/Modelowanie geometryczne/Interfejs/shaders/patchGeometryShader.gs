@@ -37,7 +37,7 @@ void main() {
     float coeffs2_z[4];
     float from = gs_in[2].color.x;
     float to = gs_in[2].color.y;
-    float splits = 3.0;//gs_in[2].color.z;
+    float splits = gs_in[2].color.z;
 
     float t =  gs_in[1].color.x;
     float t2 = gs_in[1].color.y;
