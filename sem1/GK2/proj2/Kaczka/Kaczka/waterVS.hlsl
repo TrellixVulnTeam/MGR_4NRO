@@ -26,16 +26,15 @@ struct PSInput
 {
 	float4 pos : SV_POSITION;
 	float2 tex: NORMAL;
-	float3 worldPos : POSITION0;
+	float3 worldPos : POSITION;
 	float3 viewVec : TEXCOORD0;
 };
 PSInput main(VSInput i)
 {
 	PSInput o;
-
-
-
+	float3 norm = mul(worldMatrix,float4(i.norm, 1.0f));
 	o.tex = (i.pos.xy - 1.0f) / 2.0f;
+	if (norm.y < 0) o.tex.x *= -1;
 	o.worldPos = mul(worldMatrix, float4(i.pos, 1.0f));
 	o.pos = mul(viewMatrix, float4(o.worldPos, 1.0f));
 	o.pos = mul(projMatrix, o.pos);

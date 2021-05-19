@@ -376,7 +376,7 @@ void Kaczka::RandomDrops()
 			if (rand() % 1000 == 1)
 				if (rand() % 1000 == 1)
 				{
-					//heights[i][j] = 0.25f;
+					heights[i][j] = 0.25f;
 				}
 		}
 }
@@ -515,11 +515,38 @@ void Kaczka::UpdateHeights(float dt)
 	auto data = normalMap.data();
 	for (int i = 0; i < WATER_N; i++) {
 		for (int j = 0; j < WATER_N; j++) {
-			float h = heights[i][j] + 1.0f;
-			h /= 2.0f;
-			*(data++) = static_cast<BYTE>(h * 255.0f);
-			*(data++) = static_cast<BYTE>(h * 255.0f);
-			*(data++) = static_cast<BYTE>(h * 255.0f);
+			float h1, h2, h3, h4;
+			float curr = heights[i][j];
+			if (i == 0)
+				h1 = 0.0f;
+			else
+				h1 = heights[i - 1][j];
+			if (j == 0)
+				h2 = 0.0f;
+			else
+				h2 = heights[i][j - 1];
+			if (i == WATER_N - 1)
+				h3 = 0.0f;
+			else
+				h3 = heights[i + 1][j];
+			if (j == WATER_N - 1)
+				h4 = 0.0f;
+			else
+				h4 = heights[i][j + 1];
+
+			XMVECTOR vecp = { 1,(h3 - curr) / h, 0.0f };
+			XMVECTOR vecl = { -1,(h1 - curr) / -h , 0.0f };
+			XMVECTOR vecg = { 0.0f,(h2 - curr) / h , -1 };
+			XMVECTOR vecd = { 0.0f,(h4 - curr) / -h, 1 };
+
+			auto res = XMVector3Cross(vecg, vecl);
+			auto res2 = XMVector3Cross(vecd, vecp);
+			XMFLOAT3 normal;
+			XMStoreFloat3(&normal,XMVector3Normalize(res + res2));
+
+			*(data++) = static_cast<BYTE>((normal.x + 1.0f) / 2.0f * 255.0f);
+			*(data++) = static_cast<BYTE>((normal.y + 1.0f) / 2.0f * 255.0f);
+			*(data++) = static_cast<BYTE>((normal.z + 1.0f) / 2.0f * 255.0f);
 			*(data++) = 255;
 		}
 	}
@@ -535,11 +562,13 @@ void Kaczka::Render()
 {
 	Base::Render();
 	SetShaders(m_waterIL, m_waterVS, m_waterPS);
-	SetTextures({ m_waterTexture.get() }, m_samplerWrap);
+	SetTextures({ m_waterTexture.get(),m_envTexture.get() }, m_samplerWrap);
+	UpdateBuffer(m_cbSurfaceColor, XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f));
+	
 	DrawSheet(true);
 
 	SetShaders(m_envIL, m_envVS, m_envPS);
-	SetTextures({ m_envTexture.get() }, m_samplerWrap_back);
+	SetTextures({ m_envTexture.get() }, m_samplerWrap);
 	UpdateBuffer(m_cbSurfaceColor, XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f));
 	DrawWalls();
 
