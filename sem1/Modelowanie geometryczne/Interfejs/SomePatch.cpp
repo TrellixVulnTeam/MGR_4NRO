@@ -2,7 +2,9 @@
 #include "imgui\imgui.h"
 #include <string>
 #include "BezierPatchC0.h"
+#include "BezierPatchC2.h"
 #include "BezierPatchC0Cylinder.h"
+#include "BezierPatchC2Cylinder.h"
 
 SomePatch::SomePatch() :Figure()
 {
@@ -25,6 +27,16 @@ bool SomePatch::GetGuiInternal(Figure* par)
 	{
 		ImGui::SliderInt("Split A", &(((BezierPatchC0Cylinder*)this)->splitA), 1, 100);
 		ImGui::SliderInt("Split B", &(((BezierPatchC0Cylinder*)this)->splitB), 1, 100);
+	}
+	if (figureType == FigureType::BezierPatchC2)
+	{
+		ImGui::SliderInt("Split A", &(((BezierPatchC2*)this)->splitA), 1, 100);
+		ImGui::SliderInt("Split B", &(((BezierPatchC2*)this)->splitB), 1, 100);
+	}
+	if (figureType == FigureType::BezierPatchC2Cylinder)
+	{
+		ImGui::SliderInt("Split A", &(((BezierPatchC2Cylinder*)this)->splitA), 1, 100);
+		ImGui::SliderInt("Split B", &(((BezierPatchC2Cylinder*)this)->splitB), 1, 100);
 	}
 	if (ImGui::Button("Select all points"))
 	{

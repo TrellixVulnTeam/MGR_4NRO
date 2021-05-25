@@ -20,7 +20,9 @@
 #include "MiddlePoint.h"
 #include "Cursor.h"
 #include "BezierPatchC0.h"
+#include "BezierPatchC2.h"
 #include "BezierPatchC0Cylinder.h"
+#include "BezierPatchC2Cylinder.h"
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
 
@@ -409,6 +411,18 @@ void RenderGui()
 			f->Initialize(program);
 			program->figures.push_back(f);
 		}
+		if (ImGui::Button("New Bezier Patch C2 Rectangle"))
+		{
+			Figure* f = new BezierPatchC2(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length);
+			f->Initialize(program);
+			program->figures.push_back(f);
+		}
+		if (ImGui::Button("New Bezier Patch C2 Cylinder"))
+		{
+			Figure* f = new BezierPatchC2Cylinder(program->patches_n, program->patches_m, program->bezierC0r, program->bezierC0length);
+			f->Initialize(program);
+			program->figures.push_back(f);
+		}
 
 		ImGui::TreePop();
 	}
@@ -485,6 +499,11 @@ void DrawScene()
 	viewLoc = glGetUniformLocation(program->patchShader.ID, "view");
 	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+	program->patchShaderDeBoor.use();
+	perspLoc = glGetUniformLocation(program->patchShaderDeBoor.ID, "persp");
+	viewLoc = glGetUniformLocation(program->patchShaderDeBoor.ID, "view");
+	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
 	program->mp->Reset();
 	for (int i = 0; i < program->figures.size(); ++i)
@@ -548,6 +567,11 @@ int main()
 	program->patchShader = Shader("shaders/patchVertexShader.vs"
 		, "shaders/fragShader.fs"
 		, "shaders/patchGeometryShader.gs"
+		);
+	
+	program->patchShaderDeBoor = Shader("shaders/patchVertexShader.vs"
+		, "shaders/fragShader.fs"
+		, "shaders/patchDeBoorGeometryShader.gs"
 		);
 
 	program->mp = new MiddlePoint();

@@ -1,22 +1,22 @@
-#include "BezierPatchC0Cylinder.h"
+#include "BezierPatchC2.h"
 #include "imgui\imgui.h"
 #include <string>
 
-BezierPatchC0Cylinder::BezierPatchC0Cylinder() : SomePatch()
+BezierPatchC2::BezierPatchC2() : SomePatch()
 {
-	sprintf_s(name, STRMAX, "BezierPatchC0Cylinder");
-	_name = "BezierPatchC0Cylinder";
-	figureType = FigureType::BezierPatchC0Cylinder;
+	sprintf_s(name, STRMAX, "BezierPatchC2");
+	_name = "BezierPatchC2";
+	figureType = FigureType::BezierPatchC2;
 }
 
-void BezierPatchC0Cylinder::Initialize(Program* _program)
+void BezierPatchC2::Initialize(Program* _program)
 {
 	SomePatch::Initialize(_program);
 	pointsLines->Initialize(program);
 	GeneratePoints();
 }
 
-void BezierPatchC0Cylinder::ClearPoints()
+void BezierPatchC2::ClearPoints()
 {
 	for (int i = 0; i < points.size(); ++i)
 	{
@@ -39,65 +39,47 @@ void BezierPatchC0Cylinder::ClearPoints()
 	}
 }
 
-void BezierPatchC0Cylinder::GeneratePoints() {
-	if (m < 3) m = 3;
+void BezierPatchC2::GeneratePoints()
+{
+	first = true;
 	ClearPoints();
 	points.clear();
 	pointsLines->Clear();
-	first = true;
-	float z = 0.0f;
-	float angle = 0.0f;
-	float zDiff = length / (3 * n);
-	float angleDiff = 2 * M_PI / (3 * m);
+	float xdiff = width / n;
+	float ydiff = length / m;
+	float x = -xdiff;
+	float y = -ydiff;
 	int k = 0;
-	for (int i = 0; i < 3 * n + 1; ++i)
+	for (int i = -1; i <= n+1; ++i)
 	{
-		angle = 0.0f;
-		for (int j = 0; j < 3 * m; ++j)
+
+		y = -ydiff;
+		for (int j = -1; j <= m+1; ++j)
 		{
 			Point* p = new Point();
 			p->Initialize(program);
-			p->MoveTo(r * sin(angle), r * cos(angle),z);
+			p->MoveTo(x, y, 0.0f);
 			points.push_back(p);
-			angle += angleDiff;
+			y += ydiff;
 			program->figures.push_back(p);
 			p->AddParent(this);
-			if (j != 0)
+			if (j != -1)
 			{
-				pointsLines->AddPoint(points[k]);
 				pointsLines->AddPoint(points[k - 1]);
+				pointsLines->AddPoint(points[k]);
 			}
-			if (i != 0)
+			if (i != -1)
 			{
-				pointsLines->AddPoint(points[k - (3 * m)]);
+				pointsLines->AddPoint(points[k - (m + 3)]);
 				pointsLines->AddPoint(points[k]);
 			}
 			++k;
 		}
-		pointsLines->AddPoint(points[k - 1]);
-		pointsLines->AddPoint(points[k - 3 * m]);
-		z += zDiff;
+		x += xdiff;
 	}
-
 }
 
-void BezierPatchC0Cylinder::Draw()
-{
-	Figure::Draw();
-	glDrawElements(GL_LINES_ADJACENCY, indices.size(), GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-	for (int i = 0; i < points.size(); ++i) points[i]->Draw();
-	if (drawLine)
-		pointsLines->Draw();
-}
-
-void BezierPatchC0Cylinder::CleanUp()
-{
-	ClearPoints();
-	delete pointsLines;
-}
-
-void BezierPatchC0Cylinder::RecalcFigure()
+void BezierPatchC2::RecalcFigure()
 {
 	if (Create()) {
 		glBindVertexArray(VAO);
@@ -139,7 +121,23 @@ void BezierPatchC0Cylinder::RecalcFigure()
 	}
 }
 
-bool BezierPatchC0Cylinder::Create()
+void BezierPatchC2::Draw()
+{
+	Figure::Draw();
+	glDrawElements(GL_LINES_ADJACENCY, indices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+	for (int i = 0; i < points.size(); ++i) points[i]->Draw();
+	if (drawLine)
+		pointsLines->Draw();
+}
+
+void BezierPatchC2::CleanUp()
+{
+	ClearPoints();
+	delete pointsLines;
+}
+
+bool BezierPatchC2::Create()
 {
 	if (splitAold != splitA || splitBold != splitB) first = true;
 	bool fCreate = Figure::Create();
@@ -164,7 +162,7 @@ bool BezierPatchC0Cylinder::Create()
 				{
 					float from = (float)l / q;
 					float to = (float)(l + 120) / q;
-					int splits = q - l < 120 ? q - l : 120;
+					int splits = ((q - l) < 120) ? (q - l) : 120;
 					if (to > 1.0f)to = 1.0f;
 
 					AddPatch(i, j, (float)k / p, (float)(k + 1) / p, from, to, splits, ii);
@@ -175,10 +173,10 @@ bool BezierPatchC0Cylinder::Create()
 	return true;
 }
 
-void BezierPatchC0Cylinder::AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii)
+void BezierPatchC2::AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii)
 {
-	int w = 3 * m;
-	int start = 3 * i * w + 3 * j;
+	int w = m + 3;
+	int start = i * w +  j;
 	int ii_start = ii;
 	for (int k = 0; k < 4; ++k)
 	{
@@ -198,10 +196,7 @@ void BezierPatchC0Cylinder::AddPatch(int i, int j, float t, float t2, float from
 		vertices.push_back(pos.x);
 		vertices.push_back(pos.y);
 		vertices.push_back(pos.z);
-		if ((start + 3) % (3 * m) == 0)
-			pos = points[start - (start % (3 * m))]->GetPos();
-		else
-			pos = points[start + 3]->GetPos();
+		pos = points[start + 3]->GetPos();
 		vertices.push_back(pos.x);
 		vertices.push_back(pos.y);
 		vertices.push_back(pos.z);

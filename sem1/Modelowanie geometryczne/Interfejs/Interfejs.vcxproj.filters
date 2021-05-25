@@ -105,6 +105,12 @@
     <ClCompile Include="BezierPatchC0Cylinder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BezierPatchC2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BezierPatchC2Cylinder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="processing.h">
@@ -185,6 +191,12 @@
     <ClInclude Include="BezierPatchC0Cylinder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BezierPatchC2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BezierPatchC2Cylinder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\vertexShader.vs">
@@ -209,6 +221,9 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="shaders\patchGeometryShader.gs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\patchDeBoorGeometryShader.gs">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

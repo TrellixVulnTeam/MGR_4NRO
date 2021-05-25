@@ -10,7 +10,14 @@ public:
 	bool virtual GetGuiInternal(Figure* par) final;
 	virtual void Draw() override = 0;
 	void virtual Recalc() final { first = true; }
-	void virtual Initialize(Program* _program) override { Figure::Initialize(_program); shader = Shader(program->patchShader); };
+	void virtual Initialize(Program* _program) override
+	{
+		Figure::Initialize(_program);
+		if (figureType == FigureType::BezierPatchC2 || figureType == FigureType::BezierPatchC2Cylinder)
+			shader = Shader(program->patchShaderDeBoor);
+		else
+			shader = Shader(program->patchShader);
+	};
 protected:
 	bool virtual Create() override { return false; };
 	std::vector<Point*> points;

@@ -30,5 +30,6 @@ public:
 	Shader shader;
 	Shader bezierShader;
 	Shader patchShader;
+	Shader patchShaderDeBoor;
 };
 

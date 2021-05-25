@@ -1,22 +1,22 @@
-#include "BezierPatchC0Cylinder.h"
+#include "BezierPatchC2Cylinder.h"
 #include "imgui\imgui.h"
 #include <string>
 
-BezierPatchC0Cylinder::BezierPatchC0Cylinder() : SomePatch()
+BezierPatchC2Cylinder::BezierPatchC2Cylinder() : SomePatch()
 {
-	sprintf_s(name, STRMAX, "BezierPatchC0Cylinder");
-	_name = "BezierPatchC0Cylinder";
-	figureType = FigureType::BezierPatchC0Cylinder;
+	sprintf_s(name, STRMAX, "BezierPatchC2Cylinder");
+	_name = "BezierPatchC2Cylinder";
+	figureType = FigureType::BezierPatchC2Cylinder;
 }
 
-void BezierPatchC0Cylinder::Initialize(Program* _program)
+void BezierPatchC2Cylinder::Initialize(Program* _program)
 {
 	SomePatch::Initialize(_program);
 	pointsLines->Initialize(program);
 	GeneratePoints();
 }
 
-void BezierPatchC0Cylinder::ClearPoints()
+void BezierPatchC2Cylinder::ClearPoints()
 {
 	for (int i = 0; i < points.size(); ++i)
 	{
@@ -39,7 +39,7 @@ void BezierPatchC0Cylinder::ClearPoints()
 	}
 }
 
-void BezierPatchC0Cylinder::GeneratePoints() {
+void BezierPatchC2Cylinder::GeneratePoints() {
 	if (m < 3) m = 3;
 	ClearPoints();
 	points.clear();
@@ -47,17 +47,17 @@ void BezierPatchC0Cylinder::GeneratePoints() {
 	first = true;
 	float z = 0.0f;
 	float angle = 0.0f;
-	float zDiff = length / (3 * n);
-	float angleDiff = 2 * M_PI / (3 * m);
+	float zDiff = length / n;
+	float angleDiff = 2 * M_PI / m;
 	int k = 0;
-	for (int i = 0; i < 3 * n + 1; ++i)
+	for (int i = -1; i <= n + 1; ++i)
 	{
 		angle = 0.0f;
-		for (int j = 0; j < 3 * m; ++j)
+		for (int j = 0; j < m; ++j)
 		{
 			Point* p = new Point();
 			p->Initialize(program);
-			p->MoveTo(r * sin(angle), r * cos(angle),z);
+			p->MoveTo(r * sin(angle), r * cos(angle), z);
 			points.push_back(p);
 			angle += angleDiff;
 			program->figures.push_back(p);
@@ -67,21 +67,21 @@ void BezierPatchC0Cylinder::GeneratePoints() {
 				pointsLines->AddPoint(points[k]);
 				pointsLines->AddPoint(points[k - 1]);
 			}
-			if (i != 0)
+			if (i != -1)
 			{
-				pointsLines->AddPoint(points[k - (3 * m)]);
+				pointsLines->AddPoint(points[k - m]);
 				pointsLines->AddPoint(points[k]);
 			}
 			++k;
 		}
 		pointsLines->AddPoint(points[k - 1]);
-		pointsLines->AddPoint(points[k - 3 * m]);
+		pointsLines->AddPoint(points[k - m]);
 		z += zDiff;
 	}
 
 }
 
-void BezierPatchC0Cylinder::Draw()
+void BezierPatchC2Cylinder::Draw()
 {
 	Figure::Draw();
 	glDrawElements(GL_LINES_ADJACENCY, indices.size(), GL_UNSIGNED_INT, 0);
@@ -91,13 +91,13 @@ void BezierPatchC0Cylinder::Draw()
 		pointsLines->Draw();
 }
 
-void BezierPatchC0Cylinder::CleanUp()
+void BezierPatchC2Cylinder::CleanUp()
 {
 	ClearPoints();
 	delete pointsLines;
 }
 
-void BezierPatchC0Cylinder::RecalcFigure()
+void BezierPatchC2Cylinder::RecalcFigure()
 {
 	if (Create()) {
 		glBindVertexArray(VAO);
@@ -139,7 +139,7 @@ void BezierPatchC0Cylinder::RecalcFigure()
 	}
 }
 
-bool BezierPatchC0Cylinder::Create()
+bool BezierPatchC2Cylinder::Create()
 {
 	if (splitAold != splitA || splitBold != splitB) first = true;
 	bool fCreate = Figure::Create();
@@ -175,14 +175,18 @@ bool BezierPatchC0Cylinder::Create()
 	return true;
 }
 
-void BezierPatchC0Cylinder::AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii)
+void BezierPatchC2Cylinder::AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii)
 {
-	int w = 3 * m;
-	int start = 3 * i * w + 3 * j;
+	int w = m;
+	int start = i * w + j;
+	int next_row = (i + 1) * w;
+	int that_row = i * w;
 	int ii_start = ii;
 	for (int k = 0; k < 4; ++k)
 	{
-		auto pos = points[start]->GetPos();
+		int ind = start - 1;
+		if (ind < that_row) ind += w;
+		auto pos = points[ind]->GetPos();
 		vertices.push_back(pos.x);
 		vertices.push_back(pos.y);
 		vertices.push_back(pos.z);
@@ -190,24 +194,29 @@ void BezierPatchC0Cylinder::AddPatch(int i, int j, float t, float t2, float from
 		vertices.push_back(1.0f);
 		vertices.push_back(0.0f);
 		vertices.push_back(0.0f);
-		pos = points[start + 1]->GetPos();
+		pos = points[start]->GetPos();
 		vertices.push_back(pos.x);
 		vertices.push_back(pos.y);
 		vertices.push_back(pos.z);
-		pos = points[start + 2]->GetPos();
+
+		ind = start + 1;
+		if (ind >= next_row) ind -= w;
+		pos = points[ind]->GetPos();
 		vertices.push_back(pos.x);
 		vertices.push_back(pos.y);
 		vertices.push_back(pos.z);
-		if ((start + 3) % (3 * m) == 0)
-			pos = points[start - (start % (3 * m))]->GetPos();
-		else
-			pos = points[start + 3]->GetPos();
+
+		ind = start + 2;
+		if (ind >= next_row) ind -= w;
+		pos = points[ind]->GetPos();
 		vertices.push_back(pos.x);
 		vertices.push_back(pos.y);
 		vertices.push_back(pos.z);
 		indices.push_back(ii);
 		ii++;
 		start += w;
+		that_row += w;
+		next_row += w;
 	}
 	vertices[15 * (ii_start + 1) + 3] = t;
 	vertices[15 * (ii_start + 1) + 4] = t2;

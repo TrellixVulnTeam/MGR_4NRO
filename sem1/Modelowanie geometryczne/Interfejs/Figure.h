@@ -14,7 +14,7 @@
 
 enum class FigureType
 {
-	Torus, Point, MiddlePoint, Cursor, BezierCurveC0, PointsLine, BezierCurveC2, InterpolationCurveC2, BezierPatchC0, BezierPatchC0Cylinder
+	Torus, Point, MiddlePoint, Cursor, BezierCurveC0, PointsLine, BezierCurveC2, InterpolationCurveC2, BezierPatchC0, BezierPatchC0Cylinder, BezierPatchC2, BezierPatchC2Cylinder
 };
 
 class Program;

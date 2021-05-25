@@ -157,6 +157,8 @@
     <ClCompile Include="BezierCurveC2.cpp" />
     <ClCompile Include="BezierPatchC0.cpp" />
     <ClCompile Include="BezierPatchC0Cylinder.cpp" />
+    <ClCompile Include="BezierPatchC2.cpp" />
+    <ClCompile Include="BezierPatchC2Cylinder.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Cursor.cpp" />
     <ClCompile Include="Figure.cpp" />
@@ -186,9 +188,12 @@
     <ClInclude Include="BezierCurveC2.h" />
     <ClInclude Include="BezierPatchC0.h" />
     <ClInclude Include="BezierPatchC0Cylinder.h" />
+    <ClInclude Include="BezierPatchC2.h" />
+    <ClInclude Include="BezierPatchC2Cylinder.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cursor.h" />
     <ClInclude Include="Figure.h" />
+    <None Include="shaders\patchDeBoorGeometryShader.gs" />
     <None Include="shaders\patchGeometryShader.gs" />
     <None Include="shaders\patchVertexShader.vs" />
     <None Include="textureFragmentShader.fs" />
