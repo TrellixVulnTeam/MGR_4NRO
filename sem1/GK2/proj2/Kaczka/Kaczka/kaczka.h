@@ -7,6 +7,26 @@
 
 namespace mini::gk2
 {
+	//Position and color of a single light
+	struct Light
+	{
+		//Light position coordinates [x, y, z, 1.0f]
+		DirectX::XMFLOAT4 position;
+		//Light color [r, g, b, 1.0f] - on
+		//or [r, g, b, 0.0f] - off
+		DirectX::XMFLOAT4 color;
+	};
+
+	//Lighting parameters (except surface color)
+	struct Lighting
+	{
+		//ambient reflection color [r, g, b, a]
+		DirectX::XMFLOAT4 ambientColor;
+		//surface reflection coefficients [ka, kd, ks, m]
+		DirectX::XMFLOAT4 surface;
+		//Light positions and colors
+		Light lights[3];
+	};
 	class Kaczka : public DxApplication
 	{
 	public:
@@ -128,7 +148,7 @@ namespace mini::gk2
 		void DrawWalls();
 		void CreateSheetMtx();
 		void DrawSheet(bool colors);
-
+		void Set1Light(DirectX::XMFLOAT4 LightPos);
 
 		void SetShaders(const dx_ptr<ID3D11InputLayout>& il,const dx_ptr<ID3D11VertexShader>& vs, const dx_ptr<ID3D11PixelShader>& ps);
 		void SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resList, const dx_ptr<ID3D11SamplerState>& sampler);

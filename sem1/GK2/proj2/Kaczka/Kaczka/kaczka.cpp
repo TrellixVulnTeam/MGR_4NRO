@@ -24,6 +24,7 @@ Kaczka::Kaczka(HINSTANCE hInstance)
 	: Base(hInstance, 1280, 720, L"Kaczka"),
 	m_cbWorld(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 	m_cbView(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
+	m_cbLighting(m_device.CreateConstantBuffer<Lighting>()),
 	m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
 	m_cbPlane(m_device.CreateConstantBuffer<XMFLOAT4, 2>())
 {
@@ -344,6 +345,21 @@ void Kaczka::DrawWalls()
 	}
 }
 
+void Kaczka::Set1Light(XMFLOAT4 poition)
+//Setup one positional light at the camera
+{
+	Lighting l{
+		/*.ambientColor = */ XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f),
+		/*.surface = */ XMFLOAT4(0.2f, 1.0f, 0.8f, 50.0f),
+		/*.lights =*/ {
+			{ /*.position =*/ poition, /*.color =*/ XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f) }
+			//other 2 lights set to 0
+		}
+	};
+	ZeroMemory(&l.lights[1], sizeof(Light) * 2);
+	UpdateBuffer(m_cbLighting, l);
+}
+
 void Kaczka::DrawSheet(bool colors)
 {
 	if (colors)
@@ -363,7 +379,7 @@ void Kaczka::DrawSheet(bool colors)
 
 void Kaczka::CreateSheetMtx()
 {
-	m_sheetMtx = XMMatrixRotationX(DirectX::XM_PIDIV2) * XMMatrixScaling(WALL_SIZE / 2.0f, WALL_SIZE / 2.0f, WALL_SIZE / 2.0f);
+	m_sheetMtx = XMMatrixRotationX(DirectX::XM_PIDIV2) * XMMatrixScaling(WALL_SIZE / 2.0f, WALL_SIZE / 2.0f, WALL_SIZE / 2.0f);//* XMMatrixTranslation(0.0f,3.0f,0.0f);
 	m_revSheetMtx = XMMatrixRotationY(-DirectX::XM_PI) * m_sheetMtx;
 }
 
@@ -561,6 +577,7 @@ void Kaczka::UpdateHeights(float dt)
 void Kaczka::Render()
 {
 	Base::Render();
+	Set1Light(XMFLOAT4(1.0f, 6.0f, 1.0f, 1.0f));
 	SetShaders(m_waterIL, m_waterVS, m_waterPS);
 	SetTextures({ m_waterTexture.get(),m_envTexture.get() }, m_samplerWrap);
 	UpdateBuffer(m_cbSurfaceColor, XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f));
@@ -579,7 +596,6 @@ void Kaczka::Render()
 	XMFLOAT2 vec = { xPos - lastXPos,yPos - lastYPos };
 	XMFLOAT2 len; XMStoreFloat2(&len, XMVector2Length(XMLoadFloat2(&vec)));
 	float angle = atan2(vec.x, -vec.y);
-	//XMStoreFloat4x4(&duckMtx, XMMatrixTranslation(WALL_SIZE / DUCK_SCALING * xPos, 0.0f, WALL_SIZE / DUCK_SCALING * xPos) * XMMatrixTranslation(-400.0f, 0.0f, -400.0f) * XMMatrixScaling(DUCK_SCALING, DUCK_SCALING, DUCK_SCALING));
 	XMStoreFloat4x4(&duckMtx, XMMatrixScaling(DUCK_SCALING, DUCK_SCALING, DUCK_SCALING) * XMMatrixRotationY(angle) * XMMatrixTranslation(WALL_SIZE * yPos, 0.0f, WALL_SIZE * xPos) * XMMatrixTranslation(-WALL_SIZE / 2, 0.0f, -WALL_SIZE / 2));
 	DrawMesh(m_duck, duckMtx);
 }

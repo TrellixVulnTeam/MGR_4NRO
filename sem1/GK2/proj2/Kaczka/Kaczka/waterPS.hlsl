@@ -1,9 +1,3 @@
-cbuffer cbSurfaceColor : register(b0)
-{
-	float4 surfaceColor;
-};
-
-
 Texture2D colorMap : register(t0);
 textureCUBE envMap  : register(t1);
 SamplerState colorSampler : register(s0);
