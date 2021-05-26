@@ -4,8 +4,7 @@
 
 InterpolationCurveC2::InterpolationCurveC2() : SomeCurve()
 {
-	sprintf_s(name, STRMAX, "InterpolationCurveC2");
-	_name = "InterpolationCurveC2";
+	sprintf_s(name, STRMAX, ("InterpolationCurveC2 - " + std::to_string(idx++)).c_str());
 	figureType = FigureType::InterpolationCurveC2;
 	bernsteinLine = new PointsLine();
 }
@@ -169,7 +168,7 @@ bool InterpolationCurveC2::Create()
 		for (int j = 0; j < 4; ++j)
 		{
 			auto pos = bernsteinPointss[j];
-			Point* p = new Point();
+			Point* p = new Point(false);
 			p->Initialize(program);
 			p->MoveTo(pos.x, pos.y, pos.z);
 			bernsteinPoints.push_back(p);

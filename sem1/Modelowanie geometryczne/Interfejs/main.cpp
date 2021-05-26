@@ -26,7 +26,12 @@
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
 
-
+static class Math_Globals
+{
+public:
+	static int global_index;  // Declaration.
+};
+Math_Globals mathglobals;
 bool firstCall = true;
 bool rotate = false;
 glm::vec2 mousePosOld;
@@ -317,7 +322,6 @@ void RenderGui()
 	}
 
 	int to_delete = -1;
-
 	ImGui::Begin("Menu");
 	ImGui::Checkbox("Anaglyph", &program->anaglyph);
 	ImGui::Checkbox("Transformate around cursor", &rotate);

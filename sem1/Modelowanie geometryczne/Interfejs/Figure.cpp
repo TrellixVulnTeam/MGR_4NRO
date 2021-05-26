@@ -4,10 +4,10 @@
 #include "SomePatch.h"
 
 
+int Figure::idx = 0;
 
 Figure::Figure() :shader()
 {
-	
 }
 
 void Figure::CleanUp()
@@ -37,50 +37,44 @@ void Figure::RecalcModel()
 bool Figure::GetGui(int i, Figure* par)
 {
 	bool to_ret = false;
-	if (par==nullptr && showInMainGui
-		||
-		par!=nullptr && !showInMainGui)
-	{
-		std::string t(name);
-		if (i >= 0)
-		{
-			sprintf_s(gui_name, "%s###%s", (t + " - " + std::to_string(i)).c_str(), _name);
-		}
-		else
-		{
-			sprintf_s(gui_name, "%s###%s", t.c_str(), _name);
-		}
-		if (ImGui::TreeNode(gui_name)) {
+	std::string t(name);
+	std::string s;
+	if (i >= 0)
+		s = t + " - " + std::to_string(i);
+	else
+		s = t;
+	if (ImGui::TreeNode(s.c_str())) {
 
-			if (ImGui::BeginPopupContextItem())
+		if (ImGui::BeginPopupContextItem())
+		{
+			ImGui::Text("Edit:");
+			ImGui::InputText("##edit", newName, IM_ARRAYSIZE(newName));
+			if (ImGui::Button("SAVE"))
 			{
-				ImGui::Text("Edit:");
-				ImGui::InputText("##edit", name, IM_ARRAYSIZE(name));
-				if (ImGui::Button("Close"))
-					ImGui::CloseCurrentPopup();
-				ImGui::EndPopup();
+				ImGui::CloseCurrentPopup();
+				strcpy_s(name, STRMAX, newName);
 			}
-			if (figureType != FigureType::Cursor)
-			{
-				ImGui::Checkbox("Selected", &selected);
-				if (selected && !selected_old && figureType == FigureType::BezierCurveC0)
-				{
-					for (int j = 0; j < program->figures.size(); ++j) if (j!=i && program->figures[j]->figureType == FigureType::BezierCurveC0) program->figures[j]->Unselect();
-				}
-				if (par==nullptr) {
-					if (ImGui::Button("Remove"))
-					{
-						to_ret = true;
-					}
-				}
-			}
-			if (GetGuiInternal(par))
-			{
-				to_ret = true;
-			}
-			ImGui::TreePop();
-			ImGui::Separator();
+			ImGui::EndPopup();
 		}
+		if (figureType != FigureType::Cursor)
+		{
+			ImGui::Checkbox("Selected", &selected);
+			if (selected && !selected_old && figureType == FigureType::BezierCurveC0)
+			{
+				for (int j = 0; j < program->figures.size(); ++j) if (j != i && program->figures[j]->figureType == FigureType::BezierCurveC0) program->figures[j]->Unselect();
+			}
+			if (par == nullptr) {
+				if (ImGui::Button("Remove"))
+				{
+					to_ret = true;
+				}
+			}
+		}
+		if (GetGuiInternal(par))
+		{
+			to_ret = true;
+		}
+		ImGui::TreePop();
 	}
 	return to_ret;
 }
@@ -186,8 +180,9 @@ void Figure::Draw()
 
 void Figure::Initialize(Program* _program)
 {
+	strcpy_s(newName, STRMAX, name);
 	program = _program;
-	shader =Shader(program->shader);
+	shader = Shader(program->shader);
 	translation = glm::mat4(1.0f);
 	scale = glm::mat4(1.0f);
 

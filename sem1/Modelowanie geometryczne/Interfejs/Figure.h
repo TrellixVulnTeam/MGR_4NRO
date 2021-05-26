@@ -19,11 +19,14 @@ enum class FigureType
 
 class Program;
 
+
+
 class Figure
 {
 public:
 	Figure();
 	~Figure() = default;
+	static int idx;
 	bool GetGui(int i, Figure* par);
 	std::vector<float> GetVertices();
 	std::vector<unsigned int> GetIndices();
@@ -52,7 +55,7 @@ public:
 	FigureType figureType;
 	bool keepOpen = false;
 	char name[STRMAX] = "";
-	char gui_name[STRMAX];
+	char newName[STRMAX] = "";
 	bool isCurve = false;
 	bool isPatch = false;
 	void virtual CleanUp();
@@ -66,10 +69,9 @@ protected:
 	float scale_f;
 	bool selected = false;
 	bool canMove = true;
-	std::string _name;
 	bool virtual GetGuiInternal(Figure* par) = 0;
-	bool showInMainGui = true;
 	std::vector<Figure*> parents;
+	std::vector<int> parents_cnt;
 	Program* program = NULL;
 	Shader shader;
 	unsigned int VBO;

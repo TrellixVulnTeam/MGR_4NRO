@@ -3,7 +3,8 @@
 class Point : public Figure
 {
 public:
-	Point();
+	Point(bool addIndex);
+	Point() :Point(true) {};
 	bool virtual GetGuiInternal(Figure* par) override;
 	virtual void Draw() override;
 	void Unpin(Figure* par);

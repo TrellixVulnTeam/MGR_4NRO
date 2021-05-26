@@ -4,10 +4,12 @@
 #include "SomeCurve.h"
 #include "SomePatch.h"
 
-Point::Point() : Figure()
+Point::Point(bool addIndex) : Figure()
 {
-	sprintf_s(name, STRMAX, "Point");
-	_name = "Point";
+	if (addIndex)
+		sprintf_s(name, STRMAX, ("Point - " + std::to_string(idx++)).c_str());
+	else
+		sprintf_s(name, STRMAX, "Point");
 	figureType = FigureType::Point;
 }
 
@@ -21,13 +23,13 @@ bool Point::GetGuiInternal(Figure* par)
 	bool to_ret = false;
 
 	int selectedBezier = -1;
+
 	if (ImGui::TreeNode("Pin to Bezier..."))
 	{
 		for (int i = 0; i < program->figures.size(); i++)
 		{
-			if (program->figures[i]->isCurve
-				&& !(std::find(parents.begin(), parents.end(), program->figures[i]) != parents.end()))
-				if (ImGui::Button(program->figures[i]->gui_name))
+			if (program->figures[i]->isCurve)
+				if (ImGui::Button(program->figures[i]->name))
 				{
 					selectedBezier = i;
 				}
@@ -63,9 +65,15 @@ void Point::Unpin(Figure* par)
 	int j = -1;
 	for (int i = 0; i < parents.size(); ++i)
 		if (parents[i] == par) j = i;
-	parents.erase(parents.begin() + j);
-	if (parents.size() == 0)
-		showInMainGui = true;
+	if (parents_cnt[j] == 1)
+	{
+		parents.erase(parents.begin() + j);
+		parents_cnt.erase(parents_cnt.begin() + j);
+	}
+	else
+	{
+		parents_cnt[j]--;
+	}
 }
 
 void Point::RecalcParent()
@@ -83,10 +91,21 @@ void Point::RecalcParent()
 	}
 }
 
-void Point::AddParent(Figure* f)
+void Point::AddParent(Figure* par)
 {
-	parents.push_back(f);
-	showInMainGui = false;
+	int j = -1;
+	for (int i = 0; i < parents.size(); ++i)
+		if (parents[i] == par) j = i;
+
+	if (j == -1)
+	{
+		parents.push_back(par);
+		parents_cnt.push_back(1);
+	}
+	else
+	{
+		parents_cnt[j]++;
+	}
 }
 
 bool Point::Create()

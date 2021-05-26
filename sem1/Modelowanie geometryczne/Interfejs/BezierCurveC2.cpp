@@ -4,8 +4,7 @@
 
 BezierCurveC2::BezierCurveC2() : SomeCurve()
 {
-	sprintf_s(name, STRMAX, "BezierCurveC2");
-	_name = "BezierCurveC2";
+	sprintf_s(name, STRMAX, ("BezierCurveC2 - " + std::to_string(idx++)).c_str());
 	figureType = FigureType::BezierCurveC2;
 	deBoorLine = new PointsLine();
 }
@@ -133,16 +132,16 @@ bool BezierCurveC2::Create()
 		DeBoorToBernstein(pos0.y, pos1.y, pos2.y, pos3.y, ys);
 		DeBoorToBernstein(pos0.z, pos1.z, pos2.z, pos3.z, zs);
 
-		Point* p0 = new Point();
+		Point* p0 = new Point(false);
 		p0->Initialize(program);
 		p0->MoveTo(xs.x, ys.x, zs.x);
-		Point* p1 = new Point();
+		Point* p1 = new Point(false);
 		p1->Initialize(program);
 		p1->MoveTo(xs.y, ys.y, zs.y);
-		Point* p2 = new Point();
+		Point* p2 = new Point(false);
 		p2->Initialize(program);
 		p2->MoveTo(xs.z, ys.z, zs.z);
-		Point* p3 = new Point();
+		Point* p3 = new Point(false);
 		p3->Initialize(program);
 		p3->MoveTo(xs.w, ys.w, zs.w);
 

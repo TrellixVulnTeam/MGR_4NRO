@@ -4,8 +4,7 @@
 
 BezierPatchC0::BezierPatchC0() : SomePatch()
 {
-	sprintf_s(name, STRMAX, "BezierPatchC0");
-	_name = "BezierPatchC0";
+	sprintf_s(name, STRMAX, ("BezierPatchC0 - " + std::to_string(idx++)).c_str());
 	figureType = FigureType::BezierPatchC0;
 }
 

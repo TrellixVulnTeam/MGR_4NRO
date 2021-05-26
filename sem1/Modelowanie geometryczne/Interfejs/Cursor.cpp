@@ -5,7 +5,6 @@
 Cursor::Cursor() : Figure()
 {
 	sprintf_s(name, STRMAX, "Cursor");
-	_name = "Cursor";
 	figureType = FigureType::Cursor;
 	pos = glm::vec3(0.0f, 0.0f, 0.0f);
 	posOld = glm::vec3(-1.0f);

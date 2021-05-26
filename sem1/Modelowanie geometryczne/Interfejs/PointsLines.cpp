@@ -3,8 +3,7 @@
 
 PointsLines::PointsLines() : Figure()
 {
-	sprintf_s(name, STRMAX, "PointsLines");
-	_name = "PointsLine";
+	sprintf_s(name, STRMAX, "PointsLine");
 	figureType = FigureType::PointsLine;
 	canMove = false;
 }

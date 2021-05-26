@@ -4,7 +4,6 @@
 PointsLine::PointsLine() : Figure()
 {
 	sprintf_s(name, STRMAX, "PointsLine");
-	_name = "PointsLine";
 	figureType = FigureType::PointsLine;
 	canMove = false;
 }

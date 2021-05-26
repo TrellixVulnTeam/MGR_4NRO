@@ -4,8 +4,7 @@
 
 Torus::Torus() : Figure()
 {
-	sprintf_s(name, STRMAX, "Torus");
-	_name = "Torus";
+	sprintf_s(name, STRMAX, ("Torus - " + std::to_string(idx++)).c_str());
 	figureType = FigureType::Torus;
 }
 

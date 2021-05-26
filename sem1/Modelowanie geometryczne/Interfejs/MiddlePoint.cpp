@@ -5,7 +5,6 @@
 MiddlePoint::MiddlePoint() : Figure()
 {
 	sprintf_s(name, STRMAX, "MiddlePoint");
-	_name = "MiddlePoint";
 	figureType = FigureType::MiddlePoint;
 }
 
