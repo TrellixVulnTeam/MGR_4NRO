@@ -37,6 +37,9 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 
 	m_variables.AddSemanticVariable("mvpMtx", VariableSemantic::MatMVP);
 	m_variables.AddGuiVariable("waterLevel", -0.05f, -1, 1, 0.001f);
+	m_variables.AddGuiVariable("cutoff", 0.72f, 0.1f, 1.0f);
+	m_variables.AddSemanticVariable("nearZ", VariableSemantic::FloatNearPlane);
+
 
 	//Models
 	const auto sphere = addModelFromString("s 0 0 0 0.5");
@@ -55,6 +58,7 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 	model(quad).applyTransform(modelMtx);
 	model(envModel).applyTransform(modelMtx);
 
+	auto screenSize = m_window.getClientSize();
 	m_variables.AddSampler(m_device, "samp");
 	m_variables.AddTexture(m_device, "normTex", L"textures/texture2.png");
 	m_variables.AddTexture(m_device, "envMap", L"textures/cubeMap.dds");
@@ -65,8 +69,8 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 	m_variables.AddTexture(m_device, "irMap", L"textures/cubeMapIrradiance.dds");
 	m_variables.AddTexture(m_device, "pfEnvMap", L"textures/cubeMapRadiance.dds");
 	m_variables.AddTexture(m_device, "brdfTex", L"textures/brdf_lut.png");
-
-	auto screenSize = m_window.getClientSize();
+	m_variables.AddTexture(m_device, "screenColor",	Texture2DDescription(screenSize.cx, screenSize.cy,	DXGI_FORMAT_R8G8B8A8_UNORM, 1));
+	m_variables.AddTexture(m_device, "screenDepth",	Texture2DDescription(screenSize.cx, screenSize.cy,	DXGI_FORMAT_R24_UNORM_X8_TYPELESS, 1));
 	m_variables.AddRenderableTexture(m_device, "screen", screenSize);
 	m_variables.AddRenderableTexture(m_device, "halfscreen1", SIZE{ screenSize.cx / 2,screenSize.cy / 2 });
 	m_variables.AddRenderableTexture(m_device, "halfscreen2", SIZE{ screenSize.cx / 2,screenSize.cy / 2 });
@@ -86,15 +90,11 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 	//const auto passSphere = addPass(L"sphereVS.cso", L"spherePS.cso");
 	//addModelToPass(passSphere, sphere);
 
-	auto passTeapot = addPass(L"teapotVS.cso", L"teapotPS.cso", "halfscreen1");
+	auto passTeapot = addPass(L"teapotVS.cso", L"teapotPS.cso", "screen");
 
 	addModelToPass(passTeapot, teapot);
 	auto passSpring = addPass(L"springVS.cso", L"springPS.cso");
 	addModelToPass(passSpring, plane);
-
-	auto passEnv = addPass(L"envVS.cso", L"envPS.cso");
-	addModelToPass(passEnv, envModel);
-	addRasterizerState(passEnv, RasterizerDescription(true));
 
 	auto passWater = addPass(L"waterVS.cso", L"waterPS.cso");
 	addModelToPass(passWater, quad);
@@ -102,10 +102,23 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 	rs.CullMode = D3D11_CULL_NONE;
 	addRasterizerState(passWater, rs);
 
-	auto passDownsample = addPass(L"fullScreenQuadVS.cso", L"hblurPS.cso", "halfscreen2");
+	copyRenderTarget(passWater, "screenColor");
+	copyDepthBuffer(passWater, "screenDepth");
+
+	auto passEnv = addPass(L"envVS.cso", L"envPS.cso");
+	addModelToPass(passEnv, envModel);
+	addRasterizerState(passEnv, RasterizerDescription(true));
+
+	auto passDownsample = addPass(L"fullScreenQuadVS.cso", L"downSamplePS.cso", "halfscreen1");
 	addModelToPass(passDownsample, quad);
 
-	auto passVBlur = addPass(L"fullScreenQuadVS.cso", L"vblurPS.cso", getDefaultRenderTarget());
+	auto passHBlur = addPass(L"fullScreenQuadVS.cso", L"hblurPS.cso", "halfscreen2");
+	addModelToPass(passHBlur, quad);
+
+	auto passVBlur = addPass(L"fullScreenQuadVS.cso",	L"vblurPS.cso", "halfscreen1", true);
 	addModelToPass(passVBlur, quad);
+
+	auto passComposite = addPass(L"fullScreenQuadVS.cso", L"compositePS.cso", getDefaultRenderTarget());
+	addModelToPass(passComposite, quad);
 
 }
