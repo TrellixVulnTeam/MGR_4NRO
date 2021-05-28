@@ -96,13 +96,16 @@ glm::mat4 Figure::GetModel()
 
 void Figure::Scale(float change)
 {
-	if (change > 1 && scale_f > 3.0f) return;
-	if (change < 1 && scale_f < 0.3f) return;
+	if (change > 1 && scale[0][0] > 3.0f) return;
+	if (change > 1 && scale[1][1] > 3.0f) return;
+	if (change > 1 && scale[1][1] > 3.0f) return;
+	if (change < 1 && scale[0][0] < 0.3f) return;
+	if (change < 1 && scale[1][1] < 0.3f) return;
+	if (change < 1 && scale[2][2] < 0.3f) return;
 
-	scale_f = scale_f * change;
-	scale[0][0] = scale_f;
-	scale[1][1] = scale_f;
-	scale[2][2] = scale_f;
+	scale[0][0] *= change;
+	scale[1][1] *= change;
+	scale[2][2] *= change;
 
 	RecalcModel();
 }
@@ -169,6 +172,12 @@ glm::vec3 Figure::GetPos()
 		translation[3][1],
 		translation[3][2]);
 }
+glm::vec3 Figure::GetScale()
+{
+	return glm::vec3(scale[0][0],
+		scale[1][1],
+		scale[2][2]);
+}
 void Figure::Draw()
 {
 	shader.use();
@@ -187,7 +196,9 @@ void Figure::Initialize(Program* _program)
 	scale = glm::mat4(1.0f);
 
 	rotation_q.w = 1.0f;
-	scale_f = 1.0f;
+	scale[0][0] = 1.0f;
+	scale[1][1] = 1.0f;
+	scale[2][2] = 1.0f;
 	RecalcModel();
 
 

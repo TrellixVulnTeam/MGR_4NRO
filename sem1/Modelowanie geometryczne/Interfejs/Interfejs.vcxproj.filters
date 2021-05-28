@@ -102,13 +102,7 @@
     <ClCompile Include="PointsLines.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BezierPatchC0Cylinder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BezierPatchC2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BezierPatchC2Cylinder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -188,13 +182,7 @@
     <ClInclude Include="PointsLines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BezierPatchC0Cylinder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="BezierPatchC2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BezierPatchC2Cylinder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

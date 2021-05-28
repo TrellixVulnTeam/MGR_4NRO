@@ -13,9 +13,9 @@ public:
 	void virtual RemovePoint(int to_del) = 0;
 	void virtual Recalc() final { first = true; }
 	void virtual Initialize(Program* _program) override { Figure::Initialize(_program); shader = Shader(program->bezierShader);};
+	std::vector<Point*> points;
 protected:
 	bool virtual Create() override { return false; };
-	std::vector<Point*> points;
 	bool first = true;
 	bool drawLine = true;
 	PointsLine* pointsLine;

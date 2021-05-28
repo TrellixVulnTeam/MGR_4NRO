@@ -21,17 +21,13 @@
 #include "Cursor.h"
 #include "BezierPatchC0.h"
 #include "BezierPatchC2.h"
-#include "BezierPatchC0Cylinder.h"
-#include "BezierPatchC2Cylinder.h"
+#include "rapidxml/rapidxml.hpp"
+#include "rapidxml/rapidxml_print.hpp"
+#include "rapidxml/rapidxml_utils.hpp"
+using namespace rapidxml;
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
 
-static class Math_Globals
-{
-public:
-	static int global_index;  // Declaration.
-};
-Math_Globals mathglobals;
 bool firstCall = true;
 bool rotate = false;
 glm::vec2 mousePosOld;
@@ -39,7 +35,7 @@ glm::vec3 lookAt;
 Program* program;
 
 
-
+void Serialize();
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
 {
 	glm::quat quat = glm::angleAxis(angle, axis);
@@ -404,26 +400,26 @@ void RenderGui()
 		ImGui::SliderFloat("width", &program->bezierC0width, 0.5f, 5.0f);
 		if (ImGui::Button("New Bezier Patch C0 Rectangle"))
 		{
-			Figure* f = new BezierPatchC0(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length);
+			Figure* f = new BezierPatchC0(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length, program->bezierC0r, false);
 			f->Initialize(program);
 			program->figures.push_back(f);
 		}
 
 		if (ImGui::Button("New Bezier Patch C0 Cylinder"))
 		{
-			Figure* f = new BezierPatchC0Cylinder(program->patches_n, program->patches_m, program->bezierC0r, program->bezierC0length);
+			Figure* f = new BezierPatchC0(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length, program->bezierC0r, true);
 			f->Initialize(program);
 			program->figures.push_back(f);
 		}
 		if (ImGui::Button("New Bezier Patch C2 Rectangle"))
 		{
-			Figure* f = new BezierPatchC2(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length);
+			Figure* f = new BezierPatchC2(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length, program->bezierC0r, false);
 			f->Initialize(program);
 			program->figures.push_back(f);
 		}
 		if (ImGui::Button("New Bezier Patch C2 Cylinder"))
 		{
-			Figure* f = new BezierPatchC2Cylinder(program->patches_n, program->patches_m, program->bezierC0r, program->bezierC0length);
+			Figure* f = new BezierPatchC2(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length, program->bezierC0r, true);
 			f->Initialize(program);
 			program->figures.push_back(f);
 		}
@@ -448,6 +444,11 @@ void RenderGui()
 		program->figures.erase(program->figures.begin() + to_delete);
 		f->CleanUp();
 		delete f;
+	}
+
+	if (ImGui::Button("Serialize"))
+	{
+		Serialize();
 	}
 
 	ImGui::End();
@@ -571,12 +572,12 @@ int main()
 	program->patchShader = Shader("shaders/patchVertexShader.vs"
 		, "shaders/fragShader.fs"
 		, "shaders/patchGeometryShader.gs"
-		);
-	
+	);
+
 	program->patchShaderDeBoor = Shader("shaders/patchVertexShader.vs"
 		, "shaders/fragShader.fs"
 		, "shaders/patchDeBoorGeometryShader.gs"
-		);
+	);
 
 	program->mp = new MiddlePoint();
 	program->mp->Initialize(program);
@@ -707,3 +708,109 @@ int main()
 	return 0;
 }
 
+void Serialize()
+{
+	xml_document <> document;
+	xml_node <>* scene = document.allocate_node(node_element, "Scene");
+	for (int i = 0; i < program->figures.size(); ++i)
+	{
+		xml_node <>* figure = nullptr;
+		std::vector<Point*> points;
+		points.push_back(nullptr);
+		if (program->figures[i]->figureType == FigureType::Point)
+		{
+			figure = document.allocate_node(node_element, "Point");
+			xml_node <>* position = document.allocate_node(node_element, "Position");
+			auto pos = program->figures[i]->GetPos();
+			position->append_attribute(document.allocate_attribute("X", document.allocate_string(std::to_string(pos.x).c_str())));
+			position->append_attribute(document.allocate_attribute("Y", document.allocate_string(std::to_string(pos.y).c_str())));
+			position->append_attribute(document.allocate_attribute("Z", document.allocate_string(std::to_string(pos.z).c_str())));
+			figure->append_node(position);
+		}
+		if (program->figures[i]->figureType == FigureType::BezierCurveC0)
+		{
+			figure = document.allocate_node(node_element, "BezierC0");
+			points = ((SomeCurve*)program->figures[i])->points;
+		}
+		if (program->figures[i]->figureType == FigureType::BezierCurveC2)
+		{
+			figure = document.allocate_node(node_element, "BezierC2");
+			points = ((SomeCurve*)program->figures[i])->points;
+		}
+		if (program->figures[i]->figureType == FigureType::InterpolationCurveC2)
+		{
+			figure = document.allocate_node(node_element, "BezierInter");
+			points = ((SomeCurve*)program->figures[i])->points;
+		}
+		if (program->figures[i]->figureType == FigureType::BezierPatchC0)
+		{
+			figure = document.allocate_node(node_element, "PatchC0");
+			SomePatch* patch = (SomePatch*)program->figures[i];
+			figure->append_attribute(document.allocate_attribute("N", document.allocate_string(std::to_string(patch->n).c_str())));
+			figure->append_attribute(document.allocate_attribute("M", document.allocate_string(std::to_string(patch->m).c_str())));
+			figure->append_attribute(document.allocate_attribute("NSlices", document.allocate_string(std::to_string(patch->splitA).c_str())));
+			figure->append_attribute(document.allocate_attribute("MSlices", document.allocate_string(std::to_string(patch->splitB).c_str())));
+			points = patch->points;
+		}
+		if (program->figures[i]->figureType == FigureType::BezierPatchC2)
+		{
+			figure = document.allocate_node(node_element, "PatchC2");
+			SomePatch* patch = (SomePatch*)program->figures[i];
+			figure->append_attribute(document.allocate_attribute("N", document.allocate_string(std::to_string(patch->n).c_str())));
+			figure->append_attribute(document.allocate_attribute("M", document.allocate_string(std::to_string(patch->m).c_str())));
+			figure->append_attribute(document.allocate_attribute("NSlices", document.allocate_string(std::to_string(patch->splitA).c_str())));
+			figure->append_attribute(document.allocate_attribute("MSlices", document.allocate_string(std::to_string(patch->splitB).c_str())));
+			points = patch->points;
+		}
+		if (program->figures[i]->figureType == FigureType::Torus)
+		{
+			figure = document.allocate_node(node_element, "Torus");
+			Torus* torus = (Torus*)program->figures[i];
+			figure->append_attribute(document.allocate_attribute("MinorRadius", document.allocate_string(std::to_string(torus->r_new).c_str())));
+			figure->append_attribute(document.allocate_attribute("MajorRadius", document.allocate_string(std::to_string(torus->R_new).c_str())));
+			figure->append_attribute(document.allocate_attribute("MinorSegments", document.allocate_string(std::to_string(torus->n_new).c_str())));
+			figure->append_attribute(document.allocate_attribute("MajorSegments", document.allocate_string(std::to_string(torus->m_new).c_str())));
+			
+			xml_node <>* position = document.allocate_node(node_element, "Position");
+			auto pos = torus->GetPos();
+			position->append_attribute(document.allocate_attribute("X", document.allocate_string(std::to_string(pos.x).c_str())));
+			position->append_attribute(document.allocate_attribute("Y", document.allocate_string(std::to_string(pos.y).c_str())));
+			position->append_attribute(document.allocate_attribute("Z", document.allocate_string(std::to_string(pos.z).c_str())));
+
+			xml_node <>* rotation = document.allocate_node(node_element, "Rotation");
+			glm::quat quat = torus->GetRotation();
+			rotation->append_attribute(document.allocate_attribute("X", document.allocate_string(std::to_string(quat.x).c_str())));
+			rotation->append_attribute(document.allocate_attribute("Y", document.allocate_string(std::to_string(quat.y).c_str())));
+			rotation->append_attribute(document.allocate_attribute("Z", document.allocate_string(std::to_string(quat.z).c_str())));
+			rotation->append_attribute(document.allocate_attribute("W", document.allocate_string(std::to_string(quat.w).c_str())));
+
+			xml_node <>* scale = document.allocate_node(node_element, "Scale");
+			auto sc = torus->GetScale();
+			scale->append_attribute(document.allocate_attribute("X", document.allocate_string(std::to_string(sc.x).c_str())));
+			scale->append_attribute(document.allocate_attribute("Y", document.allocate_string(std::to_string(sc.y).c_str())));
+			scale->append_attribute(document.allocate_attribute("Z", document.allocate_string(std::to_string(sc.z).c_str())));
+
+			figure->append_node(position);
+			figure->append_node(rotation);
+			figure->append_node(scale);
+		}
+
+		if (!(points.size() == 1 && points[0] == nullptr))
+		{
+			xml_node <>* pointsNode = document.allocate_node(node_element, "Points");
+			for (int i = 0; i < points.size(); ++i)
+			{
+				xml_node <>* pointRef = document.allocate_node(node_element, "PointRef");
+				pointRef->append_attribute(document.allocate_attribute("Name", document.allocate_string(points[i]->name)));
+				pointsNode->append_node(pointRef);
+			}
+			figure->append_node(pointsNode);
+
+		}
+
+		figure->append_attribute(document.allocate_attribute("Name", document.allocate_string(program->figures[i]->name)));
+		scene->append_node(figure);
+	}
+	document.append_node(scene);
+	std::cout << document;
+}

@@ -14,7 +14,7 @@
 
 enum class FigureType
 {
-	Torus, Point, MiddlePoint, Cursor, BezierCurveC0, PointsLine, BezierCurveC2, InterpolationCurveC2, BezierPatchC0, BezierPatchC0Cylinder, BezierPatchC2, BezierPatchC2Cylinder
+	Torus, Point, MiddlePoint, Cursor, BezierCurveC0, PointsLine, BezierCurveC2, InterpolationCurveC2, BezierPatchC0, BezierPatchC2
 };
 
 class Program;
@@ -43,6 +43,8 @@ public:
 	void MoveTo(float x, float y, float z);
 	void MoveVec(float a, glm::vec3 v);
 	glm::vec3 GetPos();
+	glm::vec3 GetScale();
+	glm::quat GetRotation() { return rotation_q; };
 	virtual void Draw();
 	void virtual Initialize(Program* _program);
 	void virtual RecalcFigure();
@@ -66,7 +68,6 @@ protected:
 	glm::quat rotation_q;
 	glm::mat4 scale;
 	glm::mat4 model;
-	float scale_f;
 	bool selected = false;
 	bool canMove = true;
 	bool virtual GetGuiInternal(Figure* par) = 0;

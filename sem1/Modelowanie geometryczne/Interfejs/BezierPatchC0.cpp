@@ -19,8 +19,16 @@ void BezierPatchC0::ClearPoints()
 {
 	for (int i = 0; i < points.size(); ++i)
 	{
-		points[i]->Unpin(this);
-		if (!points[i]->HasParent()) points[i]->toDel = true;
+		if (points[i]!= nullptr && !points[i]->toDel)
+		{
+			points[i]->Unpin(this);
+			if (!points[i]->HasParent()) points[i]->toDel = true;
+
+			for (int j = i + 1; j < points.size(); ++j)
+			{
+				if (points[j] == points[i]) points[j] = nullptr;
+			}
+		}
 	}
 	int n = program->figures.size();
 	for (int i = 0; i < n; ++i)
@@ -44,36 +52,78 @@ void BezierPatchC0::GeneratePoints()
 	ClearPoints();
 	points.clear();
 	pointsLines->Clear();
-	float x = 0.0f;
-	float y = 0.0f;
-	float xdiff = width / (3 * n);
-	float ydiff = length / (3 * m);
-	int k = 0;
-	for (int i = 0; i < 3 * n + 1; ++i)
+	if (cylinder)
 	{
-		y = 0.0f;
-		for (int j = 0; j < 3 * m + 1; ++j)
+		if (n < 3) n = 3;
+		float z = 0.0f;
+		float angle = 0.0f;
+		float zDiff = length / (3 * m);
+		float angleDiff = 2 * M_PI / (3 * n);
+		int k = 0;
+		for (int i = 0; i < 3 * m + 1; ++i)
 		{
-			Point* p = new Point();
-			p->Initialize(program);
-			p->MoveTo(x, y, 0.0f);
-			points.push_back(p);
-			y += ydiff;
-			program->figures.push_back(p);
-			p->AddParent(this);
-			if (j != 0)
+			angle = 0.0f;
+			for (int j = 0; j < 3 * n; ++j)
 			{
-				pointsLines->AddPoint(points[k - 1]);
-				pointsLines->AddPoint(points[k]);
+				Point* p = new Point();
+				p->Initialize(program);
+				p->MoveTo(r * sin(angle), r * cos(angle), z);
+				points.push_back(p);
+				angle += angleDiff;
+				program->figures.push_back(p);
+				p->AddParent(this);
+				if (j != 0)
+				{
+					pointsLines->AddPoint(points[k]);
+					pointsLines->AddPoint(points[k - 1]);
+				}
+				if (i != 0)
+				{
+					pointsLines->AddPoint(points[k - (3 * n + 1)]);
+					pointsLines->AddPoint(points[k]);
+				}
+				++k;
 			}
-			if (i != 0)
-			{
-				pointsLines->AddPoint(points[k - (3 * m + 1)]);
-				pointsLines->AddPoint(points[k]);
-			}
-			++k;
+			points.push_back(points[k - 3 * n]);
+			pointsLines->AddPoint(points[k]);
+			pointsLines->AddPoint(points[k - 1]);
+			k++;
+			z += zDiff;
 		}
-		x += xdiff;
+	}
+	else
+	{
+		float x = 0.0f;
+		float y = 0.0f;
+		float xdiff = width / (3 * m);
+		float ydiff = length / (3 * n);
+		int k = 0;
+		for (int i = 0; i < 3 * m + 1; ++i)
+		{
+			y = 0.0f;
+			for (int j = 0; j < 3 * n + 1; ++j)
+			{
+				Point* p = new Point();
+				p->Initialize(program);
+				p->MoveTo(x, y, 0.0f);
+				points.push_back(p);
+				y += ydiff;
+				program->figures.push_back(p);
+				p->AddParent(this);
+				if (j != 0)
+				{
+					pointsLines->AddPoint(points[k - 1]);
+					pointsLines->AddPoint(points[k]);
+				}
+				if (i != 0)
+				{
+					pointsLines->AddPoint(points[k - (3 * n + 1)]);
+					pointsLines->AddPoint(points[k]);
+				}
+				++k;
+			}
+			x += xdiff;
+		}
 	}
 }
 
@@ -150,9 +200,9 @@ bool BezierPatchC0::Create()
 	int p = splitA;
 	int q = splitB;
 	int ii = 0;
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < m; ++i)
 	{
-		for (int j = 0; j < m; ++j)
+		for (int j = 0; j < n; ++j)
 		{
 			for (int k = 0; k < p; ++k)
 			{
@@ -163,7 +213,7 @@ bool BezierPatchC0::Create()
 					int splits = ((q - l) < 120) ? (q - l) : 120;
 					if (to > 1.0f)to = 1.0f;
 
-					AddPatch(i, j, (float)k/p,(float)(k+1)/p, from, to, splits, ii);
+					AddPatch(i, j, (float)k / p, (float)(k + 1) / p, from, to, splits, ii);
 				}
 			}
 		}
@@ -171,9 +221,9 @@ bool BezierPatchC0::Create()
 	return true;
 }
 
-void BezierPatchC0::AddPatch(int i, int j, float t,float t2, float from, float to, int splits, int& ii)
+void BezierPatchC0::AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii)
 {
-	int w = 3 * m + 1;
+	int w = 3 * n + 1;
 	int start = 3 * i * w + 3 * j;
 	int ii_start = ii;
 	for (int k = 0; k < 4; ++k)
