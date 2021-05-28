@@ -74,8 +74,8 @@ bool Torus::Create()
 			float sinb = sin(beta);
 
 			float x = cosa * (r * cosb + R);
-			float y = sina * (r * cosb + R);
-			float z = r * sinb;
+			float y = r * sinb;
+			float z = sina * (r * cosb + R);
 
 			vertices[idx1] = x;
 			vertices[idx1 + 1] = y;

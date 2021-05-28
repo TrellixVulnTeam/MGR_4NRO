@@ -36,6 +36,7 @@ Program* program;
 
 
 void Serialize();
+void Deserialize();
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
 {
 	glm::quat quat = glm::angleAxis(angle, axis);
@@ -450,6 +451,10 @@ void RenderGui()
 	{
 		Serialize();
 	}
+	if (ImGui::Button("Deserialize"))
+	{
+		Deserialize();
+	}
 
 	ImGui::End();
 }
@@ -770,7 +775,7 @@ void Serialize()
 			figure->append_attribute(document.allocate_attribute("MajorRadius", document.allocate_string(std::to_string(torus->R_new).c_str())));
 			figure->append_attribute(document.allocate_attribute("MinorSegments", document.allocate_string(std::to_string(torus->n_new).c_str())));
 			figure->append_attribute(document.allocate_attribute("MajorSegments", document.allocate_string(std::to_string(torus->m_new).c_str())));
-			
+
 			xml_node <>* position = document.allocate_node(node_element, "Position");
 			auto pos = torus->GetPos();
 			position->append_attribute(document.allocate_attribute("X", document.allocate_string(std::to_string(pos.x).c_str())));
@@ -813,4 +818,30 @@ void Serialize()
 	}
 	document.append_node(scene);
 	std::cout << document;
+}
+
+void Deserialize()
+{
+	std::string s = "";
+	int n = program->figures.size();
+	for (int i = 0; i < n; ++i)
+	{
+		if (
+			program->figures[i]->figureType != FigureType::Cursor &&
+			program->figures[i]->figureType != FigureType::MiddlePoint
+			)
+		{
+			Figure* f = program->figures[i];
+			program->figures.erase(program->figures.begin() + i);
+			f->CleanUp();
+			delete f;
+			i--;
+			n--;
+		}
+	}
+
+	file<> xmlFile("C:\\Users\\piotr.onyszczuk\\Desktop\\Projekty\\priv\\MGR\\sem1\\Modelowanie geometryczne\\Interfejs\\somexml.xml"); // Default template is char
+	xml_document<> doc;
+	doc.parse<0>(xmlFile.data());
+	auto scene = doc.first_node("Scene");
 }

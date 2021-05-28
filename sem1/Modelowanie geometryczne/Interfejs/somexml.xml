@@ -1,0 +1,46 @@
+<Scene>
+        <BezierC0 Name="BezierCurveC0 - 0">
+                <Points/>
+        </BezierC0>
+        <Point Name="Point - 1">
+                <Position X="1.562498" Y="2.388888" Z="0.000000"/>
+        </Point>
+        <Point Name="Point - 2">
+                <Position X="1.437501" Y="0.433333" Z="0.000000"/>
+        </Point>
+        <Point Name="Point - 3">
+                <Position X="3.443741" Y="0.222222" Z="0.000000"/>
+        </Point>
+        <Point Name="Point - 4">
+                <Position X="3.749993" Y="2.133334" Z="0.000000"/>
+        </Point>
+        <BezierC2 Name="BezierCurveC2 - 5">
+                <Points>
+                        <PointRef Name="Point - 1"/>
+                        <PointRef Name="Point - 2"/>
+                        <PointRef Name="Point - 3"/>
+                        <PointRef Name="Point - 4"/>
+                        <PointRef Name="XYZ"/>
+                </Points>
+        </BezierC2>
+        <Point Name="Point - 6">
+                <Position X="-1.212500" Y="-2.977776" Z="0.000000"/>
+        </Point>
+        <Point Name="XYZ">
+                <Position X="-1.206250" Y="-0.788890" Z="0.000000"/>
+        </Point>
+        <Point Name="Point - 8">
+                <Position X="-3.062497" Y="-0.777779" Z="0.000000"/>
+        </Point>
+        <Point Name="Point - 9">
+                <Position X="-3.418746" Y="-3.011108" Z="0.000000"/>
+        </Point>
+        <BezierInter Name="ABC">
+                <Points>
+                        <PointRef Name="Point - 6"/>
+                        <PointRef Name="XYZ"/>
+                        <PointRef Name="Point - 8"/>
+                        <PointRef Name="Point - 9"/>
+                </Points>
+        </BezierInter>
+</Scene>

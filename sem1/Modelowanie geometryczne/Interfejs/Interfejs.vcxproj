@@ -126,13 +126,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Piotrek\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\piotr.onyszczuk\Desktop\Projekty\priv\MGR\sem1\Modelowanie geometryczne\Interfejs\include;C:\Piotrek\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <AdditionalDependencies>glfw3_dbg.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Piotrek\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\LIBS;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\piotr.onyszczuk\Desktop\Projekty\priv\MGR\sem1\Modelowanie geometryczne\Interfejs\LIBS;C:\Piotrek\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\LIBS;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
