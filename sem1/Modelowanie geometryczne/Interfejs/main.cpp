@@ -840,8 +840,25 @@ void Deserialize()
 		}
 	}
 
-	file<> xmlFile("C:\\Users\\piotr.onyszczuk\\Desktop\\Projekty\\priv\\MGR\\sem1\\Modelowanie geometryczne\\Interfejs\\somexml.xml"); // Default template is char
+	file<> xmlFile("C:\\Piotrek\\studia\\MGR\\sem1\\Modelowanie geometryczne\\Interfejs\\somexml.xml");
 	xml_document<> doc;
 	doc.parse<0>(xmlFile.data());
 	auto scene = doc.first_node("Scene");
+	auto point = scene->first_node("Point");
+	while (point != 0)
+	{
+		Figure* f = new Point();
+		f->Initialize(program);
+		glm::vec3 pos;
+		auto position = point->first_node("Position");
+		float x = atof(position->first_attribute("X")->value());
+		float y = atof(position->first_attribute("Y")->value());
+		float z = atof(position->first_attribute("Z")->value());
+		f->MoveTo(x, y, z);
+		auto name = point->first_attribute("Name");
+		strcpy_s(f->name, name->value());
+		program->figures.push_back(f);
+
+		point = point->next_sibling("Point");
+	}
 }
