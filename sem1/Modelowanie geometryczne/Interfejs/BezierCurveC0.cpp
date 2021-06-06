@@ -4,7 +4,7 @@
 
 BezierCurveC0::BezierCurveC0() : SomeCurve()
 {
-	sprintf_s(name, STRMAX, ("BezierCurveC0 - " + std::to_string(idx++)).c_str());
+	sprintf_s(name, STRMAX, ("BezierCurveC0 - " + std::to_string(idx++) + " " + gen_random(10,idx)).c_str());
 	figureType = FigureType::BezierCurveC0;
 }
 

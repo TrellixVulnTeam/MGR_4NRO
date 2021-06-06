@@ -7,6 +7,7 @@ class BezierPatchC2 : public SomePatch
 {
 public:
 	BezierPatchC2();
+	BezierPatchC2(int _n, int _m) :BezierPatchC2() { n = _n; m = _m; generate = false; }
 	BezierPatchC2(int _n, int _m, float _width, float _length, float _r, bool _cylinder) :BezierPatchC2() { n = _n; m = _m; width = _width; length = _length; r = _r; cylinder = _cylinder; }
 	virtual void Draw() override;
 	void virtual CleanUp() override;

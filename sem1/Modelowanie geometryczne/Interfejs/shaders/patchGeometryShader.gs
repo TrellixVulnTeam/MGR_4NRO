@@ -28,7 +28,7 @@ float DeCasteljau(float coeffs_t[4], float t, int vertices)
 }
 
 void main() {    
-    fColor=gs_in[0].color;
+    fColor=vec3(0.7f, 0.7f, 0.7f);gs_in[0].color;
     float coeffs_x[4];
     float coeffs_y[4];
     float coeffs_z[4];

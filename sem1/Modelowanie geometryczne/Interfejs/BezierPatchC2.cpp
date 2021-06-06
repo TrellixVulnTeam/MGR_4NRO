@@ -4,7 +4,7 @@
 
 BezierPatchC2::BezierPatchC2() : SomePatch()
 {
-	sprintf_s(name, STRMAX, ("BezierPatchC2 - " + std::to_string(idx++)).c_str());
+	sprintf_s(name, STRMAX, ("BezierPatchC2 - " + std::to_string(idx++) + " " + gen_random(10,idx)).c_str());
 	figureType = FigureType::BezierPatchC2;
 }
 
@@ -12,7 +12,8 @@ void BezierPatchC2::Initialize(Program* _program)
 {
 	SomePatch::Initialize(_program);
 	pointsLines->Initialize(program);
-	GeneratePoints();
+	if (generate)
+		GeneratePoints();
 }
 
 void BezierPatchC2::ClearPoints()
@@ -54,7 +55,7 @@ void BezierPatchC2::GeneratePoints()
 	pointsLines->Clear();
 	if (cylinder)
 	{
-		if (n < 3) n= 3;
+		if (n < 3) n = 3;
 		float z = 0.0f;
 		float angle = 0.0f;
 		float zDiff = length / m;
@@ -79,7 +80,7 @@ void BezierPatchC2::GeneratePoints()
 				}
 				if (i != -1)
 				{
-					pointsLines->AddPoint(points[k - (n+3)]);
+					pointsLines->AddPoint(points[k - (n + 3)]);
 					pointsLines->AddPoint(points[k]);
 				}
 				++k;
@@ -233,7 +234,7 @@ bool BezierPatchC2::Create()
 void BezierPatchC2::AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii)
 {
 	int w = n + 3;
-	int start = i * w +  j;
+	int start = i * w + j;
 	int ii_start = ii;
 	for (int k = 0; k < 4; ++k)
 	{

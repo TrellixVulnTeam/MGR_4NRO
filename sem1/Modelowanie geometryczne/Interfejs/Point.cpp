@@ -7,7 +7,7 @@
 Point::Point(bool addIndex) : Figure()
 {
 	if (addIndex)
-		sprintf_s(name, STRMAX, ("Point - " + std::to_string(idx++)).c_str());
+		sprintf_s(name, STRMAX, ("Point - " + std::to_string(idx++) + " " + gen_random(10,idx)).c_str());
 	else
 		sprintf_s(name, STRMAX, "Point");
 	figureType = FigureType::Point;
@@ -65,7 +65,7 @@ void Point::Unpin(Figure* par)
 	int j = -1;
 	for (int i = 0; i < parents.size(); ++i)
 		if (parents[i] == par) j = i;
-	if (parents_cnt[j] == 1)
+	if (parents_cnt[j] == 1 || parents[j]->figureType == FigureType::BezierPatchC0 || parents[j]->figureType == FigureType::BezierPatchC2)
 	{
 		parents.erase(parents.begin() + j);
 		parents_cnt.erase(parents_cnt.begin() + j);

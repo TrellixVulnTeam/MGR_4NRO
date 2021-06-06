@@ -94,6 +94,14 @@ glm::mat4 Figure::GetModel()
 	return model;
 }
 
+void Figure::SetScale(float x, float y, float z)
+{
+	scale[0][0] = x;
+	scale[1][1] = y;
+	scale[2][2] = z;
+
+	RecalcModel();
+}
 void Figure::Scale(float change)
 {
 	if (change > 1 && scale[0][0] > 3.0f) return;

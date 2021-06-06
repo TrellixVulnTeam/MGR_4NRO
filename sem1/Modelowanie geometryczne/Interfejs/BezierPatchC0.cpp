@@ -4,7 +4,7 @@
 
 BezierPatchC0::BezierPatchC0() : SomePatch()
 {
-	sprintf_s(name, STRMAX, ("BezierPatchC0 - " + std::to_string(idx++)).c_str());
+	sprintf_s(name, STRMAX, ("BezierPatchC0 - " + std::to_string(idx++) + " " + gen_random(10,idx)).c_str());
 	figureType = FigureType::BezierPatchC0;
 }
 
@@ -12,14 +12,15 @@ void BezierPatchC0::Initialize(Program* _program)
 {
 	SomePatch::Initialize(_program);
 	pointsLines->Initialize(program);
-	GeneratePoints();
+	if (generate)
+		GeneratePoints();
 }
 
 void BezierPatchC0::ClearPoints()
 {
 	for (int i = 0; i < points.size(); ++i)
 	{
-		if (points[i]!= nullptr && !points[i]->toDel)
+		if (points[i] != nullptr && !points[i]->toDel)
 		{
 			points[i]->Unpin(this);
 			if (!points[i]->HasParent()) points[i]->toDel = true;
@@ -54,7 +55,6 @@ void BezierPatchC0::GeneratePoints()
 	pointsLines->Clear();
 	if (cylinder)
 	{
-		if (n < 3) n = 3;
 		float z = 0.0f;
 		float angle = 0.0f;
 		float zDiff = length / (3 * m);

@@ -20,13 +20,14 @@ public:
 	};
 	int n = 1, m = 1, splitA = 1, splitB = 1;
 	std::vector<Point*> points;
+	PointsLines* pointsLines;
+	bool drawLine = true;
 protected:
 	bool virtual Create() override { return false; };
 	bool first = true;
-	bool drawLine = true;
-	PointsLines* pointsLines;
 	int splitAold = 1, splitBold = 1;
 	float width = 1.0f, length = 1.0f, r = 1.0f;
 	bool cylinder = false;
+	bool generate = true;
 };
 

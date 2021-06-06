@@ -4,7 +4,7 @@
 
 InterpolationCurveC2::InterpolationCurveC2() : SomeCurve()
 {
-	sprintf_s(name, STRMAX, ("InterpolationCurveC2 - " + std::to_string(idx++)).c_str());
+	sprintf_s(name, STRMAX, ("InterpolationCurveC2 - " + std::to_string(idx++) + " " + gen_random(10,idx)).c_str());
 	figureType = FigureType::InterpolationCurveC2;
 	bernsteinLine = new PointsLine();
 }

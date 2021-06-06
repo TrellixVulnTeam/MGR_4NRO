@@ -24,6 +24,7 @@
 #include "rapidxml/rapidxml.hpp"
 #include "rapidxml/rapidxml_print.hpp"
 #include "rapidxml/rapidxml_utils.hpp"
+#include <map>
 using namespace rapidxml;
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
@@ -622,6 +623,7 @@ int main()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
+	glLineWidth(0.2f);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
 	Shader screenShader("textureVertexShader.vs", "textureFragmentShader.fs");
@@ -817,13 +819,57 @@ void Serialize()
 		scene->append_node(figure);
 	}
 	document.append_node(scene);
-	std::cout << document;
+	std::ofstream myfile;
+	myfile.open("serialized.xml");
+	myfile << document;
+	myfile.close();
 }
 
 void Deserialize()
 {
 	std::string s = "";
 	int n = program->figures.size();
+	bool patchExists = false;
+	do
+	{
+		patchExists = false;
+		n = program->figures.size();
+		for (int i = 0; i < n; ++i)
+		{
+			if (program->figures[i]->figureType == FigureType::BezierPatchC0
+				|| program->figures[i]->figureType == FigureType::BezierPatchC2)
+			{
+				Figure* f = program->figures[i];
+				program->figures.erase(program->figures.begin() + i);
+				f->CleanUp();
+				delete f;
+				patchExists = true;
+				break;
+			}
+		}
+	} while (patchExists);
+
+	bool lineExists = false;
+	do
+	{
+		lineExists = false;
+		n = program->figures.size();
+		for (int i = 0; i < n; ++i)
+		{
+			if (program->figures[i]->figureType == FigureType::BezierCurveC0
+				|| program->figures[i]->figureType == FigureType::BezierCurveC2
+				|| program->figures[i]->figureType == FigureType::InterpolationCurveC2)
+			{
+				Figure* f = program->figures[i];
+				program->figures.erase(program->figures.begin() + i);
+				f->CleanUp();
+				delete f;
+				lineExists = true;
+				break;
+			}
+		}
+	} while (lineExists);
+
 	for (int i = 0; i < n; ++i)
 	{
 		if (
@@ -835,16 +881,23 @@ void Deserialize()
 			program->figures.erase(program->figures.begin() + i);
 			f->CleanUp();
 			delete f;
+			if (n < 20)
+			{
+				int a = 11;
+			}
 			i--;
 			n--;
 		}
 	}
 
-	file<> xmlFile("C:\\Piotrek\\studia\\MGR\\sem1\\Modelowanie geometryczne\\Interfejs\\somexml.xml");
+	std::map<std::string, int> indices;
+	int k = program->figures.size();
+	file<> xmlFile("D:\\studia\\MGR\\sem1\\Modelowanie geometryczne\\Interfejs\\somexml.xml");
 	xml_document<> doc;
 	doc.parse<0>(xmlFile.data());
 	auto scene = doc.first_node("Scene");
 	auto point = scene->first_node("Point");
+
 	while (point != 0)
 	{
 		Figure* f = new Point();
@@ -858,7 +911,160 @@ void Deserialize()
 		auto name = point->first_attribute("Name");
 		strcpy_s(f->name, name->value());
 		program->figures.push_back(f);
+		indices[name->value()] = k;
+		k++;
 
 		point = point->next_sibling("Point");
+	}
+
+	auto figure = scene->first_node();
+	while (figure != 0)
+	{
+		auto type = figure->name();
+		Figure* f = nullptr;
+		SomeCurve* sc = nullptr;
+		SomePatch* sp = nullptr;
+		if (strcmp(type, "Torus") == 0)
+		{
+			Torus* t = new Torus();
+			t->Initialize(program);
+			auto minorRadius = atof(figure->first_attribute("MinorRadius")->value());
+			auto majorRadius = atof(figure->first_attribute("MajorRadius")->value());
+			auto minorSegments = atoi(figure->first_attribute("MinorSegments")->value());
+			auto majorSegments = atoi(figure->first_attribute("MajorSegments")->value());
+			t->r_new = minorRadius;
+			t->R_new = majorRadius;
+			t->n_new = minorSegments;
+			t->m_new = majorSegments;
+
+			auto position = figure->first_node("Position");
+			auto x = atof(position->first_attribute("X")->value());
+			auto y = atof(position->first_attribute("Y")->value());
+			auto z = atof(position->first_attribute("Z")->value());
+			t->MoveTo(x, y, z);
+
+			auto rotation = figure->first_node("Rotation");
+			x = atof(rotation->first_attribute("X")->value());
+			y = atof(rotation->first_attribute("Y")->value());
+			z = atof(rotation->first_attribute("Z")->value());
+			auto w = atof(rotation->first_attribute("W")->value());
+			glm::quat q = glm::quat(w, x, y, z);
+			t->Rotate(q);
+
+			auto scale = figure->first_node("Scale");
+			x = atof(scale->first_attribute("X")->value());
+			y = atof(scale->first_attribute("Y")->value());
+			z = atof(scale->first_attribute("Z")->value());
+			t->SetScale(x, y, z);
+
+			f = t;
+		}
+		if (strcmp(type, "BezierC0") == 0)
+		{
+			auto bc = new BezierCurveC0();
+			bc->drawLine = false;
+			sc = bc;
+		}
+		if (strcmp(type, "BezierC2") == 0)
+		{
+			auto bc = new BezierCurveC2();
+			bc->drawLine = false;
+			bc->drawDeBoorLine = false;
+			sc = bc;
+		}
+		if (strcmp(type, "BezierInter") == 0)
+		{
+			auto bc = new InterpolationCurveC2();
+			bc->drawLine = false;
+			bc->drawBernsteinPoints = false;
+			bc->drawBernsteinLine = false;
+			sc = bc;
+		}
+		if (strcmp(type, "PatchC0") == 0)
+		{
+			auto n = atof(figure->first_attribute("N")->value());
+			auto m = atof(figure->first_attribute("M")->value());
+			auto n_slices = atof(figure->first_attribute("NSlices")->value());
+			auto m_slices = atof(figure->first_attribute("MSlices")->value());
+			sp = new BezierPatchC0(n, m);
+			sp->splitA = n_slices;
+			sp->splitB = m_slices;
+		}
+		if (strcmp(type, "PatchC2") == 0)
+		{
+			auto n = atof(figure->first_attribute("N")->value());
+			auto m = atof(figure->first_attribute("M")->value());
+			auto n_slices = atof(figure->first_attribute("NSlices")->value());
+			auto m_slices = atof(figure->first_attribute("MSlices")->value());
+			sp = new BezierPatchC2(n, m);
+			sp->splitA = n_slices;
+			sp->splitB = m_slices;
+		}
+
+		if (sc != nullptr)
+		{
+			sc->Initialize(program);
+			auto points = figure->first_node("Points");
+			auto pointRef = points->first_node("PointRef");
+			while (pointRef != 0)
+			{
+				auto name = pointRef->first_attribute("Name")->value();
+				int ind = indices[name];
+				sc->AddPoint((Point*)program->figures[ind]);
+				((Point*)program->figures[ind])->AddParent(sc);
+				pointRef = pointRef->next_sibling("PointRef");
+			}
+			f = sc;
+		}
+
+		if (sp != nullptr)
+		{
+			sp->Initialize(program);
+			sp->drawLine = false;
+			int dimN;
+			int dimM;
+			if (sp->figureType == FigureType::BezierPatchC0)
+			{
+				dimN = 3 * sp->n + 1;
+				dimM = 3 * sp->m + 1;
+			}
+			else
+			{
+				dimN = 3 + sp->n;
+				dimM = 3 + sp->m;
+			}
+			auto points = figure->first_node("Points");
+			auto pointRef = points->first_node("PointRef");
+			for (int i = 0; i < dimM; ++i)
+				for (int j = 0; j < dimN; ++j)
+				{
+					auto name = pointRef->first_attribute("Name")->value();
+					int ind = indices[name];
+					auto point = (Point*)program->figures[ind];
+					sp->points.push_back(point);
+					point->AddParent(sp);
+					if (j > 0)
+					{
+						sp->pointsLines->AddPoint(sp->points[sp->points.size() - 2]);
+						sp->pointsLines->AddPoint(point);
+					}
+					if (i > 0)
+					{
+						sp->pointsLines->AddPoint(sp->points[sp->points.size() - dimN - 1]);
+						sp->pointsLines->AddPoint(point);
+					}
+					pointRef = pointRef->next_sibling("PointRef");
+				}
+
+			f = sp;
+		}
+
+
+		if (f != nullptr) {
+			auto name = figure->first_attribute("Name");
+			strcpy_s(f->name, name->value());
+			program->figures.push_back(f);
+		}
+		figure = figure->next_sibling();
 	}
 }
