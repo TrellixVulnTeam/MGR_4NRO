@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="teselacja.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="camera.cpp">
+      <Filter>Source Files\d3dx</Filter>
+    </ClCompile>
+    <ClCompile Include="DDSTextureLoader.cpp">
+      <Filter>Source Files\d3dx</Filter>
+    </ClCompile>
+    <ClCompile Include="dxApplication.cpp">
+      <Filter>Source Files\d3dx</Filter>
+    </ClCompile>
+    <ClCompile Include="dxDevice.cpp">
+      <Filter>Source Files\d3dx</Filter>
+    </ClCompile>
+    <ClCompile Include="dxStructures.cpp">
+      <Filter>Source Files\d3dx</Filter>
+    </ClCompile>
+    <ClCompile Include="vertexTypes.cpp">
+      <Filter>Source Files\d3dx</Filter>
+    </ClCompile>
+    <ClCompile Include="WICTextrueLoader.cpp">
+      <Filter>Source Files\d3dx</Filter>
+    </ClCompile>
+    <ClCompile Include="keyboard.cpp">
+      <Filter>Source Files\d3dx\dinput</Filter>
+    </ClCompile>
+    <ClCompile Include="diDeviceBase.cpp">
+      <Filter>Source Files\d3dx\dinput</Filter>
+    </ClCompile>
+    <ClCompile Include="diInstance.cpp">
+      <Filter>Source Files\d3dx\dinput</Filter>
+    </ClCompile>
+    <ClCompile Include="mouse.cpp">
+      <Filter>Source Files\d3dx\dinput</Filter>
+    </ClCompile>
+    <ClCompile Include="exceptions.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="window.cpp">
+      <Filter>Source Files\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="windowApplication.cpp">
+      <Filter>Source Files\win32</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="teselacja.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>Header Files\d3dx</Filter>
+    </ClInclude>
+    <ClInclude Include="DDSTextureLoader.h">
+      <Filter>Header Files\d3dx</Filter>
+    </ClInclude>
+    <ClInclude Include="dxApplication.h">
+      <Filter>Header Files\d3dx</Filter>
+    </ClInclude>
+    <ClInclude Include="dxDevice.h">
+      <Filter>Header Files\d3dx</Filter>
+    </ClInclude>
+    <ClInclude Include="dxptr.h">
+      <Filter>Header Files\d3dx</Filter>
+    </ClInclude>
+    <ClInclude Include="dxStructures.h">
+      <Filter>Header Files\d3dx</Filter>
+    </ClInclude>
+    <ClInclude Include="vertexTypes.h">
+      <Filter>Header Files\d3dx</Filter>
+    </ClInclude>
+    <ClInclude Include="WICTextureLoader.h">
+      <Filter>Header Files\d3dx</Filter>
+    </ClInclude>
+    <ClInclude Include="diDeviceBase.h">
+      <Filter>Header Files\dinput</Filter>
+    </ClInclude>
+    <ClInclude Include="diInstance.h">
+      <Filter>Header Files\dinput</Filter>
+    </ClInclude>
+    <ClInclude Include="diptr.h">
+      <Filter>Header Files\dinput</Filter>
+    </ClInclude>
+    <ClInclude Include="keyboard.h">
+      <Filter>Header Files\dinput</Filter>
+    </ClInclude>
+    <ClInclude Include="mouse.h">
+      <Filter>Header Files\dinput</Filter>
+    </ClInclude>
+    <ClInclude Include="clock.h">
+      <Filter>Header Files\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="window.h">
+      <Filter>Header Files\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="windowApplication.h">
+      <Filter>Header Files\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="compressed_pair.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="exceptions.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ptr_vector.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{e9d7c9ed-e377-4e59-a985-afdfe947b27d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{ae78b759-3313-4a38-9c6e-2991dba6c36c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{e3d47b78-68fa-40b7-997c-689c37762c01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\d3dx">
+      <UniqueIdentifier>{a6191644-2ee2-4f1a-9c2c-03729b0b7cb9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\dinput">
+      <UniqueIdentifier>{d44b08bc-8a04-4a2a-8a80-ad7ecb8aa574}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\win32">
+      <UniqueIdentifier>{489f9ffa-6d65-4ea3-adca-e0650ab7e7c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\utils">
+      <UniqueIdentifier>{52b579d4-a56f-4b85-bb74-befce9a87450}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{adaade10-dc09-4f53-a06b-cf2345b9ee91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\d3dx">
+      <UniqueIdentifier>{fcb880b6-e37d-4085-bf04-e39f26d58ec7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\utils">
+      <UniqueIdentifier>{01c9907a-b8e7-4531-86cf-e72006d7f4e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\win32">
+      <UniqueIdentifier>{ace5785c-1b10-49a8-bffc-d9b8651fe125}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\d3dx\dinput">
+      <UniqueIdentifier>{8e9e8e4a-f550-468d-9ee5-672950a584a0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Teselacja.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="tessellatedTriangleDS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellatedTriangleHS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellatedTrianglePS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellatedTriangleVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="wireVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="wirePS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>
