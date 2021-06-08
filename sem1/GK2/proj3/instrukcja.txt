@@ -13,3 +13,6 @@ P - Włączenie rysowania siatki kontrolnej
 
 K - Wyłączenie dynamicznego LOD
 L - Włączenie dynamicznego LOD
+
+Q - Pierwsza wersja siatki
+W - Druga wersja siatki

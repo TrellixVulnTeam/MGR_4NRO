@@ -130,8 +130,10 @@ namespace mini
 
 		static Mesh Rectangle(const DxDevice& device, float width = 1.0f, float height = 1.0f) { return SimpleTriMesh(device, RectangleVerts(width, height), RectangleIdxs()); }
 
-		static std::vector<unsigned short> RectanglesIdx();
-		static Mesh Rectangles(const DxDevice& device, std::vector<DirectX::XMFLOAT3> verts) { return SimpleTriMesh(device, verts, RectanglesIdx(), D3D_PRIMITIVE_TOPOLOGY_LINELIST); }
+		static std::vector<DirectX::XMFLOAT3> BezierPatches(int patchN, int patchM, int version);
+		static std::vector<DirectX::XMFLOAT3> BezierVerts(int patchN, int patchM, int version);
+		static std::vector<unsigned short> BezierIdxs(int patchN, int patchM);
+		static Mesh BezierWire(int patchN, int patchM, const DxDevice& device, int version) { return SimpleTriMesh(device, BezierVerts(patchN, patchM, version), BezierIdxs(patchN, patchM), D3D_PRIMITIVE_TOPOLOGY_LINELIST); }
 		//Shadow Box
 		static Mesh ShadowBox(const DxDevice& device, Mesh& source, DirectX::XMFLOAT4 lightPosition, DirectX::XMFLOAT4X4 world);
 

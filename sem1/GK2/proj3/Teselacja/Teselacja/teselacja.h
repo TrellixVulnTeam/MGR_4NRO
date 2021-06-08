@@ -40,7 +40,6 @@ namespace mini::gk2
 		using Base = DxApplication;
 
 		explicit Teselacja(HINSTANCE hInstance);
-
 	protected:
 		void Update(const Clock& dt) override;
 		void Render() override;
@@ -116,11 +115,12 @@ namespace mini::gk2
 		dx_ptr<ID3D11Buffer> m_vertexBuffer;
 		unsigned int m_vertexStride;
 		unsigned int m_vertexCount;
-		Mesh m_curMesh;
-		Mesh m_patch_lines;
+		unsigned int patchN = 4, patchM = 4;
+		Mesh m_wire;
 		Parameters parameters;
 		bool handled[4];
 		bool fillWireframe = false, drawControlPolygon = false;
+		int version = 1;
 #pragma endregion
 
 #pragma region Matrices
@@ -138,5 +138,7 @@ namespace mini::gk2
 		void SetShaders(const dx_ptr<ID3D11InputLayout>& il, const dx_ptr<ID3D11VertexShader>& vs, const dx_ptr<ID3D11PixelShader>& ps);
 		void SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resList, const dx_ptr<ID3D11SamplerState>& sampler);
 		void SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resList) { SetTextures(std::move(resList), m_sampler); }
+		void SetVersion();
+
 	};
 }

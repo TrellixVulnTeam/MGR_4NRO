@@ -52,32 +52,10 @@ Teselacja::Teselacja(HINSTANCE hInstance)
 	m_wirePS = m_device.CreatePixelShader(m_device.LoadByteCode(L"wirePS.cso"));
 	m_wireIL = m_device.CreateInputLayout(VertexPositionNormal::Layout, vsCode2);
 
-	vector<XMFLOAT3> vtx{
-		{ XMFLOAT3(0.0f,0.0f, 0.0f) },
-		{ XMFLOAT3(1.0f,0.0f, 0.0f) },
-		{ XMFLOAT3(2.0f,0.0f, 0.0f) },
-		{ XMFLOAT3(3.0f,0.0f, 0.0f) },
 
-		{ XMFLOAT3(0.0f,0.0f,1.0f) },
-		{ XMFLOAT3(1.0f,0.0f,1.0f) },
-		{ XMFLOAT3(2.0f,0.0f,1.0f) },
-		{ XMFLOAT3(3.0f,0.0f,1.0f) },
-
-		{ XMFLOAT3(0.0f,1.0f, 2.0f) },
-		{ XMFLOAT3(1.0f,1.0f, 2.0f) },
-		{ XMFLOAT3(2.0f,1.0f, 2.0f) },
-		{ XMFLOAT3(3.0f,1.0f, 2.0f) },
-
-		{ XMFLOAT3(0.0f,0.0f, 3.0f) },
-		{ XMFLOAT3(1.0f,0.0f, 3.0f) },
-		{ XMFLOAT3(2.0f,0.0f, 3.0f) },
-		{ XMFLOAT3(3.0f,0.0f, 3.0f) }
-	};
-
-	m_vertexBuffer = m_device.CreateVertexBuffer(vtx);
 
 	XMFLOAT4X4 mtx;
-	XMStoreFloat4x4(&mtx, XMMatrixScaling(0.5f, 0.5f, 0.5f));
+	XMStoreFloat4x4(&mtx, XMMatrixTranslation(-0.5f, 0.0f, -0.5f)* XMMatrixScaling(3.0f, 3.0f, 3.0f));
 	SetWorldMtx(mtx);
 
 	ID3D11Buffer* vsb[] = { m_cbWorld.get(),m_cbView.get(), m_cbProj.get() };
@@ -90,16 +68,21 @@ Teselacja::Teselacja(HINSTANCE hInstance)
 	ID3D11Buffer* psb[] = { m_cbSurfaceColor.get(), m_cbLighting.get() };
 	m_device.context()->PSSetConstantBuffers(0, 2, psb);
 
-
-	unsigned int offset = 0;
-	ID3D11Buffer* b = m_vertexBuffer.get();
-	m_device.context()->IASetVertexBuffers(0, 1, &b, &m_vertexStride, &offset);
-
-	m_curMesh = Mesh::Rectangles(m_device, vtx);
-
+	SetVersion();
 	SetInitialParameters();
 	UpdateParameters();
 	Set1Light();
+}
+
+void Teselacja::SetVersion()
+{
+	vector<XMFLOAT3> vtx = Mesh::BezierPatches(patchN, patchM, version);
+	m_vertexBuffer = m_device.CreateVertexBuffer(vtx);
+	unsigned int offset = 0;
+	ID3D11Buffer* b = m_vertexBuffer.get();
+	m_device.context()->IASetVertexBuffers(0, 1, &b, &m_vertexStride, &offset);
+	m_wire = Mesh::BezierWire(patchN, patchM, m_device, version);
+
 }
 
 void Teselacja::CreateRenderStates()
@@ -332,6 +315,20 @@ void Teselacja::HandleKeyboard()
 			UpdateParameters();
 		}
 #pragma endregion
+#pragma region version
+		if (kstate.isKeyDown(DIK_Q))// Q
+		{
+			version = 1;
+			SetVersion();
+		}
+		if (kstate.isKeyDown(DIK_W))// W
+		{
+			version = 2;
+			SetVersion();
+		}
+
+#pragma endregion
+
 
 	}
 }
@@ -421,12 +418,12 @@ void Teselacja::Render()
 	m_device.context()->IASetVertexBuffers(0, 1, &b, &m_vertexStride, &offset);
 	SetShaders(m_layout, m_tessVS, m_tessPS, m_tessDS, m_tessHS);
 	m_device.context()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_16_CONTROL_POINT_PATCHLIST);
-	m_device.context()->Draw(m_vertexCount, 0);
+	m_device.context()->Draw(patchN * patchM * m_vertexCount, 0);
 
 	if (drawControlPolygon)
 	{
 		SetShaders(m_wireIL, m_wireVS, m_wirePS);
-		m_curMesh.Render(m_device.context());
+		m_wire.Render(m_device.context());
 	}
 }
 #pragma endregion

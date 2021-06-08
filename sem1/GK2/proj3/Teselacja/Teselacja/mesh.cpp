@@ -311,42 +311,87 @@ std::vector<unsigned short> mini::Mesh::RectangleIdxs()
 }
 
 
-std::vector<unsigned short> mini::Mesh::RectanglesIdx()
+int ConvertCoords(int i, int j, int stride)
 {
-	return 
-	{
-		0,1,
-		1,2,
-		2,3,
-		
-		4,5,
-		5,6,
-		6,7,
+	return i * stride + j;
+}
+std::vector<unsigned short> mini::Mesh::BezierIdxs(int patchN, int patchM)
+{
+	std::vector<unsigned short> vec;
+	int stride = 3 + patchM;
 
-		8,9,
-		9,10,
-		10,11,
+	for (int n = 0; n < patchN; ++n)
+		for (int m = 0; m < patchM; ++m)
+		{
+			int nS = n;
+			int mS = m;
 
-		12,13,
-		13,14,
-		14,15,
+			for (int i = 0; i <= 3; ++i)
+				for (int j = 0; j <= 3; ++j)
+				{
+					if (j < 3)
+					{
+						vec.push_back(ConvertCoords(nS + i, mS + j, stride));
+						vec.push_back(ConvertCoords(nS + i, mS + j + 1, stride));
+					}
+					if (i < 3)
+					{
+						vec.push_back(ConvertCoords(nS + i, mS + j, stride));
+						vec.push_back(ConvertCoords(nS + i + 1, mS + j, stride));
+					}
+				}
+		}
+	return vec;
+}
 
-		0,4,
-		4,8,
-		8,12,
+std::vector<DirectX::XMFLOAT3> mini::Mesh::BezierPatches(int patchN, int patchM, int version)
+{
+	auto verts = BezierVerts(patchN, patchM, version);
 
-		1,5,
-		5,9,
-		9,13,
+	std::vector<DirectX::XMFLOAT3> res;
 
-		2,6,
-		6,10,
-		10,14,
+	int stride = 3 + patchM;
+	for (int n = 0; n < patchN; ++n)
+		for (int m = 0; m < patchM; ++m)
+		{
+			int nS = n;
+			int mS = m;
+			for (int i = 0; i <= 3; ++i)
+				for (int j = 0; j <= 3; ++j)
+				{
+					res.push_back(verts[ConvertCoords(nS + i, mS + j, stride)]);
+				}
+		}
+	return res;
+}
 
-		3,7,
-		7,11,
-		11,15,
-	};
+std::vector<DirectX::XMFLOAT3> mini::Mesh::BezierVerts(int patchN, int patchM, int version)
+{
+	std::vector<DirectX::XMFLOAT3> vec;
+	float width = 1.0f, length = 1.0f;
+	int splitN = 2 + patchN;
+	int splitM = 2 + patchM;
+	for (int i = 0; i < 3 + patchN; ++i)
+		for (int j = 0; j < 3 + patchM; ++j)
+		{
+			switch (version) {
+			case 1:
+				vec.push_back(XMFLOAT3(
+					(float)j / splitM * width,
+					j % 3 == 0 ? 0.3f : 0.0f,
+					(float)i / splitN * length));
+				break;
+			case 2:
+				vec.push_back(XMFLOAT3(
+					(float)j / splitM * width,
+					j % 2 == 0 && i % 2 == 0
+					? 0.3f : 0.0f,
+					(float)i / splitN * length));
+				break;
+			}
+		}
+
+	return 	vec;
 }
 
 Mesh mini::Mesh::ShadowBox(const DxDevice& device, Mesh& source, DirectX::XMFLOAT4 lightPosition, DirectX::XMFLOAT4X4 world)
