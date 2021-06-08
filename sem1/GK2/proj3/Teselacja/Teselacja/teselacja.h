@@ -26,6 +26,14 @@ namespace mini::gk2
 		//Light positions and colors
 		Light lights[3];
 	};
+
+	struct Parameters
+	{
+		int edgeTessFactor;
+		int insideTessFactor;
+		int useLOD;
+		int dummy2;
+	};
 	class Teselacja : public DxApplication
 	{
 	public:
@@ -56,12 +64,11 @@ namespace mini::gk2
 		//Shader's constant buffer containing lighting parameters (except surface color)
 		dx_ptr<ID3D11Buffer> m_cbLighting;
 		//ConstantBuffer<Lighting> m_cbLighting;
+		dx_ptr<ID3D11Buffer> m_cbParameters;
 
 		dx_ptr<ID3D11Buffer> m_cbMapMtx; //pixel shader constant buffer slot 2
 		//Shader's constant buffer containing surface color
 		dx_ptr<ID3D11Buffer> m_cbSurfaceColor;
-		//ConstantBuffer<DirectX::XMFLOAT4> m_cbSurfaceColor;
-		dx_ptr<ID3D11Buffer> m_cbPlane;
 		//ConstantBuffer<DirectX::XMFLOAT4> m_cbSurfaceColor;
 		// 
 
@@ -87,6 +94,7 @@ namespace mini::gk2
 		dx_ptr<ID3D11InputLayout> m_layout, m_wireIL;
 		dx_ptr<ID3D11RasterizerState> m_rsWireframe;
 		dx_ptr<ID3D11RasterizerState> m_rsCCW;
+		dx_ptr<ID3D11RasterizerState> m_rsAll;
 		dx_ptr<ID3D11RasterizerState> m_rsCCW_backSh;
 		dx_ptr<ID3D11RasterizerState> m_rsCCW_frontSh;
 		//Blend state used to draw dodecahedron faced with alpha blending.
@@ -110,6 +118,9 @@ namespace mini::gk2
 		unsigned int m_vertexCount;
 		Mesh m_curMesh;
 		Mesh m_patch_lines;
+		Parameters parameters;
+		bool handled[4];
+		bool fillWireframe = false, drawControlPolygon = false;
 #pragma endregion
 
 #pragma region Matrices
@@ -118,8 +129,10 @@ namespace mini::gk2
 		void SetWorldMtx(DirectX::XMFLOAT4X4 mtx);
 		void DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx);
 		void UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx);
-		void UpdatePlaneCB(DirectX::XMFLOAT4 pos, DirectX::XMFLOAT4 dir);
-		void Set1Light(DirectX::XMFLOAT4 LightPos);
+		void Set1Light();
+		void HandleKeyboard();
+		void UpdateParameters();
+		void SetInitialParameters();
 
 		void SetShaders(const dx_ptr<ID3D11InputLayout>& il, const dx_ptr<ID3D11VertexShader>& vs, const dx_ptr<ID3D11PixelShader>& ps, const dx_ptr<ID3D11DomainShader>& ds, const dx_ptr<ID3D11HullShader>& hs);
 		void SetShaders(const dx_ptr<ID3D11InputLayout>& il, const dx_ptr<ID3D11VertexShader>& vs, const dx_ptr<ID3D11PixelShader>& ps);

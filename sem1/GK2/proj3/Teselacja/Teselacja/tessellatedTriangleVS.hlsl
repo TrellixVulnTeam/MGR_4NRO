@@ -1,15 +1,15 @@
-cbuffer cbWorld : register(b0) //Vertex Shader constant buffer slot 0 - matches slot in vsBilboard.hlsl
+cbuffer cbWorld : register(b0)
 {
 	matrix worldMatrix;
 };
 
-cbuffer cbView : register(b1) //Vertex Shader constant buffer slot 1 - matches slot in vsBilboard.hlsl
+cbuffer cbView : register(b1)
 {
 	matrix viewMatrix;
 	matrix invViewMatrix;
 };
 
-cbuffer cbProj : register(b2) //Vertex Shader constant buffer slot 2 - matches slot in vsBilboard.hlsl
+cbuffer cbProj : register(b2)
 {
 	matrix projMatrix;
 };
@@ -29,6 +29,5 @@ HSInput main(VSInput i)
 {
 	HSInput o;
 	o.pos = mul(worldMatrix, float4(i.pos, 1.0f));
-	o.pos = mul(viewMatrix, o.pos);
 	return o;
 }

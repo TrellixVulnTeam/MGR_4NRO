@@ -1,0 +1,15 @@
+Instrukcja:
+
+[ - Zmniejszenie liczby podziałów wzdłuż krawędzi
+] - Zwiększenie liczby podziałów wzdłuż krawędzi
+; - Zmniejszenie liczby podziałów wewnątrz
+' - Zwiększenie liczby podziałów wewnątrz
+
+, - Wyłączenie wypełniania szkieletu
+. - Włączenie wypełniania szkieletu
+
+O - Wyłączenie rysowania siatki kontrolnej
+P - Włączenie rysowania siatki kontrolnej
+
+K - Wyłączenie dynamicznego LOD
+L - Włączenie dynamicznego LOD

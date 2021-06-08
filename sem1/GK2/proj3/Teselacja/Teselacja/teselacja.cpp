@@ -20,6 +20,8 @@ Teselacja::Teselacja(HINSTANCE hInstance)
 	m_cbProj(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 	m_cbWorld(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 	m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
+	m_cbParameters(m_device.CreateConstantBuffer<Parameters>()),
+	m_cbLighting(m_device.CreateConstantBuffer<Lighting>()),
 	m_vertexStride(sizeof(XMFLOAT3)), m_vertexCount(16)
 {
 	auto s = m_window.getClientSize();
@@ -29,14 +31,11 @@ Teselacja::Teselacja(HINSTANCE hInstance)
 	UpdateBuffer(m_cbProj, tmpMtx);
 	UpdateBuffer(m_cbSurfaceColor, XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f));
 
+	CreateRenderStates();
+
 	XMFLOAT4X4 cameraMtx;
 	XMStoreFloat4x4(&cameraMtx, m_camera.getViewMatrix());
 	UpdateCameraCB(cameraMtx);
-
-	RasterizerDescription rsDesc;
-	rsDesc.CullMode = D3D11_CULL_NONE;
-	rsDesc.FillMode = D3D11_FILL_WIREFRAME;
-	m_rsWireframe = m_device.CreateRasterizerState(rsDesc);
 
 	auto vsCode = m_device.LoadByteCode(L"tessellatedTriangleVS.cso");
 	m_tessVS = m_device.CreateVertexShader(m_device.LoadByteCode(L"tessellatedTriangleVS.cso"));
@@ -83,17 +82,24 @@ Teselacja::Teselacja(HINSTANCE hInstance)
 
 	ID3D11Buffer* vsb[] = { m_cbWorld.get(),m_cbView.get(), m_cbProj.get() };
 	m_device.context()->VSSetConstantBuffers(0, 3, vsb);
-	ID3D11Buffer* tmpBuf = m_cbProj.get();
-	m_device.context()->DSSetConstantBuffers(0, 1, &tmpBuf);
-	tmpBuf = m_cbSurfaceColor.get();
-	m_device.context()->PSSetConstantBuffers(0, 1, &tmpBuf);
+	m_device.context()->DSSetConstantBuffers(0, 3, vsb);
 
-	m_device.context()->RSSetState(m_rsWireframe.get());
+	ID3D11Buffer* hsb[] = { m_cbWorld.get(),m_cbView.get(),m_cbParameters.get() };
+	m_device.context()->HSSetConstantBuffers(0, 3, hsb);
+
+	ID3D11Buffer* psb[] = { m_cbSurfaceColor.get(), m_cbLighting.get() };
+	m_device.context()->PSSetConstantBuffers(0, 2, psb);
+
+
 	unsigned int offset = 0;
 	ID3D11Buffer* b = m_vertexBuffer.get();
 	m_device.context()->IASetVertexBuffers(0, 1, &b, &m_vertexStride, &offset);
 
 	m_curMesh = Mesh::Rectangles(m_device, vtx);
+
+	SetInitialParameters();
+	UpdateParameters();
+	Set1Light();
 }
 
 void Teselacja::CreateRenderStates()
@@ -165,6 +171,9 @@ void Teselacja::CreateRenderStates()
 	m_dssStencilTestGreaterSh = m_device.CreateDepthStencilState(dssDesc);
 
 	RasterizerDescription rsDesc;
+	rsDesc.CullMode = D3D11_CULL_NONE;
+	m_rsAll = m_device.CreateRasterizerState(rsDesc);
+
 	rsDesc.FrontCounterClockwise = true;
 	m_rsCCW = m_device.CreateRasterizerState(rsDesc);
 
@@ -194,6 +203,17 @@ void Teselacja::CreateRenderStates()
 	m_bsAdd = m_device.CreateBlendState(bsDesc);
 }
 
+void Teselacja::SetInitialParameters()
+{
+	parameters.edgeTessFactor = 8;
+	parameters.insideTessFactor = 8;
+	parameters.useLOD = 0;
+	for (int i = 0; i < 4; ++i)
+	{
+		handled[i] = false;
+	}
+}
+
 #pragma endregion
 #pragma region Per-Frame Update
 void Teselacja::Update(const Clock& c)
@@ -206,9 +226,120 @@ void Teselacja::Update(const Clock& c)
 		XMStoreFloat4x4(&cameraMtx, m_camera.getViewMatrix());
 		UpdateCameraCB(cameraMtx);
 	}
+	HandleKeyboard();
 }
 
+void Teselacja::HandleKeyboard()
+{
+	bool moved = false;
+	bool keyboard = true;
+	KeyboardState kstate;
+	if (!m_keyboard.GetState(kstate))
+		keyboard = false;
+	if (keyboard) {
+#pragma region edgeTessFactor
+		if (kstate.isKeyDown(DIK_LBRACKET))// [
+		{
+			if (!handled[0]) {
+				if (parameters.edgeTessFactor > 1)
+				{
+					parameters.edgeTessFactor--;
+					UpdateParameters();
+				}
+				handled[0] = true;
+			}
+		}
+		else if (handled[0])
+		{
+			handled[0] = false;
+		}
 
+		if (kstate.isKeyDown(DIK_RBRACKET))// ]
+		{
+			if (!handled[1]) {
+				parameters.edgeTessFactor++;
+				UpdateParameters();
+				handled[1] = true;
+			}
+		}
+		else if (handled[1])
+		{
+			handled[1] = false;
+		}
+#pragma endregion
+#pragma region insideTessFactor
+		if (kstate.isKeyDown(DIK_SEMICOLON))// ;
+		{
+			if (!handled[2]) {
+				if (parameters.insideTessFactor > 1)
+				{
+					parameters.insideTessFactor--;
+					UpdateParameters();
+				}
+				handled[2] = true;
+			}
+		}
+		else if (handled[2])
+		{
+			handled[2] = false;
+		}
+
+		if (kstate.isKeyDown(DIK_APOSTROPHE))// '
+		{
+			if (!handled[3]) {
+				parameters.insideTessFactor++;
+				UpdateParameters();
+				handled[3] = true;
+			}
+		}
+		else if (handled[3])
+		{
+			handled[3] = false;
+		}
+#pragma endregion
+#pragma region fillWireframe
+		if (kstate.isKeyDown(DIK_COMMA))// ,
+		{
+			fillWireframe = false;
+		}
+
+		if (kstate.isKeyDown(DIK_PERIOD))// .
+		{
+			fillWireframe = true;
+		}
+#pragma endregion
+#pragma region drawControlPolygon
+		if (kstate.isKeyDown(DIK_O))// O
+		{
+			drawControlPolygon = false;
+		}
+
+		if (kstate.isKeyDown(DIK_P))// P
+		{
+			drawControlPolygon = true;
+		}
+#pragma endregion
+#pragma region useLOD
+		if (kstate.isKeyDown(DIK_K))// K
+		{
+			parameters.useLOD = 0;
+			UpdateParameters();
+		}
+
+		if (kstate.isKeyDown(DIK_L))// L
+		{
+			parameters.useLOD = 1;
+			UpdateParameters();
+		}
+#pragma endregion
+
+	}
+}
+
+void Teselacja::UpdateParameters()
+{
+	UpdateBuffer(m_cbParameters, parameters);
+}
 
 void Teselacja::UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx)
 {
@@ -219,11 +350,7 @@ void Teselacja::UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx)
 	XMStoreFloat4x4(view + 1, invvmtx);
 	UpdateBuffer(m_cbView, view);
 }
-void Teselacja::UpdatePlaneCB(DirectX::XMFLOAT4 pos, DirectX::XMFLOAT4 dir)
-{
-	XMFLOAT4 plane[2] = { pos,dir };
-	UpdateBuffer(m_cbPlane, plane);
-}
+
 #pragma endregion
 #pragma region Frame Rendering Setup
 void Teselacja::SetShaders(const dx_ptr<ID3D11InputLayout>& il, const dx_ptr<ID3D11VertexShader>& vs, const dx_ptr<ID3D11PixelShader>& ps, const dx_ptr<ID3D11DomainShader>& ds, const dx_ptr<ID3D11HullShader>& hs)
@@ -268,15 +395,13 @@ void Teselacja::DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx)
 	m.Render(m_device.context());
 }
 
-void Teselacja::Set1Light(XMFLOAT4 poition)
-//Setup one positional light at the camera
+void Teselacja::Set1Light()
 {
 	Lighting l{
 		/*.ambientColor = */ XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f),
 		/*.surface = */ XMFLOAT4(0.2f, 1.0f, 0.8f, 50.0f),
 		/*.lights =*/ {
-			{ /*.position =*/ poition, /*.color =*/ XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f) }
-			//other 2 lights set to 0
+			{ /*.position =*/ XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), /*.color =*/ XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f) }
 		}
 	};
 	ZeroMemory(&l.lights[1], sizeof(Light) * 2);
@@ -286,7 +411,11 @@ void Teselacja::Set1Light(XMFLOAT4 poition)
 void Teselacja::Render()
 {
 	Base::Render();
-	m_device.context()->RSSetState(m_rsWireframe.get());
+	if (fillWireframe)
+		m_device.context()->RSSetState(m_rsAll.get());
+	else
+		m_device.context()->RSSetState(m_rsWireframe.get());
+
 	unsigned int offset = 0;
 	ID3D11Buffer* b = m_vertexBuffer.get();
 	m_device.context()->IASetVertexBuffers(0, 1, &b, &m_vertexStride, &offset);
@@ -294,7 +423,10 @@ void Teselacja::Render()
 	m_device.context()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_16_CONTROL_POINT_PATCHLIST);
 	m_device.context()->Draw(m_vertexCount, 0);
 
-	SetShaders(m_wireIL, m_wireVS, m_wirePS);
-	m_curMesh.Render(m_device.context());
+	if (drawControlPolygon)
+	{
+		SetShaders(m_wireIL, m_wireVS, m_wirePS);
+		m_curMesh.Render(m_device.context());
+	}
 }
 #pragma endregion
