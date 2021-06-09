@@ -69,23 +69,24 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 	m_variables.AddTexture(m_device, "irMap", L"textures/cubeMapIrradiance.dds");
 	m_variables.AddTexture(m_device, "pfEnvMap", L"textures/cubeMapRadiance.dds");
 	m_variables.AddTexture(m_device, "brdfTex", L"textures/brdf_lut.png");
-	m_variables.AddTexture(m_device, "screenColor",	Texture2DDescription(screenSize.cx, screenSize.cy,	DXGI_FORMAT_R8G8B8A8_UNORM, 1));
-	m_variables.AddTexture(m_device, "screenDepth",	Texture2DDescription(screenSize.cx, screenSize.cy,	DXGI_FORMAT_R24_UNORM_X8_TYPELESS, 1));
 	m_variables.AddRenderableTexture(m_device, "screen", screenSize);
+	m_variables.AddTexture(m_device, "screenColor", Texture2DDescription(screenSize.cx, screenSize.cy, DXGI_FORMAT_R8G8B8A8_UNORM, 1));
+	m_variables.AddTexture(m_device, "screenDepth", Texture2DDescription(screenSize.cx, screenSize.cy, DXGI_FORMAT_R24_UNORM_X8_TYPELESS, 1));
 	m_variables.AddRenderableTexture(m_device, "halfscreen1", SIZE{ screenSize.cx / 2,screenSize.cy / 2 });
 	m_variables.AddRenderableTexture(m_device, "halfscreen2", SIZE{ screenSize.cx / 2,screenSize.cy / 2 });
-	
+	m_variables.AddSemanticVariable("projInvMtx", VariableSemantic::MatPInv);
+	m_variables.AddGuiVariable("depthThickness", 0.05f, 0.0f, 0.5f);
 
 	m_variables.AddSemanticVariable("viewportDim", VariableSemantic::Vec2ViewportDims);
 	m_variables.AddGuiVariable("blurScale", 1.0f, 0.1f, 2.0f);
-	
+
 
 	SamplerDescription sDesc;
 	sDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 	sDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 	sDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	sDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	m_variables.AddSampler(m_device,"blurSampler", sDesc);
+	m_variables.AddSampler(m_device, "blurSampler", sDesc);
 	//Render Passes
 	//const auto passSphere = addPass(L"sphereVS.cso", L"spherePS.cso");
 	//addModelToPass(passSphere, sphere);
@@ -98,15 +99,16 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 
 	auto passWater = addPass(L"waterVS.cso", L"waterPS.cso");
 	addModelToPass(passWater, quad);
-	RasterizerDescription rs;
-	rs.CullMode = D3D11_CULL_NONE;
-	addRasterizerState(passWater, rs);
 
 	copyRenderTarget(passWater, "screenColor");
 	copyDepthBuffer(passWater, "screenDepth");
 
 	auto passEnv = addPass(L"envVS.cso", L"envPS.cso");
 	addModelToPass(passEnv, envModel);
+
+	RasterizerDescription rs;
+	rs.CullMode = D3D11_CULL_NONE;
+	addRasterizerState(passWater, rs);
 	addRasterizerState(passEnv, RasterizerDescription(true));
 
 	auto passDownsample = addPass(L"fullScreenQuadVS.cso", L"downSamplePS.cso", "halfscreen1");
@@ -115,7 +117,7 @@ ShaderDemo::ShaderDemo(HINSTANCE hInst) : GK2ShaderDemoBase(hInst)
 	auto passHBlur = addPass(L"fullScreenQuadVS.cso", L"hblurPS.cso", "halfscreen2");
 	addModelToPass(passHBlur, quad);
 
-	auto passVBlur = addPass(L"fullScreenQuadVS.cso",	L"vblurPS.cso", "halfscreen1", true);
+	auto passVBlur = addPass(L"fullScreenQuadVS.cso", L"vblurPS.cso", "halfscreen1", true);
 	addModelToPass(passVBlur, quad);
 
 	auto passComposite = addPass(L"fullScreenQuadVS.cso", L"compositePS.cso", getDefaultRenderTarget());

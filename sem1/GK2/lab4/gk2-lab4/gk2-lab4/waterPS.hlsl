@@ -9,7 +9,23 @@ texture2D screenDepth;
 matrix viewProjMtx;
 float2 viewportDim;
 float nearZ;
-float maxDistance = 30.0f;
+static float maxDistance = 30.0f;
+matrix projInvMtx;
+float depthThickness;
+
+struct PSInput
+{
+    float4 pos : SV_POSITION;
+    float3 localPos : POSITION0;
+    float3 worldPos : POSITION1;
+};
+
+float linearizeDepth(float depth)
+{
+    float4 p = float4(0.0f, 0.0f, depth, 1.0f);
+    p = mul(projInvMtx, p);
+    return p.z / p.w;
+}
 
 
 float4 screenSpaceRayCast(float3 wOrg, float3 wDir)
@@ -47,25 +63,25 @@ float4 screenSpaceRayCast(float3 wOrg, float3 wDir)
     float4 dP = stepDir * (ssEnd - ssOrg) / delta.x;
     float4 P = ssOrg;
     float endX = stepDir * ssEnd.x;
+    float prevZ = 1 / P.w;
     for (; (P.x * stepDir) < endX; P += dP)
     {
         int3 pxCoord = int3(coordSwap ? P.yx : P.xy, 0);
-        float screenZ = screenDepth.Load(pxCoord).r;
-        float rayZ = P.z + 0.5f * dP.z;
-        if (screenZ < rayZ)
-            return screenColor.Load(pxCoord);
-
+        float screenZ = linearizeDepth(screenDepth.Load(pxCoord).r);
+        float rayZ = 1.0f / (P.w + 0.5f * dP.w);
+        float maxZ = max(rayZ, prevZ);
+        float minZ = min(rayZ, prevZ);
+        prevZ = rayZ;
+        if (screenZ - depthThickness < maxZ)
+        {
+            if (screenZ > minZ)
+                return screenColor.Load(pxCoord);
+            else break;
+        }
     }
     return float4(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-
-struct PSInput
-{
-    float4 pos : SV_POSITION;
-    float3 localPos : POSITION0;
-    float3 worldPos : POSITION1;
-};
 
 float3 intersectRay(float3 p, float3 d)
 {
@@ -91,22 +107,24 @@ float4 main(PSInput i) : SV_TARGET
     float3 viewVec = normalize(camPos.xyz - i.worldPos);
     float3 tex = float3(i.localPos.xz * 10.0f, time);
     float ex = perlin.Sample(samp, tex);
-    tex.x += 0.5f;
-    tex.y += 0.5f;
-    tex.z += 0.5f;
-    float ez = perlin.Sample(samp, tex);
+    float ez = perlin.Sample(samp, tex + 0.5f);
+    ex = 2 * ex - 1;
+    ez = 2 * ez - 1;
 
     float n1 = 1.0f;
     float n2 = 4.0f / 3.0f;
 
     float3 norm = normalize(float3(ex, 20.0f, ez));
+    float refrCoeff = 0.14f;
+    if (dot(norm, viewVec) < 0)
+    {
+        refrCoeff = n2 / n1;
+        norm = -norm;
+    }
     float3 refl = reflect(-viewVec, norm);
-    float refrCoeff = n1 / n2;
-    if (dot(norm, viewVec) < 0) { refrCoeff = n2 / n1; }
     float3 refr = refract(-viewVec, norm, refrCoeff);
 
     float fres = fresnel(n1, n2, norm, viewVec);
-    //fres = 1.0f - fres;
     float3 color;
 
 
@@ -114,21 +132,12 @@ float4 main(PSInput i) : SV_TARGET
     float3 colorRefl = envMap.Sample(samp, tRefl).rgb;
     float3 tRefr = intersectRay(i.localPos, refr);
     float3 colorRefr = envMap.Sample(samp, tRefr).rgb;
-    float4 ssReflColor =  screenSpaceRayCast(i.worldPos, refl);
+    float4 ssReflColor = screenSpaceRayCast(i.worldPos, refl);
     colorRefl = lerp(colorRefl,   ssReflColor.rgb, ssReflColor.a);
     float4 ssRefrColor = screenSpaceRayCast(i.worldPos, refr);
     colorRefr = lerp(colorRefr, ssRefrColor.rgb, ssRefrColor.a);
-    return ssReflColor;
+    color = lerp(colorRefr, colorRefl, fres);
     if (any(refr))
-    {
-        color = fres * colorRefl + (1.0f - fres) * colorRefr;
-        if (dot(norm, viewVec) < 0)
-        {
-            tRefr.y = -tRefr.y;
-            color = envMap.Sample(samp, tRefr).rgb;
-        }
-    }
-    else
     {
         color = colorRefl;
     }
