@@ -6,7 +6,7 @@ struct Parameters
 	int edgeTessFactor;
 	int insideTessFactor;
 	int useLOD;
-	int dummy2;
+	int displacementMapping;
 };
 
 
@@ -29,6 +29,7 @@ cbuffer cbParameters : register(b2)
 struct HSInput
 {
 	float4 pos : POSITION;
+	float2 tex : TEXCOORD;
 };
 
 struct HSPatchOutput
@@ -40,10 +41,11 @@ struct HSPatchOutput
 struct DSControlPoint
 {
 	float3 pos : POSITION;
+	float3 tex : TEXCOORD;
 };
 
 float factor_f(float z) {
-	return -16.0f * log10(z * 0.1);
+	return -16.0f * log10(z * 0.1f);
 }
 
 HSPatchOutput HS_Patch(InputPatch<HSInput, INPUT_PATCH_SIZE> ip, uint patchId : SV_PrimitiveID)
@@ -79,5 +81,6 @@ DSControlPoint main(InputPatch<HSInput, INPUT_PATCH_SIZE> ip, uint i : SV_Output
 {
 	DSControlPoint o;
 	o.pos = ip[i].pos.xyz;
+	o.tex = float3(ip[i].tex,0.0f);
 	return o;
 }

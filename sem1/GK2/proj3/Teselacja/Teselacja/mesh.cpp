@@ -344,13 +344,18 @@ std::vector<unsigned short> mini::Mesh::BezierIdxs(int patchN, int patchM)
 	return vec;
 }
 
-std::vector<DirectX::XMFLOAT3> mini::Mesh::BezierPatches(int patchN, int patchM, int version)
+std::vector<VertexPositionTex> mini::Mesh::BezierPatches(int patchN, int patchM, int version)
 {
 	auto verts = BezierVerts(patchN, patchM, version);
 
-	std::vector<DirectX::XMFLOAT3> res;
+	std::vector<VertexPositionTex> res;
 
 	int stride = 3 + patchM;
+
+	int splitM = 2 + patchM;
+	int splitN = 2 + patchN;
+	float texWidth = 1.0f, texLength = 1.0f;
+
 	for (int n = 0; n < patchN; ++n)
 		for (int m = 0; m < patchM; ++m)
 		{
@@ -359,7 +364,7 @@ std::vector<DirectX::XMFLOAT3> mini::Mesh::BezierPatches(int patchN, int patchM,
 			for (int i = 0; i <= 3; ++i)
 				for (int j = 0; j <= 3; ++j)
 				{
-					res.push_back(verts[ConvertCoords(nS + i, mS + j, stride)]);
+					res.push_back({ verts[ConvertCoords(nS + i, mS + j, stride)], XMFLOAT2((float)(mS+j) / splitM * texWidth,(float)(nS+i) / splitN * texLength) });
 				}
 		}
 	return res;
@@ -371,6 +376,7 @@ std::vector<DirectX::XMFLOAT3> mini::Mesh::BezierVerts(int patchN, int patchM, i
 	float width = 1.0f, length = 1.0f;
 	int splitN = 2 + patchN;
 	int splitM = 2 + patchM;
+
 	for (int i = 0; i < 3 + patchN; ++i)
 		for (int j = 0; j < 3 + patchM; ++j)
 		{

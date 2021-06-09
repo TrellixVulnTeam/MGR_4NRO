@@ -1,5 +1,13 @@
 #define OUTPUT_PATCH_SIZE 16
 
+struct Parameters
+{
+	int edgeTessFactor;
+	int insideTessFactor;
+	int useLOD;
+	int displacementMapping;
+};
+
 cbuffer cbWorld : register(b0)
 {
 	matrix worldMatrix;
@@ -16,6 +24,15 @@ cbuffer cbProj : register(b2)
 	matrix projMatrix;
 };
 
+cbuffer cbParameters : register(b3)
+{
+	Parameters parameters;
+};
+
+Texture2D heigthMap : register(t0);
+SamplerState colorSampler : register(s0);
+
+
 struct HSPatchOutput
 {
 	float edges[4] : SV_TessFactor;
@@ -25,6 +42,7 @@ struct HSPatchOutput
 struct DSControlPoint
 {
 	float3 pos : POSITION;
+	float3 tex : TEXCOORD;
 };
 
 struct PSInput
@@ -35,6 +53,7 @@ struct PSInput
 	float3 binormal: BINORMAL;
 	float3 worldPos : POSITION;
 	float3 view : VIEW;
+	float2 tex : TEXCOORD;
 };
 
 float3 DeBoor(float t, float3 B0_, float3 B1_, float3 B2_, float3 B3_)
@@ -143,20 +162,25 @@ float3 TangentVec(float t, float3 B0_, float3 B1_, float3 B2_, float3 B3_) {
 	return N1 * f1 + N2 * f2 + N3 * f3;
 }
 
+float factor_f(float z) {
+	return -16.0f * log10(z * 0.1f);
+}
+
+float mipLevel(float z) {
+	return 6.0f - log2(factor_f(z));
+}
+
 [domain("quad")]
 PSInput main(HSPatchOutput factors, float2 uv : SV_DomainLocation,
 	const OutputPatch<DSControlPoint, OUTPUT_PATCH_SIZE> input)
 {
 	PSInput o;
 	float3 p1, p2, p3, p4;
-	p1 = DeBoor(uv.x,input[0].pos, input[1].pos, input[2].pos, input[3].pos);
-	p2 = DeBoor(uv.x,input[4].pos, input[5].pos, input[6].pos, input[7].pos);
-	p3 = DeBoor(uv.x,input[8].pos, input[9].pos, input[10].pos, input[11].pos);
-	p4 = DeBoor(uv.x,input[12].pos, input[13].pos, input[14].pos, input[15].pos);
+	p1 = DeBoor(uv.x, input[0].pos, input[1].pos, input[2].pos, input[3].pos);
+	p2 = DeBoor(uv.x, input[4].pos, input[5].pos, input[6].pos, input[7].pos);
+	p3 = DeBoor(uv.x, input[8].pos, input[9].pos, input[10].pos, input[11].pos);
+	p4 = DeBoor(uv.x, input[12].pos, input[13].pos, input[14].pos, input[15].pos);
 	o.worldPos = DeBoor(uv.y, p1, p2, p3, p4);
-	
-	float3 camPos = mul(invViewMatrix, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
-	o.view = camPos - o.worldPos;
 
 	o.tangent = normalize(TangentVec(uv.y, p1, p2, p3, p4));
 
@@ -168,7 +192,20 @@ PSInput main(HSPatchOutput factors, float2 uv : SV_DomainLocation,
 	o.binormal = normalize(TangentVec(uv.x, p1, p2, p3, p4));
 	o.normal = normalize(cross(o.tangent, o.binormal));
 
-	o.pos = mul(viewMatrix,float4(o.worldPos,1.0f));
+	o.tex.y = input[5].tex.y + (input[9].tex.y - input[5].tex.y) * uv.y;
+	o.tex.x = input[5].tex.x + (input[6].tex.x - input[5].tex.x) * uv.x;
+
+
+	float h = heigthMap.SampleLevel(colorSampler, o.tex, mipLevel(mul(viewMatrix, float4(o.worldPos, 1.0f)).z)).x;
+	h *= 0.2f;
+	if (parameters.displacementMapping == 1)
+		o.worldPos = o.worldPos + o.normal * h;
+
+	float3 camPos = mul(invViewMatrix, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
+	o.view = camPos - o.worldPos;
+
+	o.pos = mul(viewMatrix, float4(o.worldPos, 1.0f));
 	o.pos = mul(projMatrix, float4(o.pos));
+
 	return o;
 }

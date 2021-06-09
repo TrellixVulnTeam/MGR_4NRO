@@ -14,5 +14,8 @@ P - Włączenie rysowania siatki kontrolnej
 K - Wyłączenie dynamicznego LOD
 L - Włączenie dynamicznego LOD
 
+N - Wyłączenie displacement mapping
+M - Włączenie displacement mapping
+
 Q - Pierwsza wersja siatki
 W - Druga wersja siatki

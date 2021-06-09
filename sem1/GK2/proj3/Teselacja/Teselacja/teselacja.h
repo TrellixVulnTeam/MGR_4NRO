@@ -32,7 +32,7 @@ namespace mini::gk2
 		int edgeTessFactor;
 		int insideTessFactor;
 		int useLOD;
-		int dummy2;
+		int displacementMapping;
 	};
 	class Teselacja : public DxApplication
 	{
@@ -121,6 +121,10 @@ namespace mini::gk2
 		bool handled[4];
 		bool fillWireframe = false, drawControlPolygon = false;
 		int version = 1;
+
+		dx_ptr<ID3D11ShaderResourceView> m_heightTexture;
+		dx_ptr<ID3D11ShaderResourceView> m_normalsTexture;
+		dx_ptr<ID3D11ShaderResourceView> m_diffuseTexture;
 #pragma endregion
 
 #pragma region Matrices
@@ -136,8 +140,9 @@ namespace mini::gk2
 
 		void SetShaders(const dx_ptr<ID3D11InputLayout>& il, const dx_ptr<ID3D11VertexShader>& vs, const dx_ptr<ID3D11PixelShader>& ps, const dx_ptr<ID3D11DomainShader>& ds, const dx_ptr<ID3D11HullShader>& hs);
 		void SetShaders(const dx_ptr<ID3D11InputLayout>& il, const dx_ptr<ID3D11VertexShader>& vs, const dx_ptr<ID3D11PixelShader>& ps);
-		void SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resList, const dx_ptr<ID3D11SamplerState>& sampler);
-		void SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resList) { SetTextures(std::move(resList), m_sampler); }
+		void SetTexturesPS(std::initializer_list<ID3D11ShaderResourceView*> resList, const dx_ptr<ID3D11SamplerState>& sampler);
+		void SetTexturesDS(std::initializer_list<ID3D11ShaderResourceView*> resList, const dx_ptr<ID3D11SamplerState>& sampler);
+		void SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resList) { SetTexturesPS(std::move(resList), m_sampler); }
 		void SetVersion();
 
 	};

@@ -22,7 +22,7 @@ Teselacja::Teselacja(HINSTANCE hInstance)
 	m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
 	m_cbParameters(m_device.CreateConstantBuffer<Parameters>()),
 	m_cbLighting(m_device.CreateConstantBuffer<Lighting>()),
-	m_vertexStride(sizeof(XMFLOAT3)), m_vertexCount(16)
+	m_vertexStride(sizeof(VertexPositionTex)), m_vertexCount(16)
 {
 	auto s = m_window.getClientSize();
 	auto ar = static_cast<float>(s.cx) / s.cy;
@@ -42,10 +42,8 @@ Teselacja::Teselacja(HINSTANCE hInstance)
 	m_tessHS = m_device.CreateHullShader(m_device.LoadByteCode(L"tessellatedTriangleHS.cso"));
 	m_tessDS = m_device.CreateDomainShader(m_device.LoadByteCode(L"tessellatedTriangleDS.cso"));
 	m_tessPS = m_device.CreatePixelShader(m_device.LoadByteCode(L"tessellatedTrianglePS.cso"));
-	const D3D11_INPUT_ELEMENT_DESC layout[1] = {
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-	};
-	m_layout = m_device.CreateInputLayout(layout, vsCode);
+
+	m_layout = m_device.CreateInputLayout(VertexPositionTex::Layout, vsCode);
 
 	auto vsCode2 = m_device.LoadByteCode(L"wireVS.cso");
 	m_wireVS = m_device.CreateVertexShader(vsCode2);
@@ -58,25 +56,31 @@ Teselacja::Teselacja(HINSTANCE hInstance)
 	XMStoreFloat4x4(&mtx, XMMatrixTranslation(-0.5f, 0.0f, -0.5f)* XMMatrixScaling(3.0f, 3.0f, 3.0f));
 	SetWorldMtx(mtx);
 
-	ID3D11Buffer* vsb[] = { m_cbWorld.get(),m_cbView.get(), m_cbProj.get() };
-	m_device.context()->VSSetConstantBuffers(0, 3, vsb);
-	m_device.context()->DSSetConstantBuffers(0, 3, vsb);
+	ID3D11Buffer* vsb[] = { m_cbWorld.get(),m_cbView.get(), m_cbProj.get(),m_cbParameters.get() };
+	m_device.context()->VSSetConstantBuffers(0, 4, vsb);
+	m_device.context()->DSSetConstantBuffers(0, 4, vsb);
 
 	ID3D11Buffer* hsb[] = { m_cbWorld.get(),m_cbView.get(),m_cbParameters.get() };
 	m_device.context()->HSSetConstantBuffers(0, 3, hsb);
 
-	ID3D11Buffer* psb[] = { m_cbSurfaceColor.get(), m_cbLighting.get() };
-	m_device.context()->PSSetConstantBuffers(0, 2, psb);
+	ID3D11Buffer* psb[] = { m_cbSurfaceColor.get(), m_cbLighting.get(),m_cbParameters.get() };
+	m_device.context()->PSSetConstantBuffers(0, 3, psb);
 
 	SetVersion();
 	SetInitialParameters();
 	UpdateParameters();
 	Set1Light();
+
+	m_heightTexture = m_device.CreateShaderResourceView(L"resources/textures/height.dds");
+	m_normalsTexture = m_device.CreateShaderResourceView(L"resources/textures/normals.dds");
+	m_diffuseTexture = m_device.CreateShaderResourceView(L"resources/textures/diffuse.dds");
+
+	SetTexturesDS({ m_heightTexture.get() }, m_samplerWrap);
 }
 
 void Teselacja::SetVersion()
 {
-	vector<XMFLOAT3> vtx = Mesh::BezierPatches(patchN, patchM, version);
+	vector<VertexPositionTex> vtx = Mesh::BezierPatches(patchN, patchM, version);
 	m_vertexBuffer = m_device.CreateVertexBuffer(vtx);
 	unsigned int offset = 0;
 	ID3D11Buffer* b = m_vertexBuffer.get();
@@ -191,6 +195,7 @@ void Teselacja::SetInitialParameters()
 	parameters.edgeTessFactor = 8;
 	parameters.insideTessFactor = 8;
 	parameters.useLOD = 0;
+	parameters.displacementMapping = 0;
 	for (int i = 0; i < 4; ++i)
 	{
 		handled[i] = false;
@@ -328,6 +333,19 @@ void Teselacja::HandleKeyboard()
 		}
 
 #pragma endregion
+#pragma region displacementMapping
+		if (kstate.isKeyDown(DIK_N))// N
+		{
+			parameters.displacementMapping = 0;
+			UpdateParameters();
+		}
+
+		if (kstate.isKeyDown(DIK_M))// M
+		{
+			parameters.displacementMapping = 1;
+			UpdateParameters();
+		}
+#pragma endregion
 
 
 	}
@@ -370,8 +388,14 @@ void Teselacja::SetShaders(const dx_ptr<ID3D11InputLayout>& il, const dx_ptr<ID3
 	m_device.context()->GSSetShader(nullptr, nullptr, 0);
 }
 
+void Teselacja::SetTexturesDS(std::initializer_list<ID3D11ShaderResourceView*> resList, const dx_ptr<ID3D11SamplerState>& sampler)
+{
+	m_device.context()->DSSetShaderResources(0, resList.size(), resList.begin());
+	auto s_ptr = sampler.get();
+	m_device.context()->DSSetSamplers(0, 1, &s_ptr);
+}
 
-void Teselacja::SetTextures(std::initializer_list<ID3D11ShaderResourceView*> resList, const dx_ptr<ID3D11SamplerState>& sampler)
+void Teselacja::SetTexturesPS(std::initializer_list<ID3D11ShaderResourceView*> resList, const dx_ptr<ID3D11SamplerState>& sampler)
 {
 	m_device.context()->PSSetShaderResources(0, resList.size(), resList.begin());
 	auto s_ptr = sampler.get();
