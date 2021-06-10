@@ -17,5 +17,11 @@ L - Włączenie dynamicznego LOD
 N - Wyłączenie displacement mapping
 M - Włączenie displacement mapping
 
+U - Wyłączenie tekstury koloru
+I - Włączenie tekstury koloru
+
+H - Wyłączenie normal mapping
+J - Włączenie normal mapping
+
 Q - Pierwsza wersja siatki
 W - Druga wersja siatki

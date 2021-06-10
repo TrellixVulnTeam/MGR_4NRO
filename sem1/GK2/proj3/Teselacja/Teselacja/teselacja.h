@@ -34,6 +34,14 @@ namespace mini::gk2
 		int useLOD;
 		int displacementMapping;
 	};
+
+	struct Parameters2
+	{
+		int colorTexture;
+		int normalMapping;
+		int dummy1;
+		int dummy2;
+	};
 	class Teselacja : public DxApplication
 	{
 	public:
@@ -64,6 +72,7 @@ namespace mini::gk2
 		dx_ptr<ID3D11Buffer> m_cbLighting;
 		//ConstantBuffer<Lighting> m_cbLighting;
 		dx_ptr<ID3D11Buffer> m_cbParameters;
+		dx_ptr<ID3D11Buffer> m_cbParameters2;
 
 		dx_ptr<ID3D11Buffer> m_cbMapMtx; //pixel shader constant buffer slot 2
 		//Shader's constant buffer containing surface color
@@ -118,6 +127,7 @@ namespace mini::gk2
 		unsigned int patchN = 4, patchM = 4;
 		Mesh m_wire;
 		Parameters parameters;
+		Parameters2 parameters2;
 		bool handled[4];
 		bool fillWireframe = false, drawControlPolygon = false;
 		int version = 1;

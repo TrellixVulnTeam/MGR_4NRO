@@ -7,6 +7,8 @@ struct Parameters
 	int insideTessFactor;
 	int useLOD;
 	int displacementMapping;
+	int colorTexture;
+	int normalMapping;
 };
 
 

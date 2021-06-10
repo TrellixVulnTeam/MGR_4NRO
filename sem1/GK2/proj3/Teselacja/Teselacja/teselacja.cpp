@@ -21,6 +21,7 @@ Teselacja::Teselacja(HINSTANCE hInstance)
 	m_cbWorld(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 	m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
 	m_cbParameters(m_device.CreateConstantBuffer<Parameters>()),
+	m_cbParameters2(m_device.CreateConstantBuffer<Parameters2>()),
 	m_cbLighting(m_device.CreateConstantBuffer<Lighting>()),
 	m_vertexStride(sizeof(VertexPositionTex)), m_vertexCount(16)
 {
@@ -37,11 +38,11 @@ Teselacja::Teselacja(HINSTANCE hInstance)
 	XMStoreFloat4x4(&cameraMtx, m_camera.getViewMatrix());
 	UpdateCameraCB(cameraMtx);
 
-	auto vsCode = m_device.LoadByteCode(L"tessellatedTriangleVS.cso");
-	m_tessVS = m_device.CreateVertexShader(m_device.LoadByteCode(L"tessellatedTriangleVS.cso"));
-	m_tessHS = m_device.CreateHullShader(m_device.LoadByteCode(L"tessellatedTriangleHS.cso"));
-	m_tessDS = m_device.CreateDomainShader(m_device.LoadByteCode(L"tessellatedTriangleDS.cso"));
-	m_tessPS = m_device.CreatePixelShader(m_device.LoadByteCode(L"tessellatedTrianglePS.cso"));
+	auto vsCode = m_device.LoadByteCode(L"tessellatedBezierVS.cso");
+	m_tessVS = m_device.CreateVertexShader(m_device.LoadByteCode(L"tessellatedBezierVS.cso"));
+	m_tessHS = m_device.CreateHullShader(m_device.LoadByteCode(L"tessellatedBezierHS.cso"));
+	m_tessDS = m_device.CreateDomainShader(m_device.LoadByteCode(L"tessellatedBezierDS.cso"));
+	m_tessPS = m_device.CreatePixelShader(m_device.LoadByteCode(L"tessellatedBezierPS.cso"));
 
 	m_layout = m_device.CreateInputLayout(VertexPositionTex::Layout, vsCode);
 
@@ -63,7 +64,7 @@ Teselacja::Teselacja(HINSTANCE hInstance)
 	ID3D11Buffer* hsb[] = { m_cbWorld.get(),m_cbView.get(),m_cbParameters.get() };
 	m_device.context()->HSSetConstantBuffers(0, 3, hsb);
 
-	ID3D11Buffer* psb[] = { m_cbSurfaceColor.get(), m_cbLighting.get(),m_cbParameters.get() };
+	ID3D11Buffer* psb[] = { m_cbSurfaceColor.get(), m_cbLighting.get(),m_cbParameters2.get() };
 	m_device.context()->PSSetConstantBuffers(0, 3, psb);
 
 	SetVersion();
@@ -76,6 +77,7 @@ Teselacja::Teselacja(HINSTANCE hInstance)
 	m_diffuseTexture = m_device.CreateShaderResourceView(L"resources/textures/diffuse.dds");
 
 	SetTexturesDS({ m_heightTexture.get() }, m_samplerWrap);
+	SetTexturesPS({ m_diffuseTexture.get(), m_normalsTexture.get() }, m_samplerWrap);
 }
 
 void Teselacja::SetVersion()
@@ -196,6 +198,8 @@ void Teselacja::SetInitialParameters()
 	parameters.insideTessFactor = 8;
 	parameters.useLOD = 0;
 	parameters.displacementMapping = 0;
+	parameters2.colorTexture = 0;
+	parameters2.normalMapping = 0;
 	for (int i = 0; i < 4; ++i)
 	{
 		handled[i] = false;
@@ -346,6 +350,32 @@ void Teselacja::HandleKeyboard()
 			UpdateParameters();
 		}
 #pragma endregion
+#pragma region colorTexture
+		if (kstate.isKeyDown(DIK_U))// U
+		{
+			parameters2.colorTexture = 0;
+			UpdateParameters();
+		}
+
+		if (kstate.isKeyDown(DIK_I))// I
+		{
+			parameters2.colorTexture = 1;
+			UpdateParameters();
+		}
+#pragma endregion
+#pragma region normalMapping
+		if (kstate.isKeyDown(DIK_H))// H
+		{
+			parameters2.normalMapping = 0;
+			UpdateParameters();
+		}
+
+		if (kstate.isKeyDown(DIK_J))// J
+		{
+			parameters2.normalMapping = 1;
+			UpdateParameters();
+		}
+#pragma endregion
 
 
 	}
@@ -354,6 +384,7 @@ void Teselacja::HandleKeyboard()
 void Teselacja::UpdateParameters()
 {
 	UpdateBuffer(m_cbParameters, parameters);
+	UpdateBuffer(m_cbParameters2, parameters2);
 }
 
 void Teselacja::UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx)

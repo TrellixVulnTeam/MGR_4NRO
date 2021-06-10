@@ -165,16 +165,16 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="tessellatedTriangleDS.hlsl">
+    <FxCompile Include="tessellatedBezierDS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="tessellatedTriangleHS.hlsl">
+    <FxCompile Include="tessellatedBezierHS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="tessellatedTrianglePS.hlsl">
+    <FxCompile Include="tessellatedBezierPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="tessellatedTriangleVS.hlsl">
+    <FxCompile Include="tessellatedBezierVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="wireVS.hlsl">
