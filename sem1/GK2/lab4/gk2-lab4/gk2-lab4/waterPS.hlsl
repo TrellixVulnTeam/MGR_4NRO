@@ -115,7 +115,7 @@ float4 main(PSInput i) : SV_TARGET
     float n2 = 4.0f / 3.0f;
 
     float3 norm = normalize(float3(ex, 20.0f, ez));
-    float refrCoeff = 0.14f;
+    float refrCoeff = n1/n2;
     if (dot(norm, viewVec) < 0)
     {
         refrCoeff = n2 / n1;
@@ -137,7 +137,7 @@ float4 main(PSInput i) : SV_TARGET
     float4 ssRefrColor = screenSpaceRayCast(i.worldPos, refr);
     colorRefr = lerp(colorRefr, ssRefrColor.rgb, ssRefrColor.a);
     color = lerp(colorRefr, colorRefl, fres);
-    if (any(refr))
+    if (!any(refr))
     {
         color = colorRefl;
     }
