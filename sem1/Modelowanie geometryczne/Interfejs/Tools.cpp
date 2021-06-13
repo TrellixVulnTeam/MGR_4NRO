@@ -69,28 +69,26 @@ void CreateGregory(Program* program)
 		}
 	}
 
-	if (patches.size() != 3)
-	{
-		std::cout << "There sould be three Patches selected \n";
-		return;
-	}
-
 	auto res = CheckIfCanMerge(program, patches);
 
 	if (res.size() > 0)
 	{
-		std::vector<std::vector<std::vector<Point*>>> rr;
-		rr.push_back(res[0].patch);
-		rr.push_back(res[1].patch);
-		rr.push_back(res[2].patch);
-		Hole* h = new Hole(rr);
-		h->Initialize(program);
-		res[0].bezier->AddHole(h);
-		res[1].bezier->AddHole(h);
-		res[2].bezier->AddHole(h);
+		for (int i = 0; i < res.size(); ++i)
+		{
+			auto ress = res[i];
+			std::vector<std::vector<std::vector<Point*>>> rr;
+			rr.push_back(ress[0].patch);
+			rr.push_back(ress[1].patch);
+			rr.push_back(ress[2].patch);
+			Hole* h = new Hole(rr);
+			h->Initialize(program);
+			ress[0].bezier->AddHole(h);
+			ress[1].bezier->AddHole(h);
+			ress[2].bezier->AddHole(h);
 
-		program->figures.push_back((Figure*)h);
-		std::cout << "Can Merge\n";
+			program->figures.push_back((Figure*)h);
+			if (!program->allGregorys) break;
+		}
 	}
 	else
 	{
@@ -98,20 +96,24 @@ void CreateGregory(Program* program)
 	}
 }
 
-std::vector<SinglePatch> CheckIfCanMerge(Program* program, std::vector<BezierPatchC0*> patches)
+std::vector<std::vector<SinglePatch>> CheckIfCanMerge(Program* program, std::vector<BezierPatchC0*> bezierPatches)
 {
+	std::vector<std::vector<SinglePatch>> res;
+	std::vector<SinglePatch> patches;
+	for (int i = 0; i < bezierPatches.size(); ++i)
+	{
+		auto patches_i = bezierPatches[i]->GetAllPatches();
+		patches.insert(patches.end(), patches_i.begin(), patches_i.end());
+	}
 
-	auto patches0 = patches[0]->GetAllPatches();
-	auto patches1 = patches[1]->GetAllPatches();
-	auto patches2 = patches[2]->GetAllPatches();
-
-	for (int i = 0; i < patches0.size(); ++i)
-		for (int j = 0; j < patches1.size(); ++j)
-			for (int k = 0; k < patches2.size(); ++k)
+	for (int i = 0; i < patches.size(); ++i)
+		for (int j = i + 1; j < patches.size(); ++j)
+			for (int k = j + 1; k < patches.size(); ++k)
 			{
-				auto merge = CanMerge(patches0[i], patches1[j], patches2[k]);
-				if (merge.size() > 0) return merge;
+				auto merge = CanMerge(patches[i], patches[j], patches[k]);
+				if (merge.size() > 0) res.push_back(merge);
 			}
+	return res;
 }
 
 

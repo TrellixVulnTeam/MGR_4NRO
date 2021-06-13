@@ -463,6 +463,7 @@ void RenderGui()
 	{
 		Collapse(program);
 	}
+	ImGui::Checkbox("Create All Patches", &program->allGregorys);
 	if (ImGui::Button("CreateGregory"))
 	{
 		CreateGregory(program);
@@ -748,6 +749,8 @@ void Serialize()
 	xml_node <>* scene = document.allocate_node(node_element, "Scene");
 	for (int i = 0; i < program->figures.size(); ++i)
 	{
+		if (program->figures[i]->figureType == FigureType::Hole ||
+			program->figures[i]->figureType == FigureType::GregoryPatch) continue;
 		xml_node <>* figure = nullptr;
 		std::vector<Point*> points;
 		points.push_back(nullptr);
@@ -875,6 +878,25 @@ void Deserialize()
 			}
 		}
 	} while (patchExists);
+
+	bool holeExists = false;
+	do
+	{
+		holeExists = false;
+		n = program->figures.size();
+		for (int i = 0; i < n; ++i)
+		{
+			if (program->figures[i]->figureType == FigureType::Hole)
+			{
+				Figure* f = program->figures[i];
+				program->figures.erase(program->figures.begin() + i);
+				f->CleanUp();
+				delete f;
+				holeExists = true;
+				break;
+			}
+		}
+	} while (holeExists);
 
 	bool lineExists = false;
 	do
