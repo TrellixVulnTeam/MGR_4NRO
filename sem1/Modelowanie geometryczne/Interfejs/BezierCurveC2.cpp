@@ -75,6 +75,19 @@ void BezierCurveC2::AddPoint(Point* point)
 	first = true;
 }
 
+void BezierCurveC2::ReplaceInParent(Point* oldPoint, Point* newPoint)
+{
+	for (int i = 0; i < points.size(); ++i)
+	{
+		if (points[i] == oldPoint)
+		{
+			points[i] = newPoint;
+			Recalc();
+			newPoint->AddParent(this);
+		}
+	}
+}
+
 void BezierCurveC2::RemovePoint(int to_del)
 {
 	points.erase(points.begin() + to_del);

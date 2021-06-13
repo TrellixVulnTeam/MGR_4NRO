@@ -161,6 +161,7 @@
     <ClCompile Include="Cursor.cpp" />
     <ClCompile Include="Figure.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="GregoryPatch.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
@@ -179,6 +180,7 @@
     <ClCompile Include="Shader.h" />
     <ClCompile Include="SomeCurve.cpp" />
     <ClCompile Include="SomePatch.cpp" />
+    <ClCompile Include="Tools.cpp" />
     <ClCompile Include="Torus.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -189,6 +191,9 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cursor.h" />
     <ClInclude Include="Figure.h" />
+    <None Include="shaders\gregoryDomainShader.ds" />
+    <None Include="shaders\gregoryHullShader.hs" />
+    <None Include="shaders\gregoryVertexShader.vs" />
     <None Include="shaders\patchDeBoorGeometryShader.gs" />
     <None Include="shaders\patchGeometryShader.gs" />
     <None Include="shaders\patchVertexShader.vs" />
@@ -196,6 +201,7 @@
     <None Include="textureVertexShader.vs">
       <FileType>Document</FileType>
     </None>
+    <ClInclude Include="GregoryPatch.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_impl_glfw.h" />
@@ -214,6 +220,7 @@
     <ClInclude Include="Program.h" />
     <ClInclude Include="SomeCurve.h" />
     <ClInclude Include="SomePatch.h" />
+    <ClInclude Include="Tools.h" />
     <ClInclude Include="Torus.h" />
   </ItemGroup>
   <ItemGroup>

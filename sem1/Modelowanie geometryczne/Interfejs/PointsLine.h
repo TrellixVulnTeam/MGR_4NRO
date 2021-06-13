@@ -13,8 +13,8 @@ public:
 	void Clear();
 	void Recalc() { Create(); };
 	void virtual Initialize(Program* _program) override;
+	std::vector<Point*> points;
 private:
 	bool virtual Create() override;
-	std::vector<Point*> points;
 };
 

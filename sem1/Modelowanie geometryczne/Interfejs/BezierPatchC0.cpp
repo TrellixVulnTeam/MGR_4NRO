@@ -4,7 +4,7 @@
 
 BezierPatchC0::BezierPatchC0() : SomePatch()
 {
-	sprintf_s(name, STRMAX, ("BezierPatchC0 - " + std::to_string(idx++) + " " + gen_random(10,idx)).c_str());
+	sprintf_s(name, STRMAX, ("BezierPatchC0 - " + std::to_string(idx++) + " " + gen_random(10, idx)).c_str());
 	figureType = FigureType::BezierPatchC0;
 }
 
@@ -20,16 +20,8 @@ void BezierPatchC0::ClearPoints()
 {
 	for (int i = 0; i < points.size(); ++i)
 	{
-		if (points[i] != nullptr && !points[i]->toDel)
-		{
-			points[i]->Unpin(this);
-			if (!points[i]->HasParent()) points[i]->toDel = true;
-
-			for (int j = i + 1; j < points.size(); ++j)
-			{
-				if (points[j] == points[i]) points[j] = nullptr;
-			}
-		}
+		points[i]->Unpin(this);
+		if (!points[i]->HasParent()) points[i]->toDel = true;
 	}
 	int n = program->figures.size();
 	for (int i = 0; i < n; ++i)
@@ -85,6 +77,7 @@ void BezierPatchC0::GeneratePoints()
 				++k;
 			}
 			points.push_back(points[k - 3 * n]);
+			points[k - 3 * n]->AddParent(this);
 			pointsLines->AddPoint(points[k]);
 			pointsLines->AddPoint(points[k - 1]);
 			k++;
@@ -125,6 +118,51 @@ void BezierPatchC0::GeneratePoints()
 			x += xdiff;
 		}
 	}
+}
+
+void BezierPatchC0::ReplaceInParent(Point* oldPoint, Point* newPoint)
+{
+	for (int i = 0; i < points.size(); ++i)
+	{
+		if (points[i] == oldPoint)
+		{
+			points[i] = newPoint;
+			Recalc();
+			newPoint->AddParent(this);
+		}
+	}
+	for (int i = 0; i < pointsLines->points.size(); ++i)
+	{
+		if (pointsLines->points[i] == oldPoint)
+		{
+			pointsLines->points[i] = newPoint;
+		}
+	}
+}
+
+std::vector<std::vector<std::vector<Point*>>> BezierPatchC0::GetAllPatches()
+{
+	std::vector<std::vector<std::vector<Point*>>> res;
+	int stride = 3 * n + 1;
+	for (int i = 0; i < m; ++i)
+	{
+		for (int j = 0; j < n; ++j)
+		{
+			std::vector<std::vector<Point*>> patch;
+			for (int x = 0; x < 4; ++x)
+			{
+				std::vector<Point*> line;
+				int start = (3 * i + x) * stride + j * 3;
+				for (int y = 0; y < 4; ++y)
+				{
+					line.push_back(points[start + y]);
+				}
+				patch.push_back(line);
+			}
+			res.push_back(patch);
+		}
+	}
+	return res;
 }
 
 void BezierPatchC0::RecalcFigure()

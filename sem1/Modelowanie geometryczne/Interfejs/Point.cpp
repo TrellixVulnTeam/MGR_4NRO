@@ -65,7 +65,7 @@ void Point::Unpin(Figure* par)
 	int j = -1;
 	for (int i = 0; i < parents.size(); ++i)
 		if (parents[i] == par) j = i;
-	if (parents_cnt[j] == 1 || parents[j]->figureType == FigureType::BezierPatchC0 || parents[j]->figureType == FigureType::BezierPatchC2)
+	if (parents_cnt[j] == 1)
 	{
 		parents.erase(parents.begin() + j);
 		parents_cnt.erase(parents_cnt.begin() + j);
@@ -106,6 +106,23 @@ void Point::AddParent(Figure* par)
 	{
 		parents_cnt[j]++;
 	}
+}
+
+void Point::ReplaceInParents(Point* newPoint)
+{
+	for(int i=0;i<parents.size();++i)
+	{
+		if (parents[0]->isCurve)
+		{
+			((SomeCurve*)parents[0])->ReplaceInParent(this, newPoint);
+		}
+		if (parents[0]->isPatch)
+		{
+			((SomePatch*)parents[0])->ReplaceInParent(this, newPoint);
+		}
+	}
+	parents.clear();
+	parents_cnt.clear();
 }
 
 bool Point::Create()

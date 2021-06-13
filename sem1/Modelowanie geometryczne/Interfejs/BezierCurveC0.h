@@ -12,6 +12,7 @@ public:
 	virtual void RemovePoint(int to_del) override;
 	void virtual CleanUp() override;
 	void virtual Initialize(Program* _program) override;
+	void virtual ReplaceInParent(Point* oldPoint, Point* newPoint) override;
 private:
 	bool virtual Create() override;
 };

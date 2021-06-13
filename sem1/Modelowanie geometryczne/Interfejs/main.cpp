@@ -25,6 +25,8 @@
 #include "rapidxml/rapidxml_print.hpp"
 #include "rapidxml/rapidxml_utils.hpp"
 #include <map>
+#include "Tools.h"
+#include "GregoryPatch.h"
 using namespace rapidxml;
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
@@ -38,6 +40,7 @@ Program* program;
 
 void Serialize();
 void Deserialize();
+
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
 {
 	glm::quat quat = glm::angleAxis(angle, axis);
@@ -456,6 +459,14 @@ void RenderGui()
 	{
 		Deserialize();
 	}
+	if (ImGui::Button("Collapse"))
+	{
+		Collapse(program);
+	}
+	if (ImGui::Button("CreateGregory"))
+	{
+		CreateGregory(program);
+	}
 
 	ImGui::End();
 }
@@ -513,6 +524,11 @@ void DrawScene()
 	program->patchShaderDeBoor.use();
 	perspLoc = glGetUniformLocation(program->patchShaderDeBoor.ID, "persp");
 	viewLoc = glGetUniformLocation(program->patchShaderDeBoor.ID, "view");
+	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+	program->patchGregoryShader.use();
+	perspLoc = glGetUniformLocation(program->patchGregoryShader.ID, "persp");
+	viewLoc = glGetUniformLocation(program->patchGregoryShader.ID, "view");
 	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
@@ -585,10 +601,21 @@ int main()
 		, "shaders/patchDeBoorGeometryShader.gs"
 	);
 
+	program->patchGregoryShader = Shader("shaders/gregoryVertexShader.vs"
+		, "shaders/fragShader.fs"
+		, nullptr
+		,"shaders/gregoryHullShader.hs"
+		,"shaders/gregoryDomainShader.ds"
+	);
+
 	program->mp = new MiddlePoint();
 	program->mp->Initialize(program);
 	program->cur = new Cursor();
 	program->cur->Initialize(program);
+
+	Figure* f = new GregoryPatch();
+	f->Initialize(program);
+	program->figures.push_back(f);
 
 	program->cam = new Camera();
 	program->cam->LookAt({ 0,0,3 }, { 0,0,-1 }, { 0,1,0 });
@@ -1068,3 +1095,4 @@ void Deserialize()
 		figure = figure->next_sibling();
 	}
 }
+

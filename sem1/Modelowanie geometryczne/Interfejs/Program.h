@@ -31,5 +31,6 @@ public:
 	Shader bezierShader;
 	Shader patchShader;
 	Shader patchShaderDeBoor;
+	Shader patchGregoryShader;
 };
 

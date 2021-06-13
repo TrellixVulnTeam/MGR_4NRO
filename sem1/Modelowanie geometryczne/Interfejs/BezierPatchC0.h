@@ -13,6 +13,8 @@ public:
 	void virtual CleanUp() override;
 	void virtual Initialize(Program* _program) override;
 	void virtual RecalcFigure() override;
+	void virtual ReplaceInParent(Point* oldPoint, Point* newPoint) override;
+	std::vector<std::vector<std::vector<Point*>>> GetAllPatches();
 private:
 	void AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii);
 	void GeneratePoints();

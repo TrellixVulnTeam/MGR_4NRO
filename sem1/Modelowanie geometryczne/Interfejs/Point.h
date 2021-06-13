@@ -13,6 +13,7 @@ public:
 	void virtual Initialize(Program* _program) override;
 	bool virtualPoint = false;
 	bool toDel = false;
+	void ReplaceInParents(Point* newPoint);
 private:
 	bool virtual Create() override;
 	bool firstTime = true;

@@ -15,6 +15,7 @@ public:
 	std::vector<Point*> bernsteinPoints;
 	bool drawBernsteinLine;
 	bool drawBernsteinPoints;
+	void virtual ReplaceInParent(Point* oldPoint, Point* newPoint) override;
 private:
 	bool virtual Create() override;
 	PointsLine* bernsteinLine;

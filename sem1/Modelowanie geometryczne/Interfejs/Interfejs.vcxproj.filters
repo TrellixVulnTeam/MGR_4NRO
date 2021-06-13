@@ -105,6 +105,12 @@
     <ClCompile Include="BezierPatchC2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Tools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GregoryPatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="processing.h">
@@ -185,6 +191,12 @@
     <ClInclude Include="BezierPatchC2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Tools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GregoryPatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\vertexShader.vs">
@@ -212,6 +224,15 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="shaders\patchDeBoorGeometryShader.gs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\gregoryDomainShader.ds">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\gregoryHullShader.hs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\gregoryVertexShader.vs">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

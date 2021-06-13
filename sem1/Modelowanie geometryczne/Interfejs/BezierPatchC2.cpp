@@ -20,16 +20,8 @@ void BezierPatchC2::ClearPoints()
 {
 	for (int i = 0; i < points.size(); ++i)
 	{
-		if (points[i] != nullptr && !points[i]->toDel)
-		{
 			points[i]->Unpin(this);
 			if (!points[i]->HasParent()) points[i]->toDel = true;
-
-			for (int j = i + 1; j < points.size(); ++j)
-			{
-				if (points[j] == points[i]) points[j] = nullptr;
-			}
-		}
 	}
 	int n = program->figures.size();
 	for (int i = 0; i < n; ++i)
@@ -86,14 +78,17 @@ void BezierPatchC2::GeneratePoints()
 				++k;
 			}
 			points.push_back(points[k - n]);
+			points[k - n]->AddParent(this);
 			pointsLines->AddPoint(points[k]);
 			pointsLines->AddPoint(points[k - 1]);
 			++k;
 			points.push_back(points[k - n]);
+			points[k - n]->AddParent(this);
 			pointsLines->AddPoint(points[k]);
 			pointsLines->AddPoint(points[k - 1]);
 			++k;
 			points.push_back(points[k - n]);
+			points[k - n]->AddParent(this);
 			pointsLines->AddPoint(points[k]);
 			pointsLines->AddPoint(points[k - 1]);
 			++k;
@@ -133,6 +128,26 @@ void BezierPatchC2::GeneratePoints()
 				++k;
 			}
 			x += xdiff;
+		}
+	}
+}
+
+void BezierPatchC2::ReplaceInParent(Point* oldPoint, Point* newPoint)
+{
+	for (int i = 0; i < points.size(); ++i)
+	{
+		if (points[i] == oldPoint)
+		{
+			points[i] = newPoint;
+			Recalc();
+			newPoint->AddParent(this);
+		}
+	}
+	for (int i = 0; i < pointsLines->points.size(); ++i)
+	{
+		if (pointsLines->points[i] == oldPoint)
+		{
+			pointsLines->points[i] = newPoint;
 		}
 	}
 }

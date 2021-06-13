@@ -155,57 +155,7 @@ void main() {
     coeffs2_x[3]=point2_3.x;
     coeffs2_y[3]=point2_3.y;
     coeffs2_z[3]=point2_3.z;
-    /*
-     gl_Position.x = point1_0.x;
-     gl_Position.y = point1_0.y;
-     gl_Position.z = point1_0.z;
-     gl_Position.w=1.0;
-     gl_Position = persp*view*gl_Position;
-     EmitVertex();
-     gl_Position.x = point1_1.x;
-     gl_Position.y = point1_1.y;
-     gl_Position.z = point1_1.z;
-     gl_Position.w=1.0;
-     gl_Position = persp*view*gl_Position;
-     EmitVertex();
-     gl_Position.x = point1_2.x;
-     gl_Position.y = point1_2.y;
-     gl_Position.z = point1_2.z;
-     gl_Position.w=1.0;
-     gl_Position = persp*view*gl_Position;
-     EmitVertex();
-     gl_Position.x = point1_3.x;
-     gl_Position.y = point1_3.y;
-     gl_Position.z = point1_3.z;
-     gl_Position.w=1.0;
-     gl_Position = persp*view*gl_Position;
-     EmitVertex();
-     gl_Position.x = point2_0.x;
-     gl_Position.y = point2_0.y;
-     gl_Position.z = point2_0.z;
-     gl_Position.w=1.0;
-     gl_Position = persp*view*gl_Position;
-     EmitVertex();
-     gl_Position.x = point2_1.x;
-     gl_Position.y = point2_1.y;
-     gl_Position.z = point2_1.z;
-     gl_Position.w=1.0;
-     gl_Position = persp*view*gl_Position;
-     EmitVertex();
-     gl_Position.x = point2_2.x;
-     gl_Position.y = point2_2.y;
-     gl_Position.z = point2_2.z;
-     gl_Position.w=1.0;
-     gl_Position = persp*view*gl_Position;
-     EmitVertex();
-     gl_Position.x = point2_3.x;
-     gl_Position.y = point2_3.y;
-     gl_Position.z = point2_3.z;
-     gl_Position.w=1.0;
-     gl_Position = persp*view*gl_Position;
-     EmitVertex();
-     EndPrimitive();
-     return;*/
+
     float diff = (to-from)/splits;
     t=from;
     for(int i=0; i<=splits;++i)

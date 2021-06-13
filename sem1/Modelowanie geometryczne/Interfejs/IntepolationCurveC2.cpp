@@ -41,6 +41,20 @@ void InterpolationCurveC2::AddPoint(Point* point)
 	pointsLine->AddPoint(point);
 }
 
+void InterpolationCurveC2::ReplaceInParent(Point* oldPoint, Point* newPoint)
+{
+	for (int i = 0; i < points.size(); ++i)
+	{
+		if (points[i] == oldPoint)
+		{
+			points[i] = newPoint;
+			pointsLine->points[i] = newPoint;
+			Recalc();
+			newPoint->AddParent(this);
+		}
+	}
+}
+
 void InterpolationCurveC2::RemovePoint(int to_del)
 {
 	pointsLine->RemoveAt(to_del);

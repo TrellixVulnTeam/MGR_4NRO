@@ -22,6 +22,7 @@ public:
 	std::vector<Point*> points;
 	PointsLines* pointsLines;
 	bool drawLine = true;
+	void virtual ReplaceInParent(Point* oldPoint, Point* newPoint) = 0;
 protected:
 	bool virtual Create() override { return false; };
 	bool first = true;

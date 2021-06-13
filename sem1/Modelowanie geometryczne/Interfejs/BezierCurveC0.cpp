@@ -14,6 +14,20 @@ void BezierCurveC0::Initialize(Program* _program)
 	pointsLine->Initialize(program);
 }
 
+void BezierCurveC0::ReplaceInParent(Point* oldPoint, Point* newPoint)
+{
+	for (int i = 0; i < points.size(); ++i)
+	{
+		if (points[i] == oldPoint)
+		{
+			points[i] = newPoint;
+			pointsLine->points[i] = newPoint;
+			Recalc();
+			newPoint->AddParent(this);
+		}
+	}
+}
+
 void BezierCurveC0::Draw()
 {
 	Figure::Draw();

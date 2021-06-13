@@ -15,6 +15,7 @@ public:
 	std::vector<Point*> bernsteinPoints;
 	void BernsteinMoved(int j);
 	bool drawDeBoorLine = true;
+	void virtual ReplaceInParent(Point* oldPoint, Point* newPoint) override;
 private:
 	bool virtual Create() override;
 	PointsLine* deBoorLine;
