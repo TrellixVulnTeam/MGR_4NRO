@@ -613,9 +613,9 @@ int main()
 	program->cur = new Cursor();
 	program->cur->Initialize(program);
 
-	Figure* f = new GregoryPatch();
-	f->Initialize(program);
-	program->figures.push_back(f);
+	//Figure* f = new GregoryPatch();
+	//f->Initialize(program);
+	//program->figures.push_back(f);
 
 	program->cam = new Camera();
 	program->cam->LookAt({ 0,0,3 }, { 0,0,-1 }, { 0,1,0 });

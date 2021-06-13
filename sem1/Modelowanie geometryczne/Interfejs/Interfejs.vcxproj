@@ -162,6 +162,7 @@
     <ClCompile Include="Figure.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="GregoryPatch.cpp" />
+    <ClCompile Include="Hole.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
@@ -202,6 +203,7 @@
       <FileType>Document</FileType>
     </None>
     <ClInclude Include="GregoryPatch.h" />
+    <ClInclude Include="Hole.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_impl_glfw.h" />

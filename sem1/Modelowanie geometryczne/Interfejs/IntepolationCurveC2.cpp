@@ -1,6 +1,7 @@
 #include "InterpolationCurveC2.h"
 #include "imgui\imgui.h"
 #include <string>
+#include "Math.h"
 
 InterpolationCurveC2::InterpolationCurveC2() : SomeCurve()
 {

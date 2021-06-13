@@ -2,6 +2,8 @@
 #include "imgui\imgui.h"
 #include <string>
 
+
+
 BezierPatchC0::BezierPatchC0() : SomePatch()
 {
 	sprintf_s(name, STRMAX, ("BezierPatchC0 - " + std::to_string(idx++) + " " + gen_random(10, idx)).c_str());
@@ -140,9 +142,9 @@ void BezierPatchC0::ReplaceInParent(Point* oldPoint, Point* newPoint)
 	}
 }
 
-std::vector<std::vector<std::vector<Point*>>> BezierPatchC0::GetAllPatches()
+std::vector<SinglePatch> BezierPatchC0::GetAllPatches()
 {
-	std::vector<std::vector<std::vector<Point*>>> res;
+	std::vector<SinglePatch> res;
 	int stride = 3 * n + 1;
 	for (int i = 0; i < m; ++i)
 	{
@@ -159,7 +161,10 @@ std::vector<std::vector<std::vector<Point*>>> BezierPatchC0::GetAllPatches()
 				}
 				patch.push_back(line);
 			}
-			res.push_back(patch);
+			SinglePatch sp;
+			sp.bezier = this;
+			sp.patch = patch;
+			res.push_back(sp);
 		}
 	}
 	return res;
@@ -220,6 +225,11 @@ void BezierPatchC0::Draw()
 void BezierPatchC0::CleanUp()
 {
 	ClearPoints();
+	while (holes.size() > 0)
+	{
+		holes[0]->Delete();
+		holes.erase(holes.begin());
+	}
 	delete pointsLines;
 }
 

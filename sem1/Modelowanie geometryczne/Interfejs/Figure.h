@@ -8,13 +8,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Shader.h"
-#include "Math.h"
+#include "Program.h"
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
 enum class FigureType
 {
-	Torus, Point, MiddlePoint, Cursor, BezierCurveC0, PointsLine, BezierCurveC2, InterpolationCurveC2, BezierPatchC0, BezierPatchC2, GregoryPatch
+	Torus, Point, MiddlePoint, Cursor, BezierCurveC0, PointsLine, BezierCurveC2, InterpolationCurveC2, BezierPatchC0, BezierPatchC2, GregoryPatch, Hole
 };
 
 class Program;

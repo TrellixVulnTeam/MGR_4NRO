@@ -28,25 +28,10 @@ void GregoryPatch::Initialize(Program* _program)
 
 void GregoryPatch::ClearPoints()
 {
-	//for (int i = 0; i < points.size(); ++i)
-	//{
-	//	points[i]->Unpin(this);
-	//	if (!points[i]->HasParent()) points[i]->toDel = true;
-	//}
-	//int n = program->figures.size();
-	//for (int i = 0; i < n; ++i)
-	//{
-	//	if (program->figures[i]->figureType == FigureType::Point)
-	//	{
-	//		if (((Point*)program->figures[i])->toDel)
-	//		{
-	//			delete program->figures[i];
-	//			program->figures.erase(program->figures.begin() + i);
-	//			i--;
-	//			n--;
-	//		}
-	//	}
-	//}
+	for (int i = 0; i < points.size(); ++i)
+	{
+		delete points[i];
+	}
 }
 
 void GregoryPatch::GeneratePoints()
@@ -166,24 +151,14 @@ void GregoryPatch::GeneratePoints()
 	points.push_back(p);
 }
 
-void GregoryPatch::ReplaceInParent(Point* oldPoint, Point* newPoint)
+void GregoryPatch::UpdateMesh(std::vector<glm::vec3> positions)
 {
-	for (int i = 0; i < points.size(); ++i)
+	for (int i = 0; i < 20; ++i)
 	{
-		if (points[i] == oldPoint)
-		{
-			points[i] = newPoint;
-			Recalc();
-			newPoint->AddParent(this);
-		}
+		auto pos = positions[i];
+		points[i]->MoveTo(pos.x, pos.y, pos.z);
 	}
-	for (int i = 0; i < pointsLines->points.size(); ++i)
-	{
-		if (pointsLines->points[i] == oldPoint)
-		{
-			pointsLines->points[i] = newPoint;
-		}
-	}
+	Recalc();
 }
 
 void GregoryPatch::Draw()

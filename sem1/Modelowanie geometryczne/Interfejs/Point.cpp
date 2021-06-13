@@ -3,6 +3,7 @@
 #include <string>
 #include "SomeCurve.h"
 #include "SomePatch.h"
+#include "Hole.h"
 
 Point::Point(bool addIndex) : Figure()
 {
@@ -87,6 +88,10 @@ void Point::RecalcParent()
 		if (parents[i]->isPatch)
 		{
 			((SomePatch*)parents[i])->Recalc();
+		}
+		if (parents[i]->figureType == FigureType::Hole)
+		{
+			((Hole*)parents[i])->Recalc();
 		}
 	}
 }

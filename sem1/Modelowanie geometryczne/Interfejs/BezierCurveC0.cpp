@@ -1,4 +1,5 @@
 #include "BezierCurveC0.h"
+#include "Math.h"
 #include "imgui\imgui.h"
 #include <string>
 

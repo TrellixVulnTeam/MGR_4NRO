@@ -1,6 +1,6 @@
 #include "Tools.h"
-#include "Figure.h"
-#include "Point.h"
+#include "Math.h"
+#include "Hole.h"
 
 void Collapse(Program* program)
 {
@@ -79,6 +79,17 @@ void CreateGregory(Program* program)
 
 	if (res.size() > 0)
 	{
+		std::vector<std::vector<std::vector<Point*>>> rr;
+		rr.push_back(res[0].patch);
+		rr.push_back(res[1].patch);
+		rr.push_back(res[2].patch);
+		Hole* h = new Hole(rr);
+		h->Initialize(program);
+		res[0].bezier->AddHole(h);
+		res[1].bezier->AddHole(h);
+		res[2].bezier->AddHole(h);
+
+		program->figures.push_back((Figure*)h);
 		std::cout << "Can Merge\n";
 	}
 	else
@@ -87,7 +98,7 @@ void CreateGregory(Program* program)
 	}
 }
 
-std::vector<std::vector<std::vector<Point*>>> CheckIfCanMerge(Program* program, std::vector<BezierPatchC0*> patches)
+std::vector<SinglePatch> CheckIfCanMerge(Program* program, std::vector<BezierPatchC0*> patches)
 {
 
 	auto patches0 = patches[0]->GetAllPatches();
@@ -104,7 +115,7 @@ std::vector<std::vector<std::vector<Point*>>> CheckIfCanMerge(Program* program, 
 }
 
 
-std::vector<std::vector<std::vector<Point*>>> CanMerge(std::vector<std::vector<Point*>> patch0, std::vector<std::vector<Point*>> patch1, std::vector<std::vector<Point*>> patch2)
+std::vector<SinglePatch> CanMerge(SinglePatch patch0, SinglePatch patch1, SinglePatch patch2)
 {
 	for (int i = 0; i < 8; ++i)
 	{
@@ -112,29 +123,29 @@ std::vector<std::vector<std::vector<Point*>>> CanMerge(std::vector<std::vector<P
 		{
 			for (int k = 0; k < 8; ++k)
 			{
-				if (patch0[0][3] == patch1[0][0] && patch1[0][3] == patch2[0][0] && patch2[0][3] == patch0[0][0])
+				if (patch0.patch[0][3] == patch1.patch[0][0] && patch1.patch[0][3] == patch2.patch[0][0] && patch2.patch[0][3] == patch0.patch[0][0])
 				{
-					auto res = std::vector<std::vector<std::vector<Point*>>>();
+					auto res = std::vector<SinglePatch>();
 					res.push_back(patch0);
 					res.push_back(patch1);
 					res.push_back(patch2);
 					return res;
 				}
 
-				patch2 = Swap(patch2);
+				patch2.patch = Swap(patch2.patch);
 				if (k % 2 == 1)
-					patch2 = Rotate(patch2);
+					patch2.patch = Rotate(patch2.patch);
 			}
-			patch1 = Swap(patch1);
+			patch1.patch = Swap(patch1.patch);
 			if (j % 2 == 1)
-				patch1 = Rotate(patch1);
+				patch1.patch = Rotate(patch1.patch);
 		}
-		patch0 = Swap(patch0);
+		patch0.patch = Swap(patch0.patch);
 		if (i % 2 == 1)
-			patch0 = Rotate(patch0);
+			patch0.patch = Rotate(patch0.patch);
 	}
 
-	return std::vector<std::vector<std::vector<Point*>>>();
+	return std::vector<SinglePatch>();
 }
 
 std::vector<std::vector<Point*>> Rotate(std::vector<std::vector<Point*>> patch)

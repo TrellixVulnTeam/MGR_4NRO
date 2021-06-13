@@ -111,6 +111,9 @@
     <ClCompile Include="GregoryPatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Hole.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="processing.h">
@@ -195,6 +198,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GregoryPatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

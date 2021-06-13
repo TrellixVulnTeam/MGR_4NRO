@@ -1,5 +1,6 @@
 #include "Cursor.h"
 #include "imgui\imgui.h"
+#include "Math.h"
 #include <string>
 
 Cursor::Cursor() : Figure()

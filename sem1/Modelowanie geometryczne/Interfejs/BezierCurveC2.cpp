@@ -1,5 +1,6 @@
 #include "BezierCurveC2.h"
 #include "imgui\imgui.h"
+#include "Math.h"
 #include <string>
 
 BezierCurveC2::BezierCurveC2() : SomeCurve()

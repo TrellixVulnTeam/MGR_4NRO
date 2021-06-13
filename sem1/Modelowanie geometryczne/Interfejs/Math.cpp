@@ -1,4 +1,5 @@
 #include"Math.h"
+#include"GregoryPatch.h"
 float DeCasteljau(std::vector<float> coeffs, float t)
 {
 	std::vector<float> coeffs_t(coeffs);
@@ -42,8 +43,8 @@ void PowerToBernsteinBasis(glm::vec4& power, glm::vec4& bernstein)
 {
 	glm::mat4x4 matrix = {
 		1,1,1,1,
-		0,1.0f/3,2.0f/3,1,
-		0,0,1.0f/3,1,
+		0,1.0f / 3,2.0f / 3,1,
+		0,0,1.0f / 3,1,
 		0,0,0,1
 	};
 	bernstein = matrix * power;

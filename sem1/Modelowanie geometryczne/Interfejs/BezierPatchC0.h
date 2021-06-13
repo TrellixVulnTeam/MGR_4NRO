@@ -2,6 +2,14 @@
 #include "SomePatch.h"
 #include "Point.h"
 #include "PointsLine.h"
+#include "Hole.h"
+
+class BezierPatchC0;
+struct SinglePatch
+{
+	BezierPatchC0* bezier;
+	std::vector<std::vector<Point*>> patch;
+};
 
 class BezierPatchC0 : public SomePatch
 {
@@ -14,11 +22,13 @@ public:
 	void virtual Initialize(Program* _program) override;
 	void virtual RecalcFigure() override;
 	void virtual ReplaceInParent(Point* oldPoint, Point* newPoint) override;
-	std::vector<std::vector<std::vector<Point*>>> GetAllPatches();
+	std::vector<SinglePatch> GetAllPatches();
+	void AddHole(Hole* h) { holes.push_back(h); }
 private:
 	void AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii);
 	void GeneratePoints();
 	void ClearPoints();
 	bool virtual Create() override;
+	std::vector<Hole*> holes;
 };
 

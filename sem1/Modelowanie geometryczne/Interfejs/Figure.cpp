@@ -2,7 +2,7 @@
 #include "imgui/imgui.h"
 #include "SomeCurve.h"
 #include "SomePatch.h"
-
+#include "Math.h"
 
 int Figure::idx = 0;
 
@@ -36,6 +36,7 @@ void Figure::RecalcModel()
 
 bool Figure::GetGui(int i, Figure* par)
 {
+	if (figureType == FigureType::Hole) return GetGuiInternal(par);
 	bool to_ret = false;
 	std::string t(name);
 	std::string s;
@@ -56,7 +57,7 @@ bool Figure::GetGui(int i, Figure* par)
 			}
 			ImGui::EndPopup();
 		}
-		if (figureType != FigureType::Cursor)
+		if (figureType != FigureType::Cursor && figureType != FigureType::GregoryPatch)
 		{
 			ImGui::Checkbox("Selected", &selected);
 			if (selected && !selected_old && figureType == FigureType::BezierCurveC0)
