@@ -16,6 +16,7 @@ public:
 	std::vector<Point*> points;
 private:
 	bool first = true;
+	bool drawPoints = true, draw = true, drawLine = false;
 	int splitA = 4, splitB = 4;
 	PointsLines* pointsLines;
 	void GeneratePoints();

@@ -36,6 +36,7 @@ void Figure::RecalcModel()
 
 bool Figure::GetGui(int i, Figure* par)
 {
+	if (!showInGui) return false;
 	if (figureType == FigureType::Hole) return GetGuiInternal(par);
 	bool to_ret = false;
 	std::string t(name);

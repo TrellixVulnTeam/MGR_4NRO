@@ -15,6 +15,15 @@ bool GregoryPatch::GetGuiInternal(Figure* par)
 {
 	ImGui::SliderInt("Split A", &splitA, 1, 100);
 	ImGui::SliderInt("Split B", &splitB, 1, 100);
+	ImGui::Checkbox("Draw points", &drawPoints);
+	ImGui::Checkbox("Draw line", &drawLine);
+	ImGui::Checkbox("Draw", &draw);
+	if (ImGui::Button("Delete"))
+	{
+		draw = false;
+		drawPoints = false;
+		showInGui = false;
+	}
 	return false;
 }
 
@@ -149,6 +158,7 @@ void GregoryPatch::GeneratePoints()
 	p->Initialize(program);
 	p->MoveTo(0.75f, 0.75f, 0.0f);
 	points.push_back(p);
+
 }
 
 void GregoryPatch::UpdateMesh(std::vector<glm::vec3> positions)
@@ -164,20 +174,24 @@ void GregoryPatch::UpdateMesh(std::vector<glm::vec3> positions)
 void GregoryPatch::Draw()
 {
 	Figure::Draw();
-	
-	glPatchParameteri(GL_PATCH_VERTICES, 20);
 
-	int xLoc = glGetUniformLocation(shader.ID, "x");
-	glUniform1f(xLoc, splitA);
+	if (draw) {
+		glPatchParameteri(GL_PATCH_VERTICES, 20);
 
-	int yLoc = glGetUniformLocation(shader.ID, "y");
-	glUniform1f(yLoc, splitB);
+		int xLoc = glGetUniformLocation(shader.ID, "x");
+		glUniform1f(xLoc, splitA);
 
-	glDrawElements(GL_PATCHES, indices.size(), GL_UNSIGNED_INT, 0);
+		int yLoc = glGetUniformLocation(shader.ID, "y");
+		glUniform1f(yLoc, splitB);
 
-	glBindVertexArray(0);
+		glDrawElements(GL_PATCHES, indices.size(), GL_UNSIGNED_INT, 0);
 
-	for (int i = 0; i < points.size(); ++i) points[i]->Draw();
+		glBindVertexArray(0);
+		if (drawPoints)
+			for (int i = 0; i < points.size(); ++i) points[i]->Draw();
+		if (drawLine)
+			pointsLines->Draw();
+	}
 }
 
 void GregoryPatch::CleanUp()
@@ -192,7 +206,7 @@ bool GregoryPatch::Create()
 	if (!fCreate && !first) return false;
 	if (points.size() == 0) return false;
 	first = false;
-	//pointsLines->RecalcFigure();
+	pointsLines->RecalcFigure();
 	vertices.clear();
 	indices.clear();
 	for (int i = 0; i < 20; ++i)

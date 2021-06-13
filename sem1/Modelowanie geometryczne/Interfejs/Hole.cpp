@@ -143,9 +143,9 @@ void Hole::Draw()
 		//12
 		gregory0.push_back(innerR[right][0]);
 		//13
-		gregory0.push_back(innerS[left][0]);
+		gregory0.push_back(innerS[right][0]);
 		//14
-		gregory0.push_back(innerS[left][0]);
+		gregory0.push_back(innerS[right][0]);
 		//15
 		gregory0.push_back(P2i[right]);
 		//16
@@ -189,9 +189,9 @@ void Hole::Draw()
 		//12
 		gregory1.push_back(innerR[right][0]);
 		//13
-		gregory1.push_back(innerS[left][0]);
+		gregory1.push_back(innerS[right][0]);
 		//14
-		gregory1.push_back(innerS[left][0]);
+		gregory1.push_back(innerS[right][0]);
 		//15
 		gregory1.push_back(P2i[right]);
 		//16
@@ -235,9 +235,9 @@ void Hole::Draw()
 		//12
 		gregory2.push_back(innerR[right][0]);
 		//13
-		gregory2.push_back(innerS[left][0]);
+		gregory2.push_back(innerS[right][0]);
 		//14
-		gregory2.push_back(innerS[left][0]);
+		gregory2.push_back(innerS[right][0]);
 		//15
 		gregory2.push_back(P2i[right]);
 		//16

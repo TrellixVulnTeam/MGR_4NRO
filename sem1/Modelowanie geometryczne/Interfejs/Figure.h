@@ -97,6 +97,7 @@ protected:
 
 		return tmp_s;
 	}
+	bool showInGui = true;
 private:
 	bool selected_old = false;
 };

@@ -111,14 +111,15 @@ std::vector<std::vector<SinglePatch>> CheckIfCanMerge(Program* program, std::vec
 			for (int k = j + 1; k < patches.size(); ++k)
 			{
 				auto merge = CanMerge(patches[i], patches[j], patches[k]);
-				if (merge.size() > 0) res.push_back(merge);
+				res.insert(res.end(), merge.begin(), merge.end());
 			}
 	return res;
 }
 
 
-std::vector<SinglePatch> CanMerge(SinglePatch patch0, SinglePatch patch1, SinglePatch patch2)
+std::vector<std::vector<SinglePatch>> CanMerge(SinglePatch patch0, SinglePatch patch1, SinglePatch patch2)
 {
+	std::vector<std::vector<SinglePatch>> res;
 	for (int i = 0; i < 8; ++i)
 	{
 		for (int j = 0; j < 8; ++j)
@@ -127,11 +128,11 @@ std::vector<SinglePatch> CanMerge(SinglePatch patch0, SinglePatch patch1, Single
 			{
 				if (patch0.patch[0][3] == patch1.patch[0][0] && patch1.patch[0][3] == patch2.patch[0][0] && patch2.patch[0][3] == patch0.patch[0][0])
 				{
-					auto res = std::vector<SinglePatch>();
-					res.push_back(patch0);
-					res.push_back(patch1);
-					res.push_back(patch2);
-					return res;
+					auto ress = std::vector<SinglePatch>();
+					ress.push_back(patch0);
+					ress.push_back(patch1);
+					ress.push_back(patch2);
+					res.push_back(ress);
 				}
 
 				patch2.patch = Swap(patch2.patch);
@@ -147,7 +148,7 @@ std::vector<SinglePatch> CanMerge(SinglePatch patch0, SinglePatch patch1, Single
 			patch0.patch = Rotate(patch0.patch);
 	}
 
-	return std::vector<SinglePatch>();
+	return res;
 }
 
 std::vector<std::vector<Point*>> Rotate(std::vector<std::vector<Point*>> patch)
