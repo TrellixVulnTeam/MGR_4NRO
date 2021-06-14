@@ -159,6 +159,55 @@ void GregoryPatch::GeneratePoints()
 	p->MoveTo(0.75f, 0.75f, 0.0f);
 	points.push_back(p);
 
+	pointsLines->AddPoint(points[1]);
+	pointsLines->AddPoint(points[6]);
+
+	pointsLines->AddPoint(points[4]);
+	pointsLines->AddPoint(points[5]);
+
+	pointsLines->AddPoint(points[2]);
+	pointsLines->AddPoint(points[7]);
+
+	pointsLines->AddPoint(points[10]);
+	pointsLines->AddPoint(points[11]);
+
+	pointsLines->AddPoint(points[8]);
+	pointsLines->AddPoint(points[9]);
+
+	pointsLines->AddPoint(points[12]);
+	pointsLines->AddPoint(points[17]);
+
+	pointsLines->AddPoint(points[13]);
+	pointsLines->AddPoint(points[18]);
+
+	pointsLines->AddPoint(points[14]);
+	pointsLines->AddPoint(points[15]);
+
+
+	pointsLines->AddPoint(points[0]);
+	pointsLines->AddPoint(points[1]);
+	pointsLines->AddPoint(points[1]);
+	pointsLines->AddPoint(points[2]);
+	pointsLines->AddPoint(points[2]);
+	pointsLines->AddPoint(points[3]);
+	pointsLines->AddPoint(points[3]);
+	pointsLines->AddPoint(points[9]);
+	pointsLines->AddPoint(points[9]);
+	pointsLines->AddPoint(points[15]);
+	pointsLines->AddPoint(points[15]);
+	pointsLines->AddPoint(points[19]);
+	pointsLines->AddPoint(points[19]);
+	pointsLines->AddPoint(points[18]);
+	pointsLines->AddPoint(points[18]);
+	pointsLines->AddPoint(points[17]);
+	pointsLines->AddPoint(points[17]);
+	pointsLines->AddPoint(points[16]);
+	pointsLines->AddPoint(points[16]);
+	pointsLines->AddPoint(points[10]);
+	pointsLines->AddPoint(points[10]);
+	pointsLines->AddPoint(points[4]);
+	pointsLines->AddPoint(points[4]);
+	pointsLines->AddPoint(points[0]);
 }
 
 void GregoryPatch::UpdateMesh(std::vector<glm::vec3> positions)
