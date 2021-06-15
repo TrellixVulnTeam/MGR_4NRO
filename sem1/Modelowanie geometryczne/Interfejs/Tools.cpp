@@ -128,11 +128,28 @@ std::vector<std::vector<SinglePatch>> CanMerge(SinglePatch patch0, SinglePatch p
 			{
 				if (patch0.patch[0][3] == patch1.patch[0][0] && patch1.patch[0][3] == patch2.patch[0][0] && patch2.patch[0][3] == patch0.patch[0][0])
 				{
-					auto ress = std::vector<SinglePatch>();
-					ress.push_back(patch0);
-					ress.push_back(patch1);
-					ress.push_back(patch2);
-					res.push_back(ress);
+					bool isOk = true;
+					Point* p1 = patch0.patch[0][0];
+					Point* p2 = patch1.patch[0][0];
+					Point* p3 = patch2.patch[0][0];
+
+					for (int a = 0; a < p1->parents.size(); ++a)
+						if (p1->parents[a]->figureType == FigureType::Hole)
+							for (int b = 0; b < p2->parents.size(); ++b)
+								if (p2->parents[b]->figureType == FigureType::Hole)
+									for (int c = 0; c < p3->parents.size(); ++c)
+										if (p3->parents[c]->figureType == FigureType::Hole)
+											if (p1->parents[a] == p2->parents[b] && p1->parents[a] == p3->parents[c])
+												isOk = false;
+
+					if (isOk)
+					{
+						auto ress = std::vector<SinglePatch>();
+						ress.push_back(patch0);
+						ress.push_back(patch1);
+						ress.push_back(patch2);
+						res.push_back(ress);
+					}
 				}
 
 				patch2.patch = Swap(patch2.patch);

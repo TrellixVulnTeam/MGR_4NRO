@@ -280,6 +280,21 @@ void Hole::CleanUp()
 
 }
 
+void Hole::ReplaceInParent(Point* oldPoint, Point* newPoint)
+{
+	for (int i = 0; i < 3; ++i)
+		for (int j = 0; j < 4; ++j)
+			for (int k = 0; k < 4; ++k)
+			{
+				if (hole[i][j][k] == oldPoint)
+				{
+					hole[i][j][k] = newPoint;
+					Recalc();
+					newPoint->AddParent(this);
+				}
+			}
+}
+
 void Hole::ClearPoints()
 {
 	for (int i = 0; i < 3; ++i)

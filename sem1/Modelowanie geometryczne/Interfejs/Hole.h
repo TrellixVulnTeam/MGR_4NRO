@@ -14,6 +14,7 @@ public:
 	void virtual RecalcFigure() override {};
 	void Delete() { toDelete = true; }
 	void virtual CleanUp() override;
+	void virtual ReplaceInParent(Point* oldPoint, Point* newPoint);
 private:
 	Program* program;
 	std::vector<std::vector<std::vector<Point*>>> hole;

@@ -62,6 +62,7 @@ public:
 	bool isCurve = false;
 	bool isPatch = false;
 	void virtual CleanUp();
+	std::vector<Figure*> parents;
 protected:
 	virtual bool Create();
 	void RecalcModel();
@@ -72,7 +73,6 @@ protected:
 	bool selected = false;
 	bool canMove = true;
 	bool virtual GetGuiInternal(Figure* par) = 0;
-	std::vector<Figure*> parents;
 	std::vector<int> parents_cnt;
 	Program* program = NULL;
 	Shader shader;

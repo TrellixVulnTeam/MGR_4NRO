@@ -8,7 +8,7 @@
 Point::Point(bool addIndex) : Figure()
 {
 	if (addIndex)
-		sprintf_s(name, STRMAX, ("Point - " + std::to_string(idx++) + " " + gen_random(10,idx)).c_str());
+		sprintf_s(name, STRMAX, ("Point - " + std::to_string(idx++) + " " + gen_random(10, idx)).c_str());
 	else
 		sprintf_s(name, STRMAX, "Point");
 	figureType = FigureType::Point;
@@ -115,15 +115,19 @@ void Point::AddParent(Figure* par)
 
 void Point::ReplaceInParents(Point* newPoint)
 {
-	for(int i=0;i<parents.size();++i)
+	for (int i = 0; i < parents.size(); ++i)
 	{
-		if (parents[0]->isCurve)
+		if (parents[i]->isCurve)
 		{
-			((SomeCurve*)parents[0])->ReplaceInParent(this, newPoint);
+			((SomeCurve*)parents[i])->ReplaceInParent(this, newPoint);
 		}
-		if (parents[0]->isPatch)
+		if (parents[i]->isPatch)
 		{
-			((SomePatch*)parents[0])->ReplaceInParent(this, newPoint);
+			((SomePatch*)parents[i])->ReplaceInParent(this, newPoint);
+		}
+		if (parents[i]->figureType == FigureType::Hole)
+		{
+			((Hole*)parents[i])->ReplaceInParent(this, newPoint);
 		}
 	}
 	parents.clear();
