@@ -129,18 +129,15 @@ std::vector<std::vector<SinglePatch>> CanMerge(SinglePatch patch0, SinglePatch p
 				if (patch0.patch[0][3] == patch1.patch[0][0] && patch1.patch[0][3] == patch2.patch[0][0] && patch2.patch[0][3] == patch0.patch[0][0])
 				{
 					bool isOk = true;
-					Point* p1 = patch0.patch[0][0];
-					Point* p2 = patch1.patch[0][0];
-					Point* p3 = patch2.patch[0][0];
+					BezierPatchC0* b1 = patch0.bezier;
+					BezierPatchC0* b2 = patch1.bezier;
+					BezierPatchC0* b3 = patch2.bezier;
 
-					for (int a = 0; a < p1->parents.size(); ++a)
-						if (p1->parents[a]->figureType == FigureType::Hole)
-							for (int b = 0; b < p2->parents.size(); ++b)
-								if (p2->parents[b]->figureType == FigureType::Hole)
-									for (int c = 0; c < p3->parents.size(); ++c)
-										if (p3->parents[c]->figureType == FigureType::Hole)
-											if (p1->parents[a] == p2->parents[b] && p1->parents[a] == p3->parents[c])
-												isOk = false;
+					for (int a = 0; a < b1->holes.size(); ++a)
+						for (int b = 0; b < b2->holes.size(); ++b)
+							for (int c = 0; c < b3->holes.size(); ++c)
+								if (b1->holes[a] == b2->holes[b] && b1->holes[a] == b3->holes[c])
+									isOk = false;
 
 					if (isOk)
 					{

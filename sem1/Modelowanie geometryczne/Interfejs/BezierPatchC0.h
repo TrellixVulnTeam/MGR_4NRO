@@ -24,11 +24,11 @@ public:
 	void virtual ReplaceInParent(Point* oldPoint, Point* newPoint) override;
 	std::vector<SinglePatch> GetAllPatches();
 	void AddHole(Hole* h) { holes.push_back(h); }
+	std::vector<Hole*> holes;
 private:
 	void AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii);
 	void GeneratePoints();
 	void ClearPoints();
 	bool virtual Create() override;
-	std::vector<Hole*> holes;
 };
 
