@@ -116,7 +116,6 @@ std::vector<std::vector<SinglePatch>> CheckIfCanMerge(Program* program, std::vec
 	return res;
 }
 
-
 std::vector<std::vector<SinglePatch>> CanMerge(SinglePatch patch0, SinglePatch patch1, SinglePatch patch2)
 {
 	std::vector<std::vector<SinglePatch>> res;
@@ -197,4 +196,84 @@ std::vector<std::vector<Point*>> Swap(std::vector<std::vector<Point*>> patch)
 	}
 
 	return newPatch;
+}
+
+void Clear(Program* program)
+{
+	int n = program->figures.size();
+	bool patchExists = false;
+	do
+	{
+		patchExists = false;
+		n = program->figures.size();
+		for (int i = 0; i < n; ++i)
+		{
+			if (program->figures[i]->figureType == FigureType::BezierPatchC0
+				|| program->figures[i]->figureType == FigureType::BezierPatchC2)
+			{
+				Figure* f = program->figures[i];
+				program->figures.erase(program->figures.begin() + i);
+				f->CleanUp();
+				delete f;
+				patchExists = true;
+				break;
+			}
+		}
+	} while (patchExists);
+
+	bool holeExists = false;
+	do
+	{
+		holeExists = false;
+		n = program->figures.size();
+		for (int i = 0; i < n; ++i)
+		{
+			if (program->figures[i]->figureType == FigureType::Hole)
+			{
+				Figure* f = program->figures[i];
+				program->figures.erase(program->figures.begin() + i);
+				f->CleanUp();
+				delete f;
+				holeExists = true;
+				break;
+			}
+		}
+	} while (holeExists);
+
+	bool lineExists = false;
+	do
+	{
+		lineExists = false;
+		n = program->figures.size();
+		for (int i = 0; i < n; ++i)
+		{
+			if (program->figures[i]->figureType == FigureType::BezierCurveC0
+				|| program->figures[i]->figureType == FigureType::BezierCurveC2
+				|| program->figures[i]->figureType == FigureType::InterpolationCurveC2)
+			{
+				Figure* f = program->figures[i];
+				program->figures.erase(program->figures.begin() + i);
+				f->CleanUp();
+				delete f;
+				lineExists = true;
+				break;
+			}
+		}
+	} while (lineExists);
+
+	for (int i = 0; i < n; ++i)
+	{
+		if (
+			program->figures[i]->figureType != FigureType::Cursor &&
+			program->figures[i]->figureType != FigureType::MiddlePoint
+			)
+		{
+			Figure* f = program->figures[i];
+			program->figures.erase(program->figures.begin() + i);
+			f->CleanUp();
+			delete f;
+			i--;
+			n--;
+		}
+	}
 }

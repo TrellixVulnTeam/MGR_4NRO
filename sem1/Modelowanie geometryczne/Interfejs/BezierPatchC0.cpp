@@ -122,6 +122,44 @@ void BezierPatchC0::GeneratePoints()
 	}
 }
 
+glm::vec3 BezierPatchC0::GetParametrizedPos(float u, float v)
+{
+	int w = 3 * n + 1;
+
+	float patchLength = 1.0f / n;
+	float patchWidth = 1.0f / m;
+
+	int p_i = (int)(u / patchWidth);
+	int p_j = (int)(v / patchLength);
+
+	u = fmod(u, patchWidth) / patchWidth;
+	v = fmod(v, patchLength) / patchLength;
+
+	int start = 3 * p_i * w + 3 * p_j;
+
+	std::vector<std::vector<glm::vec3>> patch;
+
+	std::vector<glm::vec3> m;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		std::vector<glm::vec3> vv;
+		for (int j = 0; j < 4; ++j)
+		{
+			vv.push_back(points[start + j]->GetPos());
+		}
+		start += w;
+		patch.push_back(vv);
+	}
+
+	for (int i = 0; i < 4; ++i)
+	{
+		m.push_back(DeCasteljau(patch[i], v));
+	}
+
+	return DeCasteljau(m, u);
+}
+
 void BezierPatchC0::ReplaceInParent(Point* oldPoint, Point* newPoint)
 {
 	for (int i = 0; i < points.size(); ++i)

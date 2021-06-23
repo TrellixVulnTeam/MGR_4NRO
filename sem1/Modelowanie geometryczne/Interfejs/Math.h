@@ -2,8 +2,8 @@
 #include <vector>
 #include "Camera.h"
 #include "Program.h"
-float DeCasteljau(std::vector<float> coeffs, float t);
-
+glm::vec3 DeCasteljau(std::vector<glm::vec3> coeffs, float t);
+glm::vec3 DeBoor(float t, glm::vec3 B0_, glm::vec3 B1_, glm::vec3 B2_, glm::vec3 B3_);
 glm::ivec3 GetScreenPos(Program* program, glm::vec4 pos);
 
 void DeBoorToBernstein(float a,float b, float c, float d, glm::vec4& bernsteins);

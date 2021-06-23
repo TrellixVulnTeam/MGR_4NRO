@@ -9,3 +9,4 @@ std::vector<std::vector<SinglePatch>> CheckIfCanMerge(Program* program, std::vec
 std::vector<std::vector<SinglePatch>> CanMerge(SinglePatch patch0, SinglePatch patch1, SinglePatch patch2);
 std::vector<std::vector<Point*>> Rotate(std::vector<std::vector<Point*>> patch);
 std::vector<std::vector<Point*>> Swap(std::vector<std::vector<Point*>> patch);
+void Clear(Program* program);

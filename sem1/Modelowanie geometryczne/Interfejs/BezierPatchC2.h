@@ -2,6 +2,7 @@
 #include "SomePatch.h"
 #include "Point.h"
 #include "PointsLine.h"
+#include "Math.h"
 
 class BezierPatchC2 : public SomePatch
 {
@@ -14,6 +15,7 @@ public:
 	void virtual Initialize(Program* _program) override;
 	void virtual RecalcFigure() override;
 	void virtual ReplaceInParent(Point* oldPoint, Point* newPoint) override;
+	glm::vec3 GetParametrizedPos(float u, float v);
 private:
 	void AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii);
 	void GeneratePoints();

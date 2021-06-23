@@ -3,6 +3,7 @@
 #include "Point.h"
 #include "PointsLine.h"
 #include "Hole.h"
+#include "Math.h"
 
 class BezierPatchC0;
 struct SinglePatch
@@ -25,6 +26,7 @@ public:
 	std::vector<SinglePatch> GetAllPatches();
 	void AddHole(Hole* h) { holes.push_back(h); }
 	std::vector<Hole*> holes;
+	glm::vec3 GetParametrizedPos(float u, float v);
 private:
 	void AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii);
 	void GeneratePoints();
