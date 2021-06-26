@@ -962,7 +962,6 @@ void AA(unsigned int &texName)
 	int i, j, c;
 	for (i = 0; i < checkImageHeight; i++) {
 		for (j = 0; j < checkImageWidth; j++) {
-			c = ((((i & 0x8) == 0) ^ ((j & 0x8)) == 0)) * 255;
 			int w = 255;
 			if (glm::distance(glm::vec2(500, 500), glm::vec2(i, j)) < 400) 
 				w = 0;
