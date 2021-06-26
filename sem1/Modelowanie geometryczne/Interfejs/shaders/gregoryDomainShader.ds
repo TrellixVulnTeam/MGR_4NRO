@@ -4,7 +4,7 @@ layout( quads, equal_spacing,cw) in;
 
 uniform mat4 persp;
 uniform mat4 view;
-out vec3 fColor;
+out vec4 fColor;
 vec4 DeCasteljau(vec4 coeffs_t[4], float t, int vertices)
 {
 	for (int i = vertices; i > 0; --i)
@@ -19,7 +19,7 @@ vec4 DeCasteljau(vec4 coeffs_t[4], float t, int vertices)
 
 void main( )
 {
-fColor = vec3(0.0f,0.0f,0.0f);
+fColor = vec4(0.0f,0.0f,0.0f,0.5f);
 	float u = gl_TessCoord.x;
 	float v = gl_TessCoord.y;
 

@@ -10,7 +10,7 @@ in VS_OUT {
     vec3 color;
 } gs_in[4];
 
-out vec3 fColor;
+out vec4 fColor;
   
 float DeCasteljau(float coeffs_t[4], float t, int vertices)
 {
@@ -25,7 +25,7 @@ float DeCasteljau(float coeffs_t[4], float t, int vertices)
 }
 
 void main() {    
-    fColor=vec3(1.0f,1.0f,1.0f);//gs_in[0].color;
+    fColor=vec4(1.0f,1.0f,1.0f,0.5f);//gs_in[0].color;
     float coeffs_x[4];
     float coeffs_y[4];
     float coeffs_z[4];

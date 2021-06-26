@@ -11,7 +11,46 @@ Torus::Torus() : Figure()
 void Torus::Initialize(Program* _program)
 {
 	Figure::Initialize(_program);
+
+	shader = Shader(program->trimShader);
 }
+
+void Torus::RecalcFigure()
+{
+	if (Create()) {
+		glBindVertexArray(VAO);
+
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			vertices.size() * sizeof(float),
+			&vertices[0],
+			GL_STATIC_DRAW
+		);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+		glBufferData(
+			GL_ELEMENT_ARRAY_BUFFER,
+			indices.size() * sizeof(unsigned int),
+			&indices[0],
+			GL_STATIC_DRAW
+		);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+
+		glBindVertexArray(0);
+	}
+}
+
 
 bool Torus::GetGuiInternal(Figure* par)
 {
@@ -19,8 +58,8 @@ bool Torus::GetGuiInternal(Figure* par)
 
 	if (ImGui::TreeNode("Size"))
 	{
-		ImGui::SliderInt("n", &n_new, 5, 50);
-		ImGui::SliderInt("m", &m_new, 5, 50);
+		ImGui::SliderInt("n", &n_new, 5, 100);
+		ImGui::SliderInt("m", &m_new, 5, 100);
 		ImGui::SliderFloat("r", &r_new, 0.1f, 5.0f);
 		ImGui::SliderFloat("R", &R_new, 0.3f, 10.0f);
 		ImGui::TreePop();
@@ -31,6 +70,13 @@ bool Torus::GetGuiInternal(Figure* par)
 void Torus::Draw()
 {
 	Figure::Draw();
+
+	auto texLocation = glGetUniformLocation(shader.ID, "trimTexture");
+
+	glUniform1i(texLocation, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, program->testTex);
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
@@ -117,7 +163,7 @@ bool Torus::Create()
 	float R = R_new;
 
 	vertices.clear();
-	for (int i = 0; i < n * m * 6; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < n * m * 8; ++i) vertices.push_back(0.0f);
 	indices.clear();
 	for (int i = 0; i < 4 * n * m; ++i)indices.push_back(0);
 
@@ -129,7 +175,7 @@ bool Torus::Create()
 		for (int j = 0; j < n; ++j)
 		{
 			int idx = i * n + j;
-			int idx1 = idx * 6;
+			int idx1 = idx * 8;
 			int idx2 = idx * 4;
 			float beta = j * (2 * M_PI) / n;
 			float cosb = cos(beta);
@@ -145,6 +191,8 @@ bool Torus::Create()
 			vertices[idx1 + 3] = selected ? 0.0f : 1.0f;
 			vertices[idx1 + 4] = selected ? 1.0f : 1.0f;
 			vertices[idx1 + 5] = selected ? 0.0f : 1.0f;
+			vertices[idx1 + 6] = ((float)i) / m;
+			vertices[idx1 + 7] = ((float)j) / n;
 
 			indices[idx2] = idx;
 			if (j < n - 1)

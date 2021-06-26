@@ -223,12 +223,6 @@
     <None Include="shaders\bezierVertexShader.vs">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="textureVertexShader.vs">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="textureFragmentShader.fs">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="shaders\patchVertexShader.vs">
       <Filter>Shaders</Filter>
     </None>
@@ -245,6 +239,15 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="shaders\gregoryVertexShader.vs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\textureFragmentShader.fs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\textureVertexShader.vs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\trimVertexShader.vs">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

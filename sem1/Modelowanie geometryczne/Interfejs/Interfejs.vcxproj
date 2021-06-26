@@ -199,10 +199,6 @@
     <None Include="shaders\patchDeBoorGeometryShader.gs" />
     <None Include="shaders\patchGeometryShader.gs" />
     <None Include="shaders\patchVertexShader.vs" />
-    <None Include="textureFragmentShader.fs" />
-    <None Include="textureVertexShader.vs">
-      <FileType>Document</FileType>
-    </None>
     <ClInclude Include="GregoryPatch.h" />
     <ClInclude Include="Hole.h" />
     <ClInclude Include="imgui\imconfig.h" />
@@ -226,11 +222,14 @@
     <ClInclude Include="SomePatch.h" />
     <ClInclude Include="Tools.h" />
     <ClInclude Include="Torus.h" />
+    <None Include="shaders\textureFragmentShader.fs" />
+    <None Include="shaders\textureVertexShader.vs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\bezierGeometryShader.gs" />
     <None Include="shaders\bezierVertexShader.vs" />
     <None Include="shaders\fragShader.fs" />
+    <None Include="shaders\trimVertexShader.vs" />
     <None Include="shaders\vertexShader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

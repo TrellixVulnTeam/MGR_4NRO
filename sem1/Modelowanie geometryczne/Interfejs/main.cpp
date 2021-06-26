@@ -26,6 +26,9 @@
 #include "Serialization.h"
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
+#define checkImageWidth 1024
+#define checkImageHeight 1024
+static GLubyte checkImage[checkImageHeight][checkImageWidth][4];
 
 bool firstCall = true;
 bool rotate = false;
@@ -35,7 +38,7 @@ Program* program;
 
 void DoSmth();
 void DoSmth2();
-
+void AA(unsigned int& texName);
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
 {
 	glm::quat quat = glm::angleAxis(angle, axis);
@@ -508,11 +511,17 @@ void DrawScene()
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+	glm::mat4 persp = program->cam->GetProjectionMatrix();
+	glm::mat4 view = program->cam->GetViewportMatrix();
+
 	program->shader.use();
 	unsigned int perspLoc = glGetUniformLocation(program->shader.ID, "persp");
 	unsigned int viewLoc = glGetUniformLocation(program->shader.ID, "view");
-	glm::mat4 persp = program->cam->GetProjectionMatrix();
-	glm::mat4 view = program->cam->GetViewportMatrix();
+	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+	program->trimShader.use();
+	perspLoc = glGetUniformLocation(program->trimShader.ID, "persp");
+	viewLoc = glGetUniformLocation(program->trimShader.ID, "view");
 	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 	program->bezierShader.use();
@@ -591,6 +600,11 @@ int main()
 	program->shader = Shader("shaders/vertexShader.vs"
 		, "shaders/fragShader.fs"
 		, nullptr);
+
+	program->trimShader = Shader("shaders/trimVertexShader.vs"
+		, "shaders/fragShader.fs"
+		, nullptr);
+
 	program->bezierShader = Shader("shaders/bezierVertexShader.vs"
 		, "shaders/fragShader.fs"
 		, "shaders/bezierGeometryShader.gs");
@@ -657,7 +671,7 @@ int main()
 	glLineWidth(0.2f);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
-	Shader screenShader("textureVertexShader.vs", "textureFragmentShader.fs");
+	Shader screenShader("shaders/textureVertexShader.vs", "shaders/textureFragmentShader.fs");
 	screenShader.use();
 	screenShader.setInt("screenTexture", 0);
 #pragma endregion
@@ -667,6 +681,8 @@ int main()
 
 	unsigned int framebufferBlue, textureColorbufferBlue;
 	CreateColorbuffer(framebufferBlue, textureColorbufferBlue);
+
+	AA(program->testTex);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -751,8 +767,6 @@ glm::vec3 GetPos(Figure* f, float u, float v)
 	glm::vec3 pos;
 	if (f->figureType == FigureType::BezierPatchC0)
 	{
-		if (v == 1.0f)
-			int a = 0;
 		pos = ((BezierPatchC0*)f)->GetParametrizedPos(u, v);
 	}
 	if (f->figureType == FigureType::BezierPatchC2)
@@ -770,15 +784,9 @@ void BetterDist(Figure* f, float u, float v, float& u_better, float& v_better, f
 {
 	if (u < 0.0f) u = 0.0f; if (u > 1.0f)u = 1.0f;
 	if (v < 0.0f) v = 0.0f; if (v > 1.0f)v = 1.0f;
-	try
-	{
-		float d_new = glm::distance(pos, GetPos(f, u, v));
-		if (d_new < d_better) { u_better = u; v_better = v; d_better = d_new; }
-	}
-	catch (...)
-	{
-		int a = 1;
-	}
+
+	float d_new = glm::distance(pos, GetPos(f, u, v));
+	if (d_new < d_better) { u_better = u; v_better = v; d_better = d_new; }
 }
 
 void FindPointClosestToCursor(Figure* f, float& u_best, float& v_best)
@@ -947,4 +955,34 @@ void DoSmth()
 		}
 	}
 
+}
+
+void AA(unsigned int &texName)
+{
+	int i, j, c;
+	for (i = 0; i < checkImageHeight; i++) {
+		for (j = 0; j < checkImageWidth; j++) {
+			c = ((((i & 0x8) == 0) ^ ((j & 0x8)) == 0)) * 255;
+			int w = 255;
+			if (glm::distance(glm::vec2(500, 500), glm::vec2(i, j)) < 400) 
+				w = 0;
+			checkImage[i][j][0] = (GLubyte)w;
+			checkImage[i][j][1] = (GLubyte)w;
+			checkImage[i][j][2] = (GLubyte)w;
+			checkImage[i][j][3] = (GLubyte)w;
+		}
+	}
+
+	glGenTextures(1, &texName);
+	glBindTexture(GL_TEXTURE_2D, texName);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+		GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, checkImageWidth,
+		checkImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+		checkImage);
 }

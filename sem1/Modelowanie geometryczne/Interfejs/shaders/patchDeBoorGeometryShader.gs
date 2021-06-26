@@ -13,7 +13,7 @@ in VS_OUT {
     vec3 pos4;
 } gs_in[4];
 
-out vec3 fColor;
+out vec4 fColor;
 
 vec3 DeBoor(float t, vec3 B0_, vec3 B1_, vec3 B2_, vec3 B3_) 
 {
@@ -87,7 +87,7 @@ float DeCasteljau(float coeffs_t[4], float t, int vertices)
 }
 
 void main() {    
-    fColor=vec3(0.7f, 0.7f, 0.7f);//gs_in[0].color;
+    fColor=vec4(0.7f, 0.7f, 0.7f,0.5f);//gs_in[0].color;
     float from = gs_in[2].color.x;
     float to = gs_in[2].color.y;
     float splits = gs_in[2].color.z;

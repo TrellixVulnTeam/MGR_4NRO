@@ -29,9 +29,11 @@ public:
 	Cursor* cur = NULL;
 	Camera* cam = NULL;
 	Shader shader;
+	Shader trimShader;
 	Shader bezierShader;
 	Shader patchShader;
 	Shader patchShaderDeBoor;
 	Shader patchGregoryShader;
+	unsigned int testTex;
 };
 

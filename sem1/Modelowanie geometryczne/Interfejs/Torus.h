@@ -11,6 +11,7 @@ public:
 	float r_new = 0.2f, R_new = 1.0f;
 	glm::vec3 GetParametrizedPos(float u, float v);
 	glm::vec3 GetParametrizedDer(float u, float v, bool du);
+	void virtual RecalcFigure() override;
 private:
 	bool virtual Create() override;
 	int m_old = -1, n_old = -1;
