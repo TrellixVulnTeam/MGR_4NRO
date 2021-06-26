@@ -1,2 +1,11 @@
-<Scene/>
+<Scene>
+	<Torus MinorRadius="0.200000" MajorRadius="1.000000" MinorSegments="8" MajorSegments="8" Name="Torus - 0 satfLvDQhY">
+		<Position X="2.193748" Y="1.166668" Z="0.000000"/>
+		<Rotation X="0.567296" Y="-0.191374" Z="0.022649" W="0.800652"/>
+		<Scale X="1.000000" Y="1.000000" Z="1.000000"/>
+	</Torus>
+	<Point Name="Point - 1 9M0i8bhsFF">
+		<Position X="1.050696" Y="1.026896" Z="-0.000209"/>
+	</Point>
+</Scene>
 

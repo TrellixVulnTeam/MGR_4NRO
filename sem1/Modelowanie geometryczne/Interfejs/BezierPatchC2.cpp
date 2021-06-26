@@ -134,6 +134,8 @@ void BezierPatchC2::GeneratePoints()
 
 glm::vec3 BezierPatchC2::GetParametrizedPos(float u, float v)
 {
+	if (u == 1.0f) u = 0.0f;
+	if (v == 1.0f) v = 0.0f;
 	int w = n + 3;
 
 	float patchLength = 1.0f / n;
@@ -168,6 +170,58 @@ glm::vec3 BezierPatchC2::GetParametrizedPos(float u, float v)
 	}
 
 	return DeBoor(u, m[0], m[1], m[2], m[3]);
+}
+
+glm::vec3 BezierPatchC2::GetParametrizedDer(float u, float v, bool du)
+{
+	if (u == 1.0f) u = 0.0f;
+	if (v == 1.0f) v = 0.0f;
+	int w = n + 3;
+
+	float patchLength = 1.0f / n;
+	float patchWidth = 1.0f / m;
+
+	int p_i = (int)(u / patchWidth);
+	int p_j = (int)(v / patchLength);
+
+	u = fmod(u, patchWidth) / patchWidth;
+	v = fmod(v, patchLength) / patchLength;
+
+	int start = p_i * w + p_j;
+
+	std::vector<std::vector<glm::vec3>> patch;
+
+	std::vector<glm::vec3> m;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		std::vector<glm::vec3> vv;
+		for (int j = 0; j < 4; ++j)
+		{
+			vv.push_back(points[start + j]->GetPos());
+		}
+		start += w;
+		patch.push_back(vv);
+	}
+
+	if (du)
+	{
+		for (int i = 0; i < 4; ++i)
+		{
+			m.push_back(DeBoor(v, patch[i][0], patch[i][1], patch[i][2], patch[i][3]));
+		}
+
+		return TangentVecDeBoor(u, m[0], m[1], m[2], m[3]);
+	}
+	else
+	{
+		for (int i = 0; i < 4; ++i)
+		{
+			m.push_back(DeBoor(u, patch[0][i], patch[1][i], patch[2][i], patch[3][i]));
+		}
+
+		return TangentVecDeBoor(v, m[0], m[1], m[2], m[3]);
+	}
 }
 
 void BezierPatchC2::ReplaceInParent(Point* oldPoint, Point* newPoint)

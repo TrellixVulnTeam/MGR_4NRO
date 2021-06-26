@@ -1,5 +1,6 @@
 #include"Math.h"
 #include"GregoryPatch.h"
+
 glm::vec3 DeCasteljau(std::vector<glm::vec3> coeffs, float t)
 {
 	std::vector<glm::vec3> coeffs_t(coeffs);
@@ -12,6 +13,17 @@ glm::vec3 DeCasteljau(std::vector<glm::vec3> coeffs, float t)
 		}
 	}
 	return coeffs_t[0];
+}
+
+glm::vec3 DeCasteljauDerivative(std::vector<glm::vec3> coeffs, float t)
+{
+	std::vector<glm::vec3> coeffs_t;
+
+	coeffs_t.push_back(3.0f * (coeffs[1] - coeffs[0]));
+	coeffs_t.push_back(3.0f * (coeffs[2] - coeffs[1]));
+	coeffs_t.push_back(3.0f * (coeffs[3] - coeffs[2]));
+
+	return DeCasteljau(coeffs_t, t);
 }
 
 glm::vec3 DeBoor(float t, glm::vec3 B0_, glm::vec3 B1_, glm::vec3 B2_, glm::vec3 B3_)
@@ -71,6 +83,53 @@ glm::vec3 DeBoor(float t, glm::vec3 B0_, glm::vec3 B1_, glm::vec3 B2_, glm::vec3
 	N4 = saved;
 
 	return N1 * B0_ + N2 * B1_ + N3 * B2_ + N4 * B3_;
+}
+
+glm::vec3 TangentVecDeBoor(float t, glm::vec3 B0_, glm::vec3 B1_, glm::vec3 B2_, glm::vec3 B3_) {
+	float T0 = -1.0f;
+	float T1 = 0.0f;
+	float T2 = 1.0f;
+	float T3 = 2.0f;
+	float T4 = 3.0f;
+	float Tm1 = -2.0f;
+
+	float A1 = T2 - t;
+	float A2 = T3 - t;
+	float A3 = T4 - t;
+	float B1 = t - T1;
+	float B2 = t - T0;
+	float B3 = t - Tm1;
+
+	float N1 = 1;
+	float N2 = 0;
+	float N3 = 0;
+	float N4 = 0;
+
+	float saved = 0.0f;
+	float term = 0.0f;
+
+	term = N1 / (A1 + B1);
+	N1 = saved + A1 * term;
+	saved = B1 * term;
+
+	N2 = saved;
+	saved = 0.0f;
+
+	term = N1 / (A1 + B2);
+	N1 = saved + A1 * term;
+	saved = B2 * term;
+
+	term = N2 / (A2 + B1);
+	N2 = saved + A2 * term;
+	saved = B1 * term;
+
+	N3 = saved;
+
+	glm::vec3 f1 = 3.0f * ((B1_ - B0_) / (T2 - Tm1));
+	glm::vec3 f2 = 3.0f * ((B2_ - B1_) / (T3 - T0));
+	glm::vec3 f3 = 3.0f * ((B3_ - B2_) / (T4 - T1));
+
+	return N1 * f1 + N2 * f2 + N3 * f3;
 }
 
 glm::ivec3 GetScreenPos(Program* program, glm::vec4 pos)

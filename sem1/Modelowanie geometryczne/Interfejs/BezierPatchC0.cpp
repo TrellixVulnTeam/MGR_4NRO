@@ -124,6 +124,8 @@ void BezierPatchC0::GeneratePoints()
 
 glm::vec3 BezierPatchC0::GetParametrizedPos(float u, float v)
 {
+	if (u == 1.0f) u = 0.0f;
+	if (v == 1.0f) v = 0.0f;
 	int w = 3 * n + 1;
 
 	float patchLength = 1.0f / n;
@@ -158,6 +160,63 @@ glm::vec3 BezierPatchC0::GetParametrizedPos(float u, float v)
 	}
 
 	return DeCasteljau(m, u);
+}
+
+glm::vec3 BezierPatchC0::GetParametrizedDer(float u, float v, bool du)
+{
+	if (u == 1.0f) u = 0.0f;
+	if (v == 1.0f) v = 0.0f;
+	int w = 3 * n + 1;
+
+	float patchLength = 1.0f / n;
+	float patchWidth = 1.0f / m;
+
+	int p_i = (int)(u / patchWidth);
+	int p_j = (int)(v / patchLength);
+
+	u = fmod(u, patchWidth) / patchWidth;
+	v = fmod(v, patchLength) / patchLength;
+
+	int start = 3 * p_i * w + 3 * p_j;
+
+	std::vector<std::vector<glm::vec3>> patch;
+
+	std::vector<glm::vec3> m;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		std::vector<glm::vec3> vv;
+		for (int j = 0; j < 4; ++j)
+		{
+			vv.push_back(points[start + j]->GetPos());
+		}
+		start += w;
+		patch.push_back(vv);
+	}
+	
+	if (du)
+	{
+		for (int i = 0; i < 4; ++i)
+		{
+			m.push_back(DeCasteljau(patch[i], v));
+		}
+
+		return DeCasteljauDerivative(m, u);
+	}
+	else
+	{
+		for (int i = 0; i < 4; ++i)
+		{
+			std::vector<glm::vec3> vv;
+			vv.push_back(patch[0][i]);
+			vv.push_back(patch[1][i]);
+			vv.push_back(patch[2][i]);
+			vv.push_back(patch[3][i]);
+			m.push_back(DeCasteljau(patch[i], u));
+		}
+
+		return DeCasteljauDerivative(m, v);
+	}
 }
 
 void BezierPatchC0::ReplaceInParent(Point* oldPoint, Point* newPoint)

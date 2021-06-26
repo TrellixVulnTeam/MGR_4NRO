@@ -34,6 +34,7 @@ glm::vec3 lookAt;
 Program* program;
 
 void DoSmth();
+void DoSmth2();
 
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
 {
@@ -464,7 +465,7 @@ void RenderGui()
 	}
 	if (ImGui::Button("DoSmth"))
 	{
-		DoSmth();
+		DoSmth2();
 	}
 	if (ImGui::Button("Clear"))
 	{
@@ -745,6 +746,154 @@ int main()
 	return 0;
 }
 
+glm::vec3 GetPos(Figure* f, float u, float v)
+{
+	glm::vec3 pos;
+	if (f->figureType == FigureType::BezierPatchC0)
+	{
+		if (v == 1.0f)
+			int a = 0;
+		pos = ((BezierPatchC0*)f)->GetParametrizedPos(u, v);
+	}
+	if (f->figureType == FigureType::BezierPatchC2)
+	{
+		pos = ((BezierPatchC2*)f)->GetParametrizedPos(u, v);
+	}
+	if (f->figureType == FigureType::Torus)
+	{
+		pos = ((Torus*)f)->GetParametrizedPos(u, v);
+	}
+	return pos;
+}
+
+void BetterDist(Figure* f, float u, float v, float& u_better, float& v_better, float& d_better, glm::vec3& pos)
+{
+	if (u < 0.0f) u = 0.0f; if (u > 1.0f)u = 1.0f;
+	if (v < 0.0f) v = 0.0f; if (v > 1.0f)v = 1.0f;
+	try
+	{
+		float d_new = glm::distance(pos, GetPos(f, u, v));
+		if (d_new < d_better) { u_better = u; v_better = v; d_better = d_new; }
+	}
+	catch (...)
+	{
+		int a = 1;
+	}
+}
+
+void FindPointClosestToCursor(Figure* f, float& u_best, float& v_best)
+{
+	auto pos = program->cur->GetPos();
+
+	u_best = 0.0f;
+	v_best = 0.0f;
+
+	int surfSplit = 10;
+	if (f->figureType == FigureType::Torus) surfSplit = 20;
+	float surfStep = 1.0f / surfSplit;
+	float searchStepStart = surfStep / 10;
+	float d_best = glm::distance(pos, GetPos(f, u_best, v_best));
+	float u_start = 0.0f;
+	for (int i = 0; i <= surfSplit; ++i)
+	{
+		float v_start = 0.0f;
+		for (int j = 0; j <= surfSplit; ++j)
+		{
+			float u = u_start;
+			float v = v_start;
+			if (u > 1.0f) u = 1.0f;
+			if (v > 1.0f) v = 1.0f;
+			float dist = glm::distance(pos, GetPos(f, u, v));
+			float searchStep = searchStepStart;
+
+			while (searchStep >= 1e-4)
+			{
+				float u_better, u_new;
+				float v_better, v_new;
+				float d_better = 9999.0f;
+
+				u_new = u + searchStep;
+				v_new = v + searchStep;
+				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
+
+				u_new = u + searchStep;
+				v_new = v;
+				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
+
+				u_new = u + searchStep;
+				v_new = v - searchStep;
+				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
+
+				u_new = u;
+				v_new = v + searchStep;
+				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
+
+				u_new = u;
+				v_new = v - searchStep;
+				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
+
+				u_new = u - searchStep;
+				v_new = v + searchStep;
+				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
+
+				u_new = u - searchStep;
+				v_new = v;
+				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
+
+				u_new = u - searchStep;
+				v_new = v - searchStep;
+				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
+
+				if (d_better < dist)
+				{
+					u = u_better;
+					v = v_better;
+					dist = d_better;
+				}
+				else
+				{
+					searchStep /= 2;
+				}
+			}
+
+			if (dist < d_best)
+			{
+				u_best = u;
+				v_best = v;
+				d_best = dist;
+			}
+
+			v_start += surfStep;
+		}
+		u_start += surfStep;
+	}
+
+}
+
+void DoSmth2()
+{
+	int n = program->figures.size();
+	for (int k = 0; k < n; ++k)
+	{
+		Figure* f = program->figures[k];
+		if (f->GetSelected())
+			if (
+				f->figureType == FigureType::BezierPatchC0 ||
+				f->figureType == FigureType::BezierPatchC2 ||
+				f->figureType == FigureType::Torus
+				)
+			{
+				float u, v;
+				FindPointClosestToCursor(f, u, v);
+
+				Point* p = new Point();
+				p->Initialize(program);
+				glm::vec3 pos = GetPos(f, u, v);
+				p->MoveTo(pos.x, pos.y, pos.z);
+				program->figures.push_back(p);
+			}
+	}
+}
 
 void DoSmth()
 {
@@ -753,27 +902,48 @@ void DoSmth()
 	{
 		if (
 			program->figures[i]->figureType == FigureType::BezierPatchC0 ||
-			program->figures[i]->figureType == FigureType::BezierPatchC2
+			program->figures[i]->figureType == FigureType::BezierPatchC2 ||
+			program->figures[i]->figureType == FigureType::Torus
 			)
 		{
-			float step = 1.0f / 100.0f;
+			float step = 1.0f / 1000.0f;
 			float v;
 			for (float u = 0.0f; u < 1.0f; u += step)
 			{
-				v = sin(10 * u);
+				v = sin(20 * u);
 				v = (v + 1.0f) / 2.0f;
-				std::cout << v << '\n';
+
+				std::swap(u, v);
+
 				glm::vec3 pos;
+				glm::vec3 du;
+				glm::vec3 dv;
 				if (program->figures[i]->figureType == FigureType::BezierPatchC0)
+				{
 					pos = ((BezierPatchC0*)program->figures[i])->GetParametrizedPos(u, v);
+					du = ((BezierPatchC0*)program->figures[i])->GetParametrizedDer(u, v, true);
+					dv = ((BezierPatchC0*)program->figures[i])->GetParametrizedDer(u, v, false);
+				}
 				if (program->figures[i]->figureType == FigureType::BezierPatchC2)
+				{
 					pos = ((BezierPatchC2*)program->figures[i])->GetParametrizedPos(u, v);
+					du = ((BezierPatchC2*)program->figures[i])->GetParametrizedDer(u, v, true);
+					dv = ((BezierPatchC2*)program->figures[i])->GetParametrizedDer(u, v, false);
+				}
+				if (program->figures[i]->figureType == FigureType::Torus)
+				{
+					pos = ((Torus*)program->figures[i])->GetParametrizedPos(u, v);
+					du = ((Torus*)program->figures[i])->GetParametrizedDer(u, v, true);
+					dv = ((Torus*)program->figures[i])->GetParametrizedDer(u, v, false);
+				}
+
+				std::swap(u, v);
+
 				Point* p = new Point();
 				p->Initialize(program);
 				p->MoveTo(pos.x, pos.y, pos.z);
 				program->figures.push_back(p);
 			}
-
 		}
 	}
 

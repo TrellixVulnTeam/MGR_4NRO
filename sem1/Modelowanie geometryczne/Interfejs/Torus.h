@@ -9,6 +9,8 @@ public:
 	void virtual Initialize(Program* _program) override;
 	int m_new = 8, n_new = 8;
 	float r_new = 0.2f, R_new = 1.0f;
+	glm::vec3 GetParametrizedPos(float u, float v);
+	glm::vec3 GetParametrizedDer(float u, float v, bool du);
 private:
 	bool virtual Create() override;
 	int m_old = -1, n_old = -1;

@@ -4,7 +4,7 @@
 
 Torus::Torus() : Figure()
 {
-	sprintf_s(name, STRMAX, ("Torus - " + std::to_string(idx++) + " " + gen_random(10,idx)).c_str());
+	sprintf_s(name, STRMAX, ("Torus - " + std::to_string(idx++) + " " + gen_random(10, idx)).c_str());
 	figureType = FigureType::Torus;
 }
 
@@ -34,6 +34,68 @@ void Torus::Draw()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+}
+
+glm::vec3 Torus::GetParametrizedPos(float u, float v)
+{
+	if (u == 1.0f) u = 0.0f;
+	if (v == 1.0f) v = 0.0f;
+	int n = n_new;
+	int m = m_new;
+	float r = r_new;
+	float R = R_new;
+
+	float alpha = u * 2.0f * M_PI;
+	float beta = v * 2.0f * M_PI;
+
+	float cosa = cos(alpha);
+	float sina = sin(alpha);
+
+	float cosb = cos(beta);
+	float sinb = sin(beta);
+
+	float x = cosa * (r * cosb + R);
+	float y = r * sinb;
+	float z = sina * (r * cosb + R);
+
+	return glm::vec3(model * glm::vec4(x, y, z, 1.0f));
+}
+
+glm::vec3 Torus::GetParametrizedDer(float u, float v, bool du)
+{
+	if (u == 1.0f) u = 0.0f;
+	if (v == 1.0f) v = 0.0f;
+	int n = n_new;
+	int m = m_new;
+	float r = r_new;
+	float R = R_new;
+
+	float alpha = u * 2.0f * M_PI;
+	float beta = v * 2.0f * M_PI;
+
+	float cosa = cos(alpha);
+	float sina = sin(alpha);
+
+	float cosb = cos(beta);
+	float sinb = sin(beta);
+
+	float x;
+	float y;
+	float z;
+
+	if (du)
+	{
+		x = -sina * (r * cosb + R);
+		y = 0;
+		z = cosa * (r * cosb + R);
+	}
+	else
+	{
+		x = -r * cosa * sinb;
+		y = r * cosb;
+		z = -r * sina * sinb;
+	}
+	return glm::vec3(x, y, z);
 }
 
 bool Torus::Create()
