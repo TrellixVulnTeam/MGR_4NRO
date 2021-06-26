@@ -29,7 +29,7 @@ public:
 	glm::vec3 GetParametrizedPos(float u, float v);
 	glm::vec3 GetParametrizedDer(float u, float v, bool du);
 private:
-	void AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii);
+	void AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii, float u_start, float v_start, float u_size, float v_size);
 	void GeneratePoints();
 	void ClearPoints();
 	bool virtual Create() override;

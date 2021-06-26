@@ -4,6 +4,7 @@ layout (triangle_strip, max_vertices = 256) out;
 
 uniform mat4 persp;
 uniform mat4 view;
+uniform sampler2D trimTexture;
 
 
 in VS_OUT {
@@ -41,6 +42,12 @@ void main() {
 
     float t =  gs_in[1].color.x;
     float t2 = gs_in[1].color.y;
+
+    float u_start = gs_in[3].color.x;
+    float v_start = gs_in[3].color.y;
+    float u_size = gs_in[3].color.z;
+    float v_size = gs_in[1].color.z;
+
     int vertices =4;
 
     vec3 point1_0;
@@ -156,15 +163,25 @@ void main() {
     coeffs2_y[3]=point2_3.y;
     coeffs2_z[3]=point2_3.z;
 
+    float v1 = v_start + t*v_size;
+    float v2 = v_start + t2*v_size;
     float diff = (to-from)/splits;
     t=from;
+    float u;
+    vec4 tex;
+
     for(int i=0; i<=splits;++i)
     {
+        u = u_start + t * u_size;
         gl_Position.x = DeCasteljau(coeffs_x,t,vertices);
         gl_Position.y = DeCasteljau(coeffs_y,t,vertices);
         gl_Position.z = DeCasteljau(coeffs_z,t,vertices);
         gl_Position.w=1.0;
         gl_Position = persp*view*gl_Position;
+        tex = texture(trimTexture, vec2(u, v1));
+        fColor.w=0.5f;
+        if(tex.x<0.5f)
+            fColor.w=0.0f;
         EmitVertex();
 
         gl_Position.x = DeCasteljau(coeffs2_x,t,vertices);
@@ -172,6 +189,10 @@ void main() {
         gl_Position.z = DeCasteljau(coeffs2_z,t,vertices);
         gl_Position.w=1.0;
         gl_Position = persp*view*gl_Position;
+        tex = texture(trimTexture, vec2(u, v2));
+        fColor.w = 0.5f;
+        if(tex.x<0.5f)
+            fColor.w=0.0f;
         EmitVertex();
         t+=diff;
     }

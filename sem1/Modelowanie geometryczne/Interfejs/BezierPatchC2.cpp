@@ -289,6 +289,13 @@ void BezierPatchC2::RecalcFigure()
 void BezierPatchC2::Draw()
 {
 	Figure::Draw();
+
+	auto texLocation = glGetUniformLocation(shader.ID, "trimTexture");
+
+	glUniform1i(texLocation, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, program->testTex);
+
 	glDrawElements(GL_LINES_ADJACENCY, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 	for (int i = 0; i < points.size(); ++i) points[i]->Draw();
@@ -330,7 +337,7 @@ bool BezierPatchC2::Create()
 					int splits = ((q - l) < 120) ? (q - l) : 120;
 					if (to > 1.0f)to = 1.0f;
 
-					AddPatch(i, j, (float)k / p, (float)(k + 1) / p, from, to, splits, ii);
+					AddPatch(i, j, (float)k / p, (float)(k + 1) / p, from, to, splits, ii, (float)i / m, (float)j / n, 1.0f / m, 1.0f / n);
 				}
 			}
 		}
@@ -338,7 +345,7 @@ bool BezierPatchC2::Create()
 	return true;
 }
 
-void BezierPatchC2::AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii)
+void BezierPatchC2::AddPatch(int i, int j, float t, float t2, float from, float to, int splits, int& ii, float u_start, float v_start, float u_size, float v_size)
 {
 	int w = n + 3;
 	int start = i * w + j;
@@ -374,5 +381,9 @@ void BezierPatchC2::AddPatch(int i, int j, float t, float t2, float from, float 
 	vertices[15 * (ii_start + 2) + 3] = from;
 	vertices[15 * (ii_start + 2) + 4] = to;
 	vertices[15 * (ii_start + 2) + 5] = splits;
+	vertices[15 * (ii_start + 3) + 3] = u_start;
+	vertices[15 * (ii_start + 3) + 4] = v_start;
+	vertices[15 * (ii_start + 3) + 5] = u_size;
+	vertices[15 * (ii_start + 1) + 5] = v_size;
 
 }
