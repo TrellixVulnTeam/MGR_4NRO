@@ -120,6 +120,9 @@
     <ClCompile Include="Intersections.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IntersectionLine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="processing.h">
@@ -213,6 +216,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Intersections.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IntersectionLine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

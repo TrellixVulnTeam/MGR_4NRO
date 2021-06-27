@@ -3,6 +3,7 @@
 #include <string>
 #include "BezierCurveC2.h"
 #include "InterpolationCurveC2.h"
+#include "IntersectionLine.h"
 
 SomeCurve::SomeCurve() :Figure()
 {
@@ -15,10 +16,18 @@ bool SomeCurve::GetGuiInternal(Figure* par)
 {
 	bool b = false;
 
-	ImGui::Checkbox("Draw line", &drawLine);
+	if (figureType != FigureType::IntersectionLine)
+		ImGui::Checkbox("Draw line", &drawLine);
+	if (figureType == FigureType::IntersectionLine)
+	{
+		if (ImGui::Button("Convert to Interpolation"))
+		{
+			((IntersectionLine*)this)->ConvertToInterpolation();
+		}
+	}
 	if (figureType == FigureType::BezierCurveC2)
 	{
-	ImGui::Checkbox("Draw DeBoor line", &(((BezierCurveC2*)this)->drawDeBoorLine));
+		ImGui::Checkbox("Draw DeBoor line", &(((BezierCurveC2*)this)->drawDeBoorLine));
 	}
 	if (figureType == FigureType::InterpolationCurveC2)
 	{

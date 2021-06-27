@@ -1,4 +1,5 @@
 #include "Intersections.h"
+#include "IntersectionLine.h"
 
 
 void FixPos(float& u, float& v)
@@ -404,12 +405,17 @@ void Intersect(Program* program)
 
 		FindPointsLoop(program, figures[0], figures[1], ppoints1, ppoints2, ppoints, -1.0f);
 
-		for (int i = 0; i < points.size(); ++i)
+		IntersectionLine* il = new IntersectionLine();
+		il->Initialize(program);
+
+		for (int i = points.size()-1; i>=0; --i)
 		{
 			Point* p = new Point();
 			p->Initialize(program);
 			p->MoveTo(points[i].x, points[i].y, points[i].z);
 			program->figures.push_back(p);
+			p->AddParent(il);
+			il->AddPoint(p);
 		}
 		for (int i = 0; i < ppoints.size(); ++i)
 		{
@@ -417,7 +423,10 @@ void Intersect(Program* program)
 			p->Initialize(program);
 			p->MoveTo(ppoints[i].x, ppoints[i].y, ppoints[i].z);
 			program->figures.push_back(p);
+			p->AddParent(il);
+			il->AddPoint(p);
 		}
+		program->figures.push_back(il);
 	}
 	else
 	{

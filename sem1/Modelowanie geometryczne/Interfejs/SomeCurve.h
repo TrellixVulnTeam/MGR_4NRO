@@ -14,7 +14,7 @@ public:
 	void virtual Recalc() final { first = true; }
 	void virtual Initialize(Program* _program) override { Figure::Initialize(_program); shader = Shader(program->bezierShader);};
 	std::vector<Point*> points;
-	bool drawLine = true;
+	bool drawLine = false;
 	void virtual ReplaceInParent(Point* oldPoint, Point* newPoint) = 0;
 protected:
 	bool virtual Create() override { return false; };
