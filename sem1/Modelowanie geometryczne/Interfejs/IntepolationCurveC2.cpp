@@ -87,17 +87,27 @@ bool InterpolationCurveC2::Create()
 	bernsteinLine->Clear();
 	vertices.clear();
 	indices.clear();
-	if (points.size() < 3) return false;
+	std::vector<Point*>pointz;
+	for (int i = 0; i < points.size();++i)
+	{
+		if (i > 0)
+		{
+			float d = glm::distance(pointz[pointz.size() - 1]->GetPos(), points[i]->GetPos());
+			if (d == 0.0f) continue;
+		}
+		pointz.push_back(points[i]);
+	}
+	if (pointz.size() < 3) return false;
 
 	std::vector<float> dist;
 	std::vector<glm::vec3> a;
-	int n = points.size();
+	int n = pointz.size();
 	for (int i = 1; i < n; ++i)
 	{
-		a.push_back(points[i - 1]->GetPos());
-		dist.push_back(glm::distance(points[i - 1]->GetPos(), points[i]->GetPos()));
+		a.push_back(pointz[i - 1]->GetPos());
+		dist.push_back(glm::distance(pointz[i - 1]->GetPos(), pointz[i]->GetPos()));
 	}
-	a.push_back(points[n - 1]->GetPos());
+	a.push_back(pointz[n - 1]->GetPos());
 
 	std::vector<float> alpha;
 	std::vector<float> beta;

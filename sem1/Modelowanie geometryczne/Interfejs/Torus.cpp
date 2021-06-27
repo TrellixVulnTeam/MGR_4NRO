@@ -86,8 +86,6 @@ glm::vec3 Torus::GetParametrizedPos(float u, float v)
 {
 	if (u == 1.0f) u = 0.0f;
 	if (v == 1.0f) v = 0.0f;
-	int n = n_new;
-	int m = m_new;
 	float r = r_new;
 	float R = R_new;
 
@@ -111,8 +109,6 @@ glm::vec3 Torus::GetParametrizedDer(float u, float v, bool du)
 {
 	if (u == 1.0f) u = 0.0f;
 	if (v == 1.0f) v = 0.0f;
-	int n = n_new;
-	int m = m_new;
 	float r = r_new;
 	float R = R_new;
 
@@ -131,17 +127,17 @@ glm::vec3 Torus::GetParametrizedDer(float u, float v, bool du)
 
 	if (du)
 	{
-		x = -sina * (r * cosb + R);
+		x = -sina * (r * cosb + R) * 2.0f * M_PI;
 		y = 0;
-		z = cosa * (r * cosb + R);
+		z = cosa * (r * cosb + R) * 2.0f * M_PI;
 	}
 	else
 	{
-		x = -r * cosa * sinb;
-		y = r * cosb;
-		z = -r * sina * sinb;
+		x = -r * cosa * sinb * 2.0f * M_PI;
+		y = r * cosb * 2.0f * M_PI;
+		z = -r * sina * sinb * 2.0f * M_PI;
 	}
-	return glm::vec3(x, y, z);
+	return  glm::vec3(model*glm::vec4(x, y, z,0.0f));
 }
 
 bool Torus::Create()

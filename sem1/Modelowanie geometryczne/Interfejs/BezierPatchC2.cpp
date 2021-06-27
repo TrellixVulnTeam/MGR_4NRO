@@ -191,7 +191,7 @@ glm::vec3 BezierPatchC2::GetParametrizedDer(float u, float v, bool du)
 
 	std::vector<std::vector<glm::vec3>> patch;
 
-	std::vector<glm::vec3> m;
+	std::vector<glm::vec3> mm;
 
 	for (int i = 0; i < 4; ++i)
 	{
@@ -208,19 +208,19 @@ glm::vec3 BezierPatchC2::GetParametrizedDer(float u, float v, bool du)
 	{
 		for (int i = 0; i < 4; ++i)
 		{
-			m.push_back(DeBoor(v, patch[i][0], patch[i][1], patch[i][2], patch[i][3]));
+			mm.push_back(DeBoor(v, patch[i][0], patch[i][1], patch[i][2], patch[i][3]));
 		}
 
-		return TangentVecDeBoor(u, m[0], m[1], m[2], m[3]);
+		return (float)m * TangentVecDeBoor(u, mm[0], mm[1], mm[2], mm[3]);
 	}
 	else
 	{
 		for (int i = 0; i < 4; ++i)
 		{
-			m.push_back(DeBoor(u, patch[0][i], patch[1][i], patch[2][i], patch[3][i]));
+			mm.push_back(DeBoor(u, patch[0][i], patch[1][i], patch[2][i], patch[3][i]));
 		}
 
-		return TangentVecDeBoor(v, m[0], m[1], m[2], m[3]);
+		return (float)n * TangentVecDeBoor(v, mm[0], mm[1], mm[2], mm[3]);
 	}
 }
 

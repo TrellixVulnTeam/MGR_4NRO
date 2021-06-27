@@ -65,7 +65,7 @@ bool Figure::GetGui(int i, Figure* par)
 			{
 				for (int j = 0; j < program->figures.size(); ++j) if (j != i && program->figures[j]->figureType == FigureType::BezierCurveC0) program->figures[j]->Unselect();
 			}
-			if (par == nullptr) {
+			if (par == nullptr && !HasParent()) {
 				if (ImGui::Button("Remove"))
 				{
 					to_ret = true;

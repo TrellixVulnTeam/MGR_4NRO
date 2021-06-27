@@ -21,7 +21,7 @@ public:
 	int n = 1, m = 1, splitA = 1, splitB = 1;
 	std::vector<Point*> points;
 	PointsLines* pointsLines;
-	bool drawLine = true;
+	bool drawLine = false;
 	void virtual ReplaceInParent(Point* oldPoint, Point* newPoint) = 0;
 protected:
 	bool virtual Create() override { return false; };

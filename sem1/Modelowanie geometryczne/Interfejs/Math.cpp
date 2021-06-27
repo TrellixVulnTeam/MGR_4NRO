@@ -9,7 +9,7 @@ glm::vec3 DeCasteljau(std::vector<glm::vec3> coeffs, float t)
 	{
 		for (int j = 0; j < i - 1; ++j)
 		{
-			coeffs_t[j] = (1 - t) * coeffs_t[j] + t * coeffs_t[j + 1];
+			coeffs_t[j] = (1.0f - t) * coeffs_t[j] + t * coeffs_t[j + 1];
 		}
 	}
 	return coeffs_t[0];

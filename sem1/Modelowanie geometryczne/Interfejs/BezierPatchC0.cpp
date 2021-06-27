@@ -181,7 +181,7 @@ glm::vec3 BezierPatchC0::GetParametrizedDer(float u, float v, bool du)
 
 	std::vector<std::vector<glm::vec3>> patch;
 
-	std::vector<glm::vec3> m;
+	std::vector<glm::vec3> mm;
 
 	for (int i = 0; i < 4; ++i)
 	{
@@ -198,10 +198,10 @@ glm::vec3 BezierPatchC0::GetParametrizedDer(float u, float v, bool du)
 	{
 		for (int i = 0; i < 4; ++i)
 		{
-			m.push_back(DeCasteljau(patch[i], v));
+			mm.push_back(DeCasteljau(patch[i], v));
 		}
 
-		return DeCasteljauDerivative(m, u);
+		return DeCasteljauDerivative(mm, u);
 	}
 	else
 	{
@@ -212,10 +212,10 @@ glm::vec3 BezierPatchC0::GetParametrizedDer(float u, float v, bool du)
 			vv.push_back(patch[1][i]);
 			vv.push_back(patch[2][i]);
 			vv.push_back(patch[3][i]);
-			m.push_back(DeCasteljau(patch[i], u));
+			mm.push_back(DeCasteljau(vv, u));
 		}
 
-		return DeCasteljauDerivative(m, v);
+		return DeCasteljauDerivative(mm, v);
 	}
 }
 
