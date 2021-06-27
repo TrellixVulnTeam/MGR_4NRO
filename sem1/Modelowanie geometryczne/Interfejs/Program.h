@@ -14,6 +14,7 @@ public:
 
 	bool anaglyph = false;
 	bool allGregorys = false;
+	bool useCursor = false;
 	int current_width = 0;
 	int current_height = 0;
 	float eyeDist = 0.01f;

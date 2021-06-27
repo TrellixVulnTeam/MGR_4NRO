@@ -24,11 +24,10 @@
 #include "Tools.h"
 #include "GregoryPatch.h"
 #include "Serialization.h"
+#include "Intersections.h"
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
-#define checkImageWidth 1024
-#define checkImageHeight 1024
-static GLubyte checkImage[checkImageHeight][checkImageWidth][4];
+
 
 bool firstCall = true;
 bool rotate = false;
@@ -36,9 +35,7 @@ glm::vec2 mousePosOld;
 glm::vec3 lookAt;
 Program* program;
 
-void DoSmth();
-void DoSmth2();
-void AA(unsigned int& texName);
+
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
 {
 	glm::quat quat = glm::angleAxis(angle, axis);
@@ -466,9 +463,10 @@ void RenderGui()
 	{
 		CreateGregory(program);
 	}
-	if (ImGui::Button("DoSmth"))
+	ImGui::Checkbox("Use Cursor", &program->useCursor);
+	if (ImGui::Button("Intersect"))
 	{
-		DoSmth2();
+		Intersect(program);
 	}
 	if (ImGui::Button("Clear"))
 	{
@@ -682,7 +680,7 @@ int main()
 	unsigned int framebufferBlue, textureColorbufferBlue;
 	CreateColorbuffer(framebufferBlue, textureColorbufferBlue);
 
-	AA(program->testTex);
+	FillImage(program->testTex);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -762,226 +760,5 @@ int main()
 	return 0;
 }
 
-glm::vec3 GetPos(Figure* f, float u, float v)
-{
-	glm::vec3 pos;
-	if (f->figureType == FigureType::BezierPatchC0)
-	{
-		pos = ((BezierPatchC0*)f)->GetParametrizedPos(u, v);
-	}
-	if (f->figureType == FigureType::BezierPatchC2)
-	{
-		pos = ((BezierPatchC2*)f)->GetParametrizedPos(u, v);
-	}
-	if (f->figureType == FigureType::Torus)
-	{
-		pos = ((Torus*)f)->GetParametrizedPos(u, v);
-	}
-	return pos;
-}
 
-void BetterDist(Figure* f, float u, float v, float& u_better, float& v_better, float& d_better, glm::vec3& pos)
-{
-	if (u < 0.0f) u = 0.0f; if (u > 1.0f)u = 1.0f;
-	if (v < 0.0f) v = 0.0f; if (v > 1.0f)v = 1.0f;
 
-	float d_new = glm::distance(pos, GetPos(f, u, v));
-	if (d_new < d_better) { u_better = u; v_better = v; d_better = d_new; }
-}
-
-void FindPointClosestToCursor(Figure* f, float& u_best, float& v_best)
-{
-	auto pos = program->cur->GetPos();
-
-	u_best = 0.0f;
-	v_best = 0.0f;
-
-	int surfSplit = 10;
-	if (f->figureType == FigureType::Torus) surfSplit = 20;
-	float surfStep = 1.0f / surfSplit;
-	float searchStepStart = surfStep / 10;
-	float d_best = glm::distance(pos, GetPos(f, u_best, v_best));
-	float u_start = 0.0f;
-	for (int i = 0; i <= surfSplit; ++i)
-	{
-		float v_start = 0.0f;
-		for (int j = 0; j <= surfSplit; ++j)
-		{
-			float u = u_start;
-			float v = v_start;
-			if (u > 1.0f) u = 1.0f;
-			if (v > 1.0f) v = 1.0f;
-			float dist = glm::distance(pos, GetPos(f, u, v));
-			float searchStep = searchStepStart;
-
-			while (searchStep >= 1e-4)
-			{
-				float u_better, u_new;
-				float v_better, v_new;
-				float d_better = 9999.0f;
-
-				u_new = u + searchStep;
-				v_new = v + searchStep;
-				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
-
-				u_new = u + searchStep;
-				v_new = v;
-				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
-
-				u_new = u + searchStep;
-				v_new = v - searchStep;
-				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
-
-				u_new = u;
-				v_new = v + searchStep;
-				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
-
-				u_new = u;
-				v_new = v - searchStep;
-				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
-
-				u_new = u - searchStep;
-				v_new = v + searchStep;
-				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
-
-				u_new = u - searchStep;
-				v_new = v;
-				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
-
-				u_new = u - searchStep;
-				v_new = v - searchStep;
-				BetterDist(f, u_new, v_new, u_better, v_better, d_better, pos);
-
-				if (d_better < dist)
-				{
-					u = u_better;
-					v = v_better;
-					dist = d_better;
-				}
-				else
-				{
-					searchStep /= 2;
-				}
-			}
-
-			if (dist < d_best)
-			{
-				u_best = u;
-				v_best = v;
-				d_best = dist;
-			}
-
-			v_start += surfStep;
-		}
-		u_start += surfStep;
-	}
-
-}
-
-void DoSmth2()
-{
-	int n = program->figures.size();
-	for (int k = 0; k < n; ++k)
-	{
-		Figure* f = program->figures[k];
-		if (f->GetSelected())
-			if (
-				f->figureType == FigureType::BezierPatchC0 ||
-				f->figureType == FigureType::BezierPatchC2 ||
-				f->figureType == FigureType::Torus
-				)
-			{
-				float u, v;
-				FindPointClosestToCursor(f, u, v);
-
-				Point* p = new Point();
-				p->Initialize(program);
-				glm::vec3 pos = GetPos(f, u, v);
-				p->MoveTo(pos.x, pos.y, pos.z);
-				program->figures.push_back(p);
-			}
-	}
-}
-
-void DoSmth()
-{
-	int n = program->figures.size();
-	for (int i = 0; i < n; ++i)
-	{
-		if (
-			program->figures[i]->figureType == FigureType::BezierPatchC0 ||
-			program->figures[i]->figureType == FigureType::BezierPatchC2 ||
-			program->figures[i]->figureType == FigureType::Torus
-			)
-		{
-			float step = 1.0f / 1000.0f;
-			float v;
-			for (float u = 0.0f; u < 1.0f; u += step)
-			{
-				v = sin(20 * u);
-				v = (v + 1.0f) / 2.0f;
-
-				std::swap(u, v);
-
-				glm::vec3 pos;
-				glm::vec3 du;
-				glm::vec3 dv;
-				if (program->figures[i]->figureType == FigureType::BezierPatchC0)
-				{
-					pos = ((BezierPatchC0*)program->figures[i])->GetParametrizedPos(u, v);
-					du = ((BezierPatchC0*)program->figures[i])->GetParametrizedDer(u, v, true);
-					dv = ((BezierPatchC0*)program->figures[i])->GetParametrizedDer(u, v, false);
-				}
-				if (program->figures[i]->figureType == FigureType::BezierPatchC2)
-				{
-					pos = ((BezierPatchC2*)program->figures[i])->GetParametrizedPos(u, v);
-					du = ((BezierPatchC2*)program->figures[i])->GetParametrizedDer(u, v, true);
-					dv = ((BezierPatchC2*)program->figures[i])->GetParametrizedDer(u, v, false);
-				}
-				if (program->figures[i]->figureType == FigureType::Torus)
-				{
-					pos = ((Torus*)program->figures[i])->GetParametrizedPos(u, v);
-					du = ((Torus*)program->figures[i])->GetParametrizedDer(u, v, true);
-					dv = ((Torus*)program->figures[i])->GetParametrizedDer(u, v, false);
-				}
-
-				std::swap(u, v);
-
-				Point* p = new Point();
-				p->Initialize(program);
-				p->MoveTo(pos.x, pos.y, pos.z);
-				program->figures.push_back(p);
-			}
-		}
-	}
-
-}
-
-void AA(unsigned int &texName)
-{
-	int i, j, c;
-	for (i = 0; i < checkImageHeight; i++) {
-		for (j = 0; j < checkImageWidth; j++) {
-			int w = 255;
-			if (glm::distance(glm::vec2(500, 500), glm::vec2(i, j)) < 400) 
-				w = 0;
-			checkImage[i][j][0] = (GLubyte)w;
-			checkImage[i][j][1] = (GLubyte)w;
-			checkImage[i][j][2] = (GLubyte)w;
-			checkImage[i][j][3] = (GLubyte)w;
-		}
-	}
-
-	glGenTextures(1, &texName);
-	glBindTexture(GL_TEXTURE_2D, texName);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-		GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-		GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, checkImageWidth,
-		checkImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-		checkImage);
-}
