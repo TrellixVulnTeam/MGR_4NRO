@@ -17,3 +17,4 @@ void FindClosestPoints(Program* program, Figure* f1, float& u1, float& v1, Figur
 void FindPointClosestToCursor(Program* program, Figure* f, float& u_best, float& v_best);
 void Intersect(Program* program);
 void FillImage(unsigned int& texName);
+void CreateTexBuffer(unsigned int& framebuffer, unsigned int& texName);

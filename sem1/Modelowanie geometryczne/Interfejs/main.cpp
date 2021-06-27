@@ -603,6 +603,10 @@ int main()
 		, "shaders/fragShader.fs"
 		, nullptr);
 
+	program->simpleShader = Shader("shaders/simpleVertexShader.vs"
+		, "shaders/fragShader.fs"
+		, nullptr);
+
 	program->bezierShader = Shader("shaders/bezierVertexShader.vs"
 		, "shaders/fragShader.fs"
 		, "shaders/bezierGeometryShader.gs");
@@ -732,10 +736,10 @@ int main()
 			glUniform1i(redTexLocation, 0);
 			glUniform1i(blueTexLocation, 1);
 			glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
-			glBindTexture(GL_TEXTURE_2D, textureColorbufferRed);
+			glBindTexture(GL_TEXTURE_2D, program->testTex2);
 
 			glActiveTexture(GL_TEXTURE0 + 1); // Texture unit 1
-			glBindTexture(GL_TEXTURE_2D, textureColorbufferBlue);
+			glBindTexture(GL_TEXTURE_2D, program->testTex2);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 		else

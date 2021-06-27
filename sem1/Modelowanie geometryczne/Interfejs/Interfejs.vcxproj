@@ -226,6 +226,7 @@
     <ClInclude Include="SomePatch.h" />
     <ClInclude Include="Tools.h" />
     <ClInclude Include="Torus.h" />
+    <None Include="shaders\simpleVertexShader.vs" />
     <None Include="shaders\textureFragmentShader.fs" />
     <None Include="shaders\textureVertexShader.vs" />
   </ItemGroup>

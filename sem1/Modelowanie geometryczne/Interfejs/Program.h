@@ -30,11 +30,14 @@ public:
 	Cursor* cur = NULL;
 	Camera* cam = NULL;
 	Shader shader;
+	Shader simpleShader;
 	Shader trimShader;
 	Shader bezierShader;
 	Shader patchShader;
 	Shader patchShaderDeBoor;
 	Shader patchGregoryShader;
 	unsigned int testTex;
+	unsigned int testFrame;
+	unsigned int testTex2;
 };
 

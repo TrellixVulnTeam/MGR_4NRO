@@ -330,17 +330,17 @@ void NewtonMethod(Program* program, Figure* f1, Figure* f2, glm::vec3 P0, glm::v
 	} while (glm::distance(pos1, pos2) > 0.001f && i < 20);
 }
 
-void FindPointsLoop(Program* program, Figure* f1, Figure* f2, std::vector<std::pair<float, float>>& points1, std::vector<std::pair<float, float>>& points2, std::vector<glm::vec3>& points, float dir)
+void FindPointsLoop(Program* program, Figure* f1, Figure* f2, std::vector<glm::vec2>& points1, std::vector<glm::vec2>& points2, std::vector<glm::vec3>& points, float dir)
 {
 	float d = 1e-3;
 	glm::mat4x4 jacobian;
 	glm::vec4 last_vec, new_vec;
-	glm::vec3 last_pos,first_pos;
+	glm::vec3 last_pos, first_pos;
 	glm::vec3 pos1, pos2;
-	last_vec.x = points1[0].first;
-	last_vec.y = points1[0].second;
-	last_vec.z = points2[0].first;
-	last_vec.w = points2[0].second;
+	last_vec.x = points1[0].x;
+	last_vec.y = points1[0].y;
+	last_vec.z = points2[0].x;
+	last_vec.w = points2[0].y;
 	last_pos = points[0];
 	first_pos = points[0];
 	while (true)
@@ -353,13 +353,139 @@ void FindPointsLoop(Program* program, Figure* f1, Figure* f2, std::vector<std::p
 
 
 		last_vec = new_vec;
-		points1.push_back(std::make_pair(new_vec.x, new_vec.y));
-		points2.push_back(std::make_pair(new_vec.z, new_vec.w));
+		points1.push_back(glm::vec2{ new_vec.x, new_vec.y });
+		points2.push_back(glm::vec2{ new_vec.z, new_vec.w });
 		last_pos = pos1;
 		points.push_back(last_pos);
-		if (glm::distance(pos1, first_pos) <d)
+		if (glm::distance(pos1, first_pos) < d)
 			break;
 	}
+}
+
+std::vector<glm::vec2> PrepareToDraw(std::vector<glm::vec2> vec)
+{
+	std::vector<glm::vec2> toDraw;
+
+	for (int i = 0; i < vec.size() - 1; ++i)
+	{
+		if (glm::distance(vec[i], vec[i + 1]) < 0.5f)
+		{
+			toDraw.push_back(vec[i]);
+			toDraw.push_back(vec[i + 1]);
+		}
+		else
+		{
+			float u0 = vec[i].x;
+			float u1 = 1.0f - vec[i].x;
+			float v0 = vec[i].y;
+			float v1 = 1.0f - vec[i].y;
+			toDraw.push_back(vec[i]);
+			if (u0 <= u1 && u0 <= v0 && u0 <= v1) toDraw.push_back(glm::vec2{ 0.0f, vec[i].y });
+			else if (u1 <= u0 && u1 <= v0 && u1 <= v1) toDraw.push_back(glm::vec2{ 1.0f, vec[i].y });
+			else if (v0 <= u1 && v0 <= u0 && v0 <= v1) toDraw.push_back(glm::vec2{ vec[i].x, 0.0f });
+			else toDraw.push_back(glm::vec2{ vec[i].x,1.0f });
+
+
+			u0 = vec[i + 1].x;
+			u1 = 1.0f - vec[i + 1].x;
+			v0 = vec[i + 1].y;
+			v1 = 1.0f - vec[i + 1].y;
+			if (u0 <= u1 && u0 <= v0 && u0 <= v1) toDraw.push_back(glm::vec2{ 0.0f, vec[i + 1].y });
+			else if (u1 <= u0 && u1 <= v0 && u1 <= v1) toDraw.push_back(glm::vec2{ 1.0f, vec[i + 1].y });
+			else if (v0 <= u1 && v0 <= u0 && v0 <= v1) toDraw.push_back(glm::vec2{ vec[i + 1].x, 0.0f });
+			else toDraw.push_back(glm::vec2{ vec[i + 1].x,1.0f });
+			toDraw.push_back(vec[i + 1]);
+		}
+	}
+
+	auto first = vec[0];
+	auto last = vec[vec.size() - 1];
+	if (glm::distance(first, last) < 0.5f)
+	{
+		toDraw.push_back(first);
+		toDraw.push_back(last);
+	}
+	else
+	{
+		float u0 = first.x;
+		float u1 = 1.0f - first.x;
+		float v0 = first.y;
+		float v1 = 1.0f - first.y;
+		toDraw.push_back(first);
+		if (u0 <= u1 && u0 <= v0 && u0 <= v1) toDraw.push_back(glm::vec2{ 0.0f, first.y });
+		else if (u1 <= u0 && u1 <= v0 && u1 <= v1) toDraw.push_back(glm::vec2{ 1.0f, first.y });
+		else if (v0 <= u1 && v0 <= u0 && v0 <= v1) toDraw.push_back(glm::vec2{ first.x, 0.0f });
+		else toDraw.push_back(glm::vec2{ first.x,1.0f });
+
+
+		u0 = last.x;
+		u1 = 1.0f - last.x;
+		v0 = last.y;
+		v1 = 1.0f - last.y;
+		if (u0 <= u1 && u0 <= v0 && u0 <= v1) toDraw.push_back(glm::vec2{ 0.0f, last.y });
+		else if (u1 <= u0 && u1 <= v0 && u1 <= v1) toDraw.push_back(glm::vec2{ 1.0f, last.y });
+		else if (v0 <= u1 && v0 <= u0 && v0 <= v1) toDraw.push_back(glm::vec2{ last.x, 0.0f });
+		else toDraw.push_back(glm::vec2{ last.x,1.0f });
+		toDraw.push_back(last);
+	}
+	return toDraw;
+}
+
+void DrawPointsToTex(Program* program,std::vector<glm::vec2>& points, unsigned int& framebuffer, unsigned int& texBuffer)
+{
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	program->simpleShader.use();
+	unsigned int VBO;
+	unsigned int VAO;
+	unsigned int EBO;
+	glGenBuffers(1, &EBO);
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	std::vector<float> vertices;
+	std::vector<unsigned int> indices;
+
+	for (int i = 0; i < points.size(); ++i)
+	{
+		vertices.push_back(points[i].x);
+		vertices.push_back(points[i].y);
+		vertices.push_back(0.0f);
+		vertices.push_back(0.0f);
+		vertices.push_back(0.0f);
+		vertices.push_back(0.0f);
+		indices.push_back(i);
+	}
+
+	glBindVertexArray(VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	glBufferData(
+		GL_ARRAY_BUFFER,
+		vertices.size() * sizeof(float),
+		&vertices[0],
+		GL_STATIC_DRAW
+	);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+	glBufferData(
+		GL_ELEMENT_ARRAY_BUFFER,
+		indices.size() * sizeof(unsigned int),
+		&indices[0],
+		GL_STATIC_DRAW
+	);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	glBindVertexArray(0);
+	glBindVertexArray(VAO);
+	glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
 }
 
 void Intersect(Program* program)
@@ -387,19 +513,19 @@ void Intersect(Program* program)
 		float u1, v1, u2, v2;
 		GetClosestPoints(program, figures[0], u1, v1, figures[1], u2, v2);
 
-		std::vector<std::pair<float, float>> points1;
-		points1.push_back(std::make_pair(u1, v1));
-		std::vector<std::pair<float, float>> points2;
-		points2.push_back(std::make_pair(u2, v2));
+		std::vector<glm::vec2> points1;
+		points1.push_back(glm::vec2{ u1, v1 });
+		std::vector<glm::vec2> points2;
+		points2.push_back(glm::vec2{ u2, v2 });
 		std::vector<glm::vec3> points;
 		points.push_back(GetPos(figures[0], u1, v1));
 
 		FindPointsLoop(program, figures[0], figures[1], points1, points2, points, 1.0f);
 
-		std::vector<std::pair<float, float>> ppoints1;
-		ppoints1.push_back(std::make_pair(u1, v1));
-		std::vector<std::pair<float, float>> ppoints2;
-		ppoints2.push_back(std::make_pair(u2, v2));
+		std::vector<glm::vec2> ppoints1;
+		ppoints1.push_back(glm::vec2{ u1, v1 });
+		std::vector<glm::vec2> ppoints2;
+		ppoints2.push_back(glm::vec2{ u2, v2 });
 		std::vector<glm::vec3> ppoints;
 		ppoints.push_back(GetPos(figures[0], u1, v1));
 
@@ -408,7 +534,10 @@ void Intersect(Program* program)
 		IntersectionLine* il = new IntersectionLine();
 		il->Initialize(program);
 
-		for (int i = points.size()-1; i>=0; --i)
+		std::vector<glm::vec2> finalPoints1;
+		std::vector<glm::vec2> finalPoints2;
+
+		for (int i = points.size() - 1; i >= 0; --i)
 		{
 			Point* p = new Point();
 			p->Initialize(program);
@@ -416,6 +545,8 @@ void Intersect(Program* program)
 			program->figures.push_back(p);
 			p->AddParent(il);
 			il->AddPoint(p);
+			finalPoints1.push_back(points1[i]);
+			finalPoints2.push_back(points2[i]);
 		}
 		for (int i = 0; i < ppoints.size(); ++i)
 		{
@@ -425,8 +556,18 @@ void Intersect(Program* program)
 			program->figures.push_back(p);
 			p->AddParent(il);
 			il->AddPoint(p);
+			finalPoints1.push_back(ppoints1[i]);
+			finalPoints2.push_back(ppoints2[i]);
 		}
 		program->figures.push_back(il);
+
+		points1.clear();
+		points2.clear();
+
+		points1 = PrepareToDraw(finalPoints1);
+		points2 = PrepareToDraw(finalPoints2);
+		CreateTexBuffer(program->testFrame, program->testTex2);
+		DrawPointsToTex(program, points1, program->testFrame, program->testTex2);
 	}
 	else
 	{
@@ -461,4 +602,21 @@ void FillImage(unsigned int& texName)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, checkImageWidth,
 		checkImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 		checkImage);
+}
+
+
+void CreateTexBuffer(unsigned int& framebuffer, unsigned int& texName)
+{
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	// create a color attachment texture
+	glGenTextures(1, &texName);
+	glBindTexture(GL_TEXTURE_2D, texName);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, checkImageWidth, checkImageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texName, 0);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+
 }
