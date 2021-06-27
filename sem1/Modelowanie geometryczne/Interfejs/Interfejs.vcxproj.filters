@@ -262,8 +262,5 @@
     <None Include="shaders\trimVertexShader.vs">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\simpleVertexShader.vs">
-      <Filter>Shaders</Filter>
-    </None>
   </ItemGroup>
 </Project>

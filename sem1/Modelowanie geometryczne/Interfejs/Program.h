@@ -30,7 +30,6 @@ public:
 	Cursor* cur = NULL;
 	Camera* cam = NULL;
 	Shader shader;
-	Shader simpleShader;
 	Shader trimShader;
 	Shader bezierShader;
 	Shader patchShader;

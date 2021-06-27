@@ -603,10 +603,6 @@ int main()
 		, "shaders/fragShader.fs"
 		, nullptr);
 
-	program->simpleShader = Shader("shaders/simpleVertexShader.vs"
-		, "shaders/fragShader.fs"
-		, nullptr);
-
 	program->bezierShader = Shader("shaders/bezierVertexShader.vs"
 		, "shaders/fragShader.fs"
 		, "shaders/bezierGeometryShader.gs");
