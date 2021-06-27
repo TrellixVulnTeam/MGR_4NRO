@@ -400,9 +400,6 @@ std::vector<glm::vec2> PrepareToDraw(std::vector<glm::vec2> vec)
 
 	auto first = vec[0];
 	auto last = vec[vec.size() - 1];
-
-	float eps = 1e-3;
-
 	if (glm::distance(first, last) < 0.01f)
 	{
 		toDraw.push_back(first);
@@ -414,22 +411,22 @@ std::vector<glm::vec2> PrepareToDraw(std::vector<glm::vec2> vec)
 		float u1 = 1.0f - first.x;
 		float v0 = first.y;
 		float v1 = 1.0f - first.y;
-		if (u0 <= u1 && u0 <= v0 && u0 <= v1 && u0 < eps)
+		if (u0 <= u1 && u0 <= v0 && u0 <= v1 && u0 < 0.01f)
 		{
 			toDraw.push_back(first);
 			toDraw.push_back(glm::vec2{ 0.0f, first.y });
 		}
-		else if (u1 <= u0 && u1 <= v0 && u1 <= v1 && u1 < eps)
+		else if (u1 <= u0 && u1 <= v0 && u1 <= v1 && u1 < 0.01f)
 		{
 			toDraw.push_back(first);
 			toDraw.push_back(glm::vec2{ 1.0f, first.y });
 		}
-		else if (v0 <= u1 && v0 <= u0 && v0 <= v1 && v0 < eps)
+		else if (v0 <= u1 && v0 <= u0 && v0 <= v1 && v0 < 0.01f)
 		{
 			toDraw.push_back(first);
 			toDraw.push_back(glm::vec2{ first.x, 0.0f });
 		}
-		else if (v1 < eps)
+		else if (v1 < 0.01f)
 		{
 			toDraw.push_back(first);
 			toDraw.push_back(glm::vec2{ first.x,1.0f });
@@ -440,22 +437,22 @@ std::vector<glm::vec2> PrepareToDraw(std::vector<glm::vec2> vec)
 		u1 = 1.0f - last.x;
 		v0 = last.y;
 		v1 = 1.0f - last.y;
-		if (u0 <= u1 && u0 <= v0 && u0 <= v1 && u0 < eps)
+		if (u0 <= u1 && u0 <= v0 && u0 <= v1 && u0 < 0.01f)
 		{
 			toDraw.push_back(glm::vec2{ 0.0f, last.y });
 			toDraw.push_back(last);
 		}
-		else if (u1 <= u0 && u1 <= v0 && u1 <= v1 && u1 < eps)
+		else if (u1 <= u0 && u1 <= v0 && u1 <= v1 && u1 < 0.01f)
 		{
 			toDraw.push_back(glm::vec2{ 1.0f, last.y });
 			toDraw.push_back(last);
 		}
-		else if (v0 <= u1 && v0 <= u0 && v0 <= v1 && v0 < eps)
+		else if (v0 <= u1 && v0 <= u0 && v0 <= v1 && v0 < 0.01f)
 		{
 			toDraw.push_back(glm::vec2{ last.x, 0.0f });
 			toDraw.push_back(last);
 		}
-		else if (v1 < eps)
+		else if (v1 < 0.01f)
 		{
 			toDraw.push_back(glm::vec2{ last.x,1.0f });
 			toDraw.push_back(last);

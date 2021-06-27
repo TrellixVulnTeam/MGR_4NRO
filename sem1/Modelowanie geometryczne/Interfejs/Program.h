@@ -36,5 +36,7 @@ public:
 	Shader patchShaderDeBoor;
 	Shader patchGregoryShader;
 	unsigned int testTex;
+	unsigned int testFrame;
+	unsigned int testTex2;
 };
 
