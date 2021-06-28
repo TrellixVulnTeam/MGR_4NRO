@@ -249,7 +249,8 @@ void Clear(Program* program)
 		{
 			if (program->figures[i]->figureType == FigureType::BezierCurveC0
 				|| program->figures[i]->figureType == FigureType::BezierCurveC2
-				|| program->figures[i]->figureType == FigureType::InterpolationCurveC2)
+				|| program->figures[i]->figureType == FigureType::InterpolationCurveC2
+				|| program->figures[i]->figureType == FigureType::IntersectionLine)
 			{
 				Figure* f = program->figures[i];
 				program->figures.erase(program->figures.begin() + i);

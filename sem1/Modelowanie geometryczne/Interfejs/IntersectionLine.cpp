@@ -65,7 +65,25 @@ void IntersectionLine::RemovePoint(int to_del)
 void IntersectionLine::CleanUp()
 {
 	for (int i = 0; i < points.size(); ++i)
+	{
 		points[i]->Unpin(this);
+		if (!points[i]->HasParent()) points[i]->toDel = true;
+
+	}
+	int n = program->figures.size();
+	for (int i = 0; i < n; ++i)
+	{
+		if (program->figures[i]->figureType == FigureType::Point)
+		{
+			if (((Point*)program->figures[i])->toDel)
+			{
+				delete program->figures[i];
+				program->figures.erase(program->figures.begin() + i);
+				i--;
+				n--;
+			}
+		}
+	}
 	delete pointsLine;
 }
 

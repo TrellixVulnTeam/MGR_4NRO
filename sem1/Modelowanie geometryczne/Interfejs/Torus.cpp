@@ -191,9 +191,9 @@ bool Torus::Create()
 			vertices[idx1] = x;
 			vertices[idx1 + 1] = y;
 			vertices[idx1 + 2] = z;
-			vertices[idx1 + 3] = selected ? 0.0f : 1.0f;
-			vertices[idx1 + 4] = selected ? 1.0f : 1.0f;
-			vertices[idx1 + 5] = selected ? 0.0f : 1.0f;
+			vertices[idx1 + 3] = selected ? 0.0f : 0.7f;
+			vertices[idx1 + 4] = selected ? 1.0f : 0.7f;
+			vertices[idx1 + 5] = selected ? 0.0f : 0.7f;
 			vertices[idx1 + 6] = ((float)i) / m;
 			vertices[idx1 + 7] = ((float)j) / n;
 

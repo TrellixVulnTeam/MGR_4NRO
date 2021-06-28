@@ -54,7 +54,7 @@ void InterpolationCurveC2::ReplaceInParent(Point* oldPoint, Point* newPoint)
 			newPoint->AddParent(this);
 		}
 	}
-}
+} 
 
 void InterpolationCurveC2::RemovePoint(int to_del)
 {
@@ -66,7 +66,25 @@ void InterpolationCurveC2::RemovePoint(int to_del)
 void InterpolationCurveC2::CleanUp()
 {
 	for (int i = 0; i < points.size(); ++i)
+	{
 		points[i]->Unpin(this);
+		if (!points[i]->HasParent()) points[i]->toDel = true;
+
+	}
+	int n = program->figures.size();
+	for (int i = 0; i < n; ++i)
+	{
+		if (program->figures[i]->figureType == FigureType::Point)
+		{
+			if (((Point*)program->figures[i])->toDel)
+			{
+				delete program->figures[i];
+				program->figures.erase(program->figures.begin() + i);
+				i--;
+				n--;
+			}
+		}
+	}
 	delete pointsLine;
 	delete bernsteinLine;
 

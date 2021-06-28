@@ -360,9 +360,9 @@ void BezierPatchC2::AddPatch(int i, int j, float t, float t2, float from, float 
 		vertices.push_back(pos.y);
 		vertices.push_back(pos.z);
 
-		vertices.push_back(1.0f);
-		vertices.push_back(0.0f);
-		vertices.push_back(0.0f);
+		vertices.push_back(selected ? 0.0f : 0.7f);
+		vertices.push_back(selected ? 1.0f : 0.7f);
+		vertices.push_back(selected ? 0.0f : 0.7f);
 		pos = points[start + 1]->GetPos();
 		vertices.push_back(pos.x);
 		vertices.push_back(pos.y);

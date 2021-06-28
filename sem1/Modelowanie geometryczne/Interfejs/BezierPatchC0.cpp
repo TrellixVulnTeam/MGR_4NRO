@@ -204,7 +204,7 @@ glm::vec3 BezierPatchC0::GetParametrizedDer(float u, float v, bool du)
 			mm.push_back(DeCasteljau(patch[i], v));
 		}
 
-		return DeCasteljauDerivative(mm, u);
+		return (float)m * DeCasteljauDerivative(mm, u);
 	}
 	else
 	{
@@ -218,7 +218,7 @@ glm::vec3 BezierPatchC0::GetParametrizedDer(float u, float v, bool du)
 			mm.push_back(DeCasteljau(vv, u));
 		}
 
-		return DeCasteljauDerivative(mm, v);
+		return (float)n * DeCasteljauDerivative(mm, v);
 	}
 }
 
@@ -388,9 +388,9 @@ void BezierPatchC0::AddPatch(int i, int j, float t, float t2, float from, float 
 		vertices.push_back(pos.y);
 		vertices.push_back(pos.z);
 
-		vertices.push_back(1.0f);
-		vertices.push_back(0.0f);
-		vertices.push_back(0.0f);
+		vertices.push_back(selected ? 0.0f : 0.7f);
+		vertices.push_back(selected ? 1.0f : 0.7f);
+		vertices.push_back(selected ? 0.0f : 0.7f);
 		pos = points[start + 1]->GetPos();
 		vertices.push_back(pos.x);
 		vertices.push_back(pos.y);
