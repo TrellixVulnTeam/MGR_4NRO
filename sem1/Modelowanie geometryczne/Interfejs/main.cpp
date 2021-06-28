@@ -25,8 +25,7 @@
 #include "GregoryPatch.h"
 #include "Serialization.h"
 #include "Intersections.h"
-#define DEFAULT_WIDTH 1280
-#define DEFAULT_HEIGHT 720
+
 
 
 bool firstCall = true;
@@ -680,7 +679,7 @@ int main()
 	unsigned int framebufferBlue, textureColorbufferBlue;
 	CreateColorbuffer(framebufferBlue, textureColorbufferBlue);
 
-	FillImage(program->testTex);
+	FillImage(program->testTex, program);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -712,6 +711,15 @@ int main()
 
 			DrawScene();
 #pragma endregion
+			unsigned int aa;
+			for (int i = 0; i < program->figures.size(); ++i)
+			{
+				if (program->figures[i]->figureType == FigureType::BezierPatchC0)
+				{
+					aa = ((BezierPatchC0*)program->figures[i])->trimTex;
+				}
+			}
+
 
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
@@ -732,10 +740,10 @@ int main()
 			glUniform1i(redTexLocation, 0);
 			glUniform1i(blueTexLocation, 1);
 			glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
-			glBindTexture(GL_TEXTURE_2D, program->testTex2);
+			glBindTexture(GL_TEXTURE_2D, aa);
 
 			glActiveTexture(GL_TEXTURE0 + 1); // Texture unit 1
-			glBindTexture(GL_TEXTURE_2D, program->testTex2);
+			glBindTexture(GL_TEXTURE_2D, aa);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 		else

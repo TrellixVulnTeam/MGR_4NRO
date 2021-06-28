@@ -63,6 +63,8 @@ public:
 	bool isPatch = false;
 	void virtual CleanUp();
 	std::vector<Figure*> parents;
+	unsigned int trimTex;
+	unsigned int trimLine;
 protected:
 	virtual bool Create();
 	void RecalcModel();

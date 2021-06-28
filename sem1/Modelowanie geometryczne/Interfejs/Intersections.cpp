@@ -1,6 +1,6 @@
 #include "Intersections.h"
 #include "IntersectionLine.h"
-
+#include <list>
 
 void FixPos(float& u, float& v)
 {
@@ -465,10 +465,26 @@ std::vector<glm::vec2> PrepareToDraw(std::vector<glm::vec2> vec)
 	return toDraw;
 }
 
+void SetTexture(unsigned int& sourceTex, unsigned int& destTex, bool fill = false, bool inverse = false)
+{
+	glBindTexture(GL_TEXTURE_2D, sourceTex);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, checkImage);
+
+	glBindTexture(GL_TEXTURE_2D, destTex);
+
+	if (fill)FloodFill();
+	if (inverse) Inverse();
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, checkImageWidth,
+		checkImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+		checkImage);
+}
+
 void DrawPointsToTex(Program* program, std::vector<glm::vec2>& points, unsigned int& framebuffer, unsigned int& texBuffer)
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glViewport(0, 0, checkImageWidth, checkImageHeight);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	program->shader.use();
 
@@ -530,6 +546,8 @@ void DrawPointsToTex(Program* program, std::vector<glm::vec2>& points, unsigned 
 	glBindVertexArray(VAO);
 	glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+
+	glViewport(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 }
 
 void Intersect(Program* program)
@@ -610,12 +628,20 @@ void Intersect(Program* program)
 
 		points1 = PrepareToDraw(finalPoints1);
 		points2 = PrepareToDraw(finalPoints2);
+
 		CreateTexBuffer(program->testFrame, program->testTex2);
+
 		DrawPointsToTex(program, points1, program->testFrame, program->testTex2);
+		SetTexture(program->testTex2, figures[0]->trimTex, true);
+		SetTexture(program->testTex2, figures[0]->trimLine);
+
+		DrawPointsToTex(program, points2, program->testFrame, program->testTex2);
+		SetTexture(program->testTex2, figures[1]->trimTex, true);
+		SetTexture(program->testTex2, figures[1]->trimLine);
 	}
 }
 
-void FillImage(unsigned int& texName)
+void FillImage(unsigned int& texName, Program* program)
 {
 	int i, j, c;
 	for (i = 0; i < checkImageHeight; i++) {
@@ -659,4 +685,95 @@ void CreateTexBuffer(unsigned int& framebuffer, unsigned int& texName)
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 
+}
+
+void FloodFill()
+{
+	bool found = false;
+	int i_start, j_start;
+	for (int i = 0; i < checkImageHeight; ++i)
+		for (int j = 0; j < checkImageWidth; ++j)
+		{
+			added[i][j] = false;
+		}
+	for (int i = 0; i < checkImageHeight && !found; ++i)
+		for (int j = 0; j < checkImageWidth && !found; ++j)
+		{
+			if (checkImage[i][j][0] == (GLubyte)255)
+			{
+				i_start = i;
+				j_start = j;
+				found = true;
+			}
+		}
+
+	std::list<int> is;
+	std::list<int> js;
+
+	is.push_back(i_start);
+	js.push_back(j_start);
+	added[i_start][j_start] = true;
+	int i, j, jm, jp, im, ip;
+	while (is.size() > 0)
+	{
+		i = is.front();
+		j = js.front();
+		is.pop_front();
+		js.pop_front();
+		checkImage[i][j][0] = (GLubyte)0;
+		checkImage[i][j][1] = (GLubyte)0;
+		checkImage[i][j][2] = (GLubyte)0;
+
+		ip = (i + 1) % checkImageHeight;
+		jp = (j + 1) % checkImageWidth;
+		im = i - 1;
+		jm = j - 1;
+		if (im < 0) im = checkImageHeight - 1;
+		if (jm < 0) jm = checkImageWidth - 1;
+
+		if (checkImage[im][j][0] == (GLubyte)255 && !added[im][j])
+		{
+			is.push_back(im);
+			js.push_back(j);
+			added[im][j] = true;
+		}
+		if (checkImage[ip][j][0] == (GLubyte)255 && !added[ip][j])
+		{
+			is.push_back(ip);
+			js.push_back(j);
+			added[ip][j] = true;
+		}
+		if (checkImage[i][jm][0] == (GLubyte)255 && !added[i][jm])
+		{
+			is.push_back(i);
+			js.push_back(jm);
+			added[i][jm] = true;
+		}
+		if (checkImage[i][jp][0] == (GLubyte)255 && !added[i][jp])
+		{
+			is.push_back(i);
+			js.push_back(jp);
+			added[i][jp] = true;
+		}
+	}
+}
+
+void Inverse()
+{
+	for (int i = 0; i < checkImageHeight; ++i)
+		for (int j = 0; j < checkImageWidth; ++j)
+		{
+			if (checkImage[i][j][0] == (GLubyte)255)
+			{
+				checkImage[i][j][0] = (GLubyte)0;
+				checkImage[i][j][1] = (GLubyte)0;
+				checkImage[i][j][2] = (GLubyte)0;
+			}
+			else
+			{
+				checkImage[i][j][0] = (GLubyte)255;
+				checkImage[i][j][1] = (GLubyte)255;
+				checkImage[i][j][2] = (GLubyte)255;
+			}
+		}
 }

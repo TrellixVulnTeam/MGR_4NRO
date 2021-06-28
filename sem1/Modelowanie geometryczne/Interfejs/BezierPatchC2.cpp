@@ -1,6 +1,7 @@
 #include "BezierPatchC2.h"
 #include "imgui\imgui.h"
 #include <string>
+#include "Intersections.h"
 
 BezierPatchC2::BezierPatchC2() : SomePatch()
 {
@@ -14,6 +15,8 @@ void BezierPatchC2::Initialize(Program* _program)
 	pointsLines->Initialize(program);
 	if (generate)
 		GeneratePoints();
+	FillImage(trimTex, program);
+	FillImage(trimLine, program);
 }
 
 void BezierPatchC2::ClearPoints()
@@ -294,7 +297,7 @@ void BezierPatchC2::Draw()
 
 	glUniform1i(texLocation, 0);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, program->testTex);
+	glBindTexture(GL_TEXTURE_2D, trimTex);
 
 	glDrawElements(GL_LINES_ADJACENCY, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);

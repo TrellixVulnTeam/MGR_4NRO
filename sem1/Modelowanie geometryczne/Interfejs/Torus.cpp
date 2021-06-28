@@ -1,6 +1,7 @@
 #include "Torus.h"
 #include "imgui\imgui.h"
 #include <string>
+#include "Intersections.h"
 
 Torus::Torus() : Figure()
 {
@@ -13,6 +14,8 @@ void Torus::Initialize(Program* _program)
 	Figure::Initialize(_program);
 
 	shader = Shader(program->trimShader);
+	FillImage(trimTex, program);
+	FillImage(trimLine, program);
 }
 
 void Torus::RecalcFigure()
@@ -64,6 +67,10 @@ bool Torus::GetGuiInternal(Figure* par)
 		ImGui::SliderFloat("R", &R_new, 0.3f, 10.0f);
 		ImGui::TreePop();
 	}
+	if (ImGui::Button("Inverse"))
+	{
+		SetTexture(trimTex, trimTex, false, true);
+	}
 	return b;
 }
 
@@ -75,7 +82,7 @@ void Torus::Draw()
 
 	glUniform1i(texLocation, 0);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, program->testTex);
+	glBindTexture(GL_TEXTURE_2D, trimTex);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
@@ -137,7 +144,7 @@ glm::vec3 Torus::GetParametrizedDer(float u, float v, bool du)
 		y = r * cosb * 2.0f * M_PI;
 		z = -r * sina * sinb * 2.0f * M_PI;
 	}
-	return  glm::vec3(model*glm::vec4(x, y, z,0.0f));
+	return  glm::vec3(model * glm::vec4(x, y, z, 0.0f));
 }
 
 bool Torus::Create()

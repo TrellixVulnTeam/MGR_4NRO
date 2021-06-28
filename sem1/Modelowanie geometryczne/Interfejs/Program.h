@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include "Shader.h"
+#define DEFAULT_WIDTH 1280
+#define DEFAULT_HEIGHT 720
 class Figure;
 class MiddlePoint;
 class Cursor;
@@ -38,5 +40,6 @@ public:
 	unsigned int testTex;
 	unsigned int testFrame;
 	unsigned int testTex2;
+
 };
 

@@ -2,6 +2,7 @@
 #include "Math.h"
 #include "imgui\imgui.h"
 #include <string>
+#include "Intersections.h"
 
 IntersectionLine::IntersectionLine() : SomeCurve()
 {

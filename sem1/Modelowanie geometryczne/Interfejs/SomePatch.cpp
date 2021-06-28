@@ -3,6 +3,7 @@
 #include <string>
 #include "BezierPatchC0.h"
 #include "BezierPatchC2.h"
+#include "Intersections.h"
 
 SomePatch::SomePatch() :Figure()
 {
@@ -33,6 +34,13 @@ bool SomePatch::GetGuiInternal(Figure* par)
 	if (ImGui::Button("Unselect all points"))
 	{
 		for (int i = 0; i < points.size(); ++i)points[i]->Unselect();
+	}
+	if (figureType == FigureType::BezierPatchC0 || figureType == FigureType::BezierPatchC2)
+	{
+		if (ImGui::Button("Inverse"))
+		{
+			SetTexture(trimTex, trimTex, false, true);
+		}
 	}
 	int to_del = -1;
 	if (ImGui::TreeNode("Points"))
