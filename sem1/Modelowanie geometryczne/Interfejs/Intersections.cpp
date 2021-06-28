@@ -75,7 +75,7 @@ void GetClosestPoints(Program* program, Figure* f1, float& u1, float& v1, Figure
 
 void FindStartPoints(Program* program, Figure* f1, float& u1, float& v1, Figure* f2, float& u2, float& v2)
 {
-	int splits = 10;
+	int splits = program->startPointsSplits;
 	int stepSize = 1.0f / splits;
 	float u = 0.0f, v = 0.0f;
 	std::vector<std::pair<float, float>> points;
@@ -119,7 +119,7 @@ void FindStartPoints(Program* program, Figure* f1, float& u1, float& v1, Figure*
 
 void FindClosestPoints(Program* program, Figure* f1, float& u1, float& v1, Figure* f2, float& u2, float& v2)
 {
-	float windowSize = 1e-1;
+	float windowSize = program->closestPointsStartWindowSize;
 
 	std::vector<std::pair<float, float>> points1;
 	std::vector<std::pair<float, float>> points2;
@@ -183,8 +183,8 @@ void FindPointClosestToCursor(Program* program, Figure* f, float& u_best, float&
 	u_best = 0.0f;
 	v_best = 0.0f;
 
-	int surfSplit = 10;
-	if (f->figureType == FigureType::Torus) surfSplit = 20;
+	int surfSplit = program->cursorPointsSplits;
+	if (f->figureType == FigureType::Torus && surfSplit < 20) surfSplit = 20;
 	float surfStep = 1.0f / surfSplit;
 	float searchStepStart = surfStep / 10;
 	float d_best = glm::distance(pos, GetPos(f, u_best, v_best));
@@ -266,7 +266,7 @@ void FindPointClosestToCursor(Program* program, Figure* f, float& u_best, float&
 
 void NewtonMethod(Program* program, Figure* f1, Figure* f2, glm::vec3 P0, glm::vec4 x_k, glm::vec4& x_new, glm::vec3& pos1, glm::vec3& pos2, float dir)
 {
-	float d = 0.1f;
+	float d = program->newtonD;
 	x_new = x_k;
 	P0 = GetPos(f1, x_k.x, x_k.y);
 	glm::mat4x4 jacobian;
@@ -327,12 +327,12 @@ void NewtonMethod(Program* program, Figure* f1, Figure* f2, glm::vec3 P0, glm::v
 		pos2 = GetPos(f2, x_new.z, x_new.w);
 
 		++i;
-	} while (glm::distance(pos1, pos2) > 0.001f && i < 20);
+	} while (glm::distance(pos1, pos2) > program->pointsDistNewton && i < 20);
 }
 
 void FindPointsLoop(Program* program, Figure* f1, Figure* f2, std::vector<glm::vec2>& points1, std::vector<glm::vec2>& points2, std::vector<glm::vec3>& points, float dir)
 {
-	float d = 1e-3;
+	float d = program->stopSearchingPointsLoopD;
 	glm::mat4x4 jacobian;
 	glm::vec4 last_vec, new_vec;
 	glm::vec3 last_pos, first_pos;
@@ -348,7 +348,7 @@ void FindPointsLoop(Program* program, Figure* f1, Figure* f2, std::vector<glm::v
 		NewtonMethod(program, f1, f2, last_pos, last_vec, new_vec, pos1, pos2, dir);
 
 
-		if (glm::distance(pos1, pos2) > 0.1f)
+		if (glm::distance(pos1, pos2) > program->stopSearchingPointsFarD)
 			break;
 
 
@@ -362,7 +362,7 @@ void FindPointsLoop(Program* program, Figure* f1, Figure* f2, std::vector<glm::v
 	}
 }
 
-std::vector<glm::vec2> PrepareToDraw(std::vector<glm::vec2> vec)
+std::vector<glm::vec2> PrepareToDraw(Program* program, std::vector<glm::vec2> vec)
 {
 	std::vector<glm::vec2> toDraw;
 
@@ -401,7 +401,7 @@ std::vector<glm::vec2> PrepareToDraw(std::vector<glm::vec2> vec)
 	auto first = vec[0];
 	auto last = vec[vec.size() - 1];
 
-	float eps = 1e-3;
+	float eps = program->connectLineToWallEps;
 
 	if (glm::distance(first, last) < 0.01f)
 	{
@@ -465,14 +465,14 @@ std::vector<glm::vec2> PrepareToDraw(std::vector<glm::vec2> vec)
 	return toDraw;
 }
 
-void SetTexture(unsigned int& sourceTex, unsigned int& destTex, bool fill = false, bool inverse = false)
+void SetTexture(unsigned int& sourceTex, unsigned int& destTex, bool fill, bool inverse, bool wrapParametrizationFloodFill)
 {
 	glBindTexture(GL_TEXTURE_2D, sourceTex);
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, checkImage);
 
 	glBindTexture(GL_TEXTURE_2D, destTex);
 
-	if (fill)FloodFill();
+	if (fill)FloodFill(wrapParametrizationFloodFill);
 	if (inverse) Inverse();
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, checkImageWidth,
 		checkImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
@@ -626,18 +626,18 @@ void Intersect(Program* program)
 		points1.clear();
 		points2.clear();
 
-		points1 = PrepareToDraw(finalPoints1);
-		points2 = PrepareToDraw(finalPoints2);
+		points1 = PrepareToDraw(program, finalPoints1);
+		points2 = PrepareToDraw(program, finalPoints2);
 
 		CreateTexBuffer(program->testFrame, program->testTex2);
 
 		DrawPointsToTex(program, points1, program->testFrame, program->testTex2);
-		SetTexture(program->testTex2, figures[0]->trimTex, true);
-		SetTexture(program->testTex2, figures[0]->trimLine);
+		SetTexture(program->testTex2, figures[0]->trimTex, true, false, figures[0]->wrapParametrizationFloodFill);
+		SetTexture(program->testTex2, figures[0]->trimLine, false, false, figures[0]->wrapParametrizationFloodFill);
 
 		DrawPointsToTex(program, points2, program->testFrame, program->testTex2);
-		SetTexture(program->testTex2, figures[1]->trimTex, true);
-		SetTexture(program->testTex2, figures[1]->trimLine);
+		SetTexture(program->testTex2, figures[1]->trimTex, true, false, figures[1]->wrapParametrizationFloodFill);
+		SetTexture(program->testTex2, figures[1]->trimLine, false, false, figures[1]->wrapParametrizationFloodFill);
 	}
 }
 
@@ -687,7 +687,7 @@ void CreateTexBuffer(unsigned int& framebuffer, unsigned int& texName)
 
 }
 
-void FloodFill()
+void FloodFill(bool wrapParametrizationFloodFill)
 {
 	bool found = false;
 	int i_start, j_start;
@@ -724,12 +724,24 @@ void FloodFill()
 		checkImage[i][j][1] = (GLubyte)0;
 		checkImage[i][j][2] = (GLubyte)0;
 
-		ip = (i + 1) % checkImageHeight;
-		jp = (j + 1) % checkImageWidth;
+		ip = i + 1;
+		jp = j + 1;
 		im = i - 1;
 		jm = j - 1;
-		if (im < 0) im = checkImageHeight - 1;
-		if (jm < 0) jm = checkImageWidth - 1;
+		if (wrapParametrizationFloodFill)
+		{
+			if (ip == checkImageHeight) ip = 0;
+			if (jp == checkImageHeight) jp = 0;
+			if (im < 0) im = checkImageHeight - 1;
+			if (jm < 0) jm = checkImageWidth - 1;
+		}
+		else
+		{
+			if (ip == checkImageHeight) ip--;
+			if (jp == checkImageHeight) jp--;
+			if (im < 0) im++;
+			if (jm < 0) jm++;
+		}
 
 		if (checkImage[im][j][0] == (GLubyte)255 && !added[im][j])
 		{

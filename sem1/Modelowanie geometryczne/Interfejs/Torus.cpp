@@ -69,7 +69,7 @@ bool Torus::GetGuiInternal(Figure* par)
 	}
 	if (ImGui::Button("Inverse"))
 	{
-		SetTexture(trimTex, trimTex, false, true);
+		SetTexture(trimTex, trimTex, false, true, wrapParametrizationFloodFill);
 	}
 	return b;
 }

@@ -40,6 +40,13 @@ public:
 	unsigned int testTex;
 	unsigned int testFrame;
 	unsigned int testTex2;
-
+	int startPointsSplits = 10;
+	int cursorPointsSplits = 10;
+	float closestPointsStartWindowSize = 0.1;
+	float newtonD = 0.1f;
+	float stopSearchingPointsLoopD = 1e-3;
+	float stopSearchingPointsFarD = 0.1f;
+	float connectLineToWallEps = 1e-3f;
+	float pointsDistNewton = 1e-3;
 };
 

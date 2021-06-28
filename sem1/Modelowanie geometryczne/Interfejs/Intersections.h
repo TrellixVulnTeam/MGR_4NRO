@@ -18,6 +18,6 @@ void FindPointClosestToCursor(Program* program, Figure* f, float& u_best, float&
 void Intersect(Program* program);
 void FillImage(unsigned int& texName, Program* program);
 void CreateTexBuffer(unsigned int& framebuffer, unsigned int& texName);
-void FloodFill();
+void FloodFill(bool wrapParametrizationFloodFill);
 void Inverse();
-void SetTexture(unsigned int& sourceTex, unsigned int& destTex, bool fill, bool inverse);
+void SetTexture(unsigned int& sourceTex, unsigned int& destTex, bool fill, bool inverse, bool wrapParametrizationFloodFill);

@@ -462,7 +462,36 @@ void RenderGui()
 	{
 		CreateGregory(program);
 	}
-	ImGui::Checkbox("Use Cursor", &program->useCursor);
+	if (ImGui::TreeNode("Intersection Parameters"))
+	{
+		ImGui::Checkbox("Use Cursor", &program->useCursor);
+		
+		ImGui::SliderInt("Start Points Splits", &program->startPointsSplits, 1, 100);
+		if (program->startPointsSplits < 1)program->startPointsSplits = 1;
+		
+		ImGui::SliderInt("Cursor Points Splits", &program->cursorPointsSplits, 1, 100);
+		if (program->cursorPointsSplits < 1)program->cursorPointsSplits = 1;
+		
+		ImGui::SliderFloat("Closest Points Start Window Size", &program->closestPointsStartWindowSize, 0.0f,0.5f);
+		if (program->closestPointsStartWindowSize >= 0.5f)program->closestPointsStartWindowSize = 0.5f;
+		if (program->closestPointsStartWindowSize <= 0.0f)program->closestPointsStartWindowSize = 0.01f;
+
+		ImGui::SliderFloat("Newton D", &program->newtonD, 0.0f,1.0f);
+		if (program->newtonD <= 0.0f)program->newtonD = 0.01f;
+
+		ImGui::SliderFloat("Newton Points Dist", &program->pointsDistNewton, 0.0f, 1.0f);
+		if (program->pointsDistNewton <= 0.0f)program->pointsDistNewton = 0.01f;
+
+		ImGui::SliderFloat("Stop Searching Points Loop D", &program->stopSearchingPointsLoopD, 0.0f,1.0f);
+		if (program->stopSearchingPointsLoopD <= 0.0f)program->stopSearchingPointsLoopD = 0.01f;
+
+		ImGui::SliderFloat("Stop Searching Points Far D", &program->stopSearchingPointsFarD, 0.0f,1.0f);
+		if (program->stopSearchingPointsFarD <= 0.0f)program->stopSearchingPointsFarD = 0.01f;
+
+		ImGui::SliderFloat("Connect Line To Wall Eps", &program->connectLineToWallEps, 0.0f,1.0f);
+		if (program->connectLineToWallEps <= 0.0f)program->connectLineToWallEps = 0.01f;
+		ImGui::TreePop();
+	}
 	if (ImGui::Button("Intersect"))
 	{
 		Intersect(program);
@@ -762,6 +791,7 @@ int main()
 	glDeleteBuffers(1, &quadVBO);
 
 	glfwTerminate();
+	Clear(program);
 	for (int i = 0; i < program->figures.size(); ++i) delete program->figures[i];
 	delete program->mp;
 	delete program;

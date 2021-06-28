@@ -65,6 +65,7 @@ public:
 	std::vector<Figure*> parents;
 	unsigned int trimTex;
 	unsigned int trimLine;
+	bool wrapParametrizationFloodFill = false;
 protected:
 	virtual bool Create();
 	void RecalcModel();
@@ -81,6 +82,8 @@ protected:
 	unsigned int VBO;
 	unsigned int VAO;
 	unsigned int EBO;
+	bool showParametrizationLine = false;
+	bool showTrimmingTexture = false;
 	std::string gen_random(const int len, int seedMod)
 	{
 		std::string tmp_s;
