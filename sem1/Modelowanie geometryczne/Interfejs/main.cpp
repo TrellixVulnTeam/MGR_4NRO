@@ -34,6 +34,17 @@ glm::vec2 mousePosOld;
 glm::vec3 lookAt;
 Program* program;
 
+void ResetParameters()
+{
+	program->startPointsSplits = 10;
+	program->cursorPointsSplits = 10;
+	program->closestPointsStartWindowSize = 0.1;
+	program->newtonD = 0.1f;
+	program->stopSearchingPointsLoopD = 1e-3;
+	program->stopSearchingPointsFarD = 0.1f;
+	program->connectLineToWallEps = 1e-3f;
+	program->pointsDistNewton = 1e-3;
+}
 
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
 {
@@ -490,6 +501,12 @@ void RenderGui()
 
 		ImGui::SliderFloat("Connect Line To Wall Eps", &program->connectLineToWallEps, 0.0f,1.0f);
 		if (program->connectLineToWallEps <= 0.0f)program->connectLineToWallEps = 0.01f;
+
+		if (ImGui::Button("Reset parameters"))
+		{
+			ResetParameters();
+		}
+
 		ImGui::TreePop();
 	}
 	if (ImGui::Button("Intersect"))
