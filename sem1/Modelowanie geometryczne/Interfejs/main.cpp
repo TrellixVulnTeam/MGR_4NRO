@@ -757,16 +757,6 @@ int main()
 
 			DrawScene();
 #pragma endregion
-			unsigned int aa;
-			for (int i = 0; i < program->figures.size(); ++i)
-			{
-				if (program->figures[i]->figureType == FigureType::BezierPatchC0)
-				{
-					aa = ((BezierPatchC0*)program->figures[i])->trimTex;
-				}
-			}
-
-
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -786,10 +776,10 @@ int main()
 			glUniform1i(redTexLocation, 0);
 			glUniform1i(blueTexLocation, 1);
 			glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
-			glBindTexture(GL_TEXTURE_2D, aa);
+			glBindTexture(GL_TEXTURE_2D, textureColorbufferRed);
 
 			glActiveTexture(GL_TEXTURE0 + 1); // Texture unit 1
-			glBindTexture(GL_TEXTURE_2D, aa);
+			glBindTexture(GL_TEXTURE_2D, textureColorbufferBlue);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 		else
