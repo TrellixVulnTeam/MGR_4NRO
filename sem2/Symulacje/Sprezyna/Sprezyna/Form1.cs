@@ -18,13 +18,42 @@ namespace Sprezyna
 
         void Form1_Load(object sender, EventArgs e)
         {
-            #region chart1
+            Legend legend1 = new Legend();
+            chartControl1.Legends.Add(legend1);
+
+            #region series1
             {
-                chartControl1.Titles.Add(new ChartTitle { Text = "Position" });
+                Color color = Color.Green;
 
                 Series series = new Series();
                 series.ChangeView(ViewType.Point);
                 series.DataSource = positionPoints;
+                series.DataSourceSorted = true;
+                series.ArgumentDataMember = "Argument";
+                series.ValueDataMembers.AddRange("Value");
+                series.ShowInLegend = true;
+                chartControl1.Series.Add(series);
+
+                PointSeriesView seriesView = (PointSeriesView)series.View;
+                seriesView.LastPoint.LabelDisplayMode = SidePointDisplayMode.DiagramEdge;
+                seriesView.LastPoint.Label.TextPattern = "{V:f2}";
+                seriesView.AggregateFunction = SeriesAggregateFunction.None;
+                seriesView.Color = color;
+
+                CustomLegendItem customLegendItem = new CustomLegendItem();
+                customLegendItem.Text = "Position";
+                legend1.CustomItems.Add(customLegendItem);
+                customLegendItem.MarkerColor = color;
+
+            }
+            #endregion
+            #region series2
+            {
+                Color color = Color.Red;
+
+                Series series = new Series();
+                series.ChangeView(ViewType.Point);
+                series.DataSource = velocityPoints;
                 series.DataSourceSorted = true;
                 series.ArgumentDataMember = "Argument";
                 series.ValueDataMembers.AddRange("Value");
@@ -34,45 +63,17 @@ namespace Sprezyna
                 seriesView.LastPoint.LabelDisplayMode = SidePointDisplayMode.DiagramEdge;
                 seriesView.LastPoint.Label.TextPattern = "{V:f2}";
                 seriesView.AggregateFunction = SeriesAggregateFunction.None;
+                seriesView.Color = color;
 
-                XYDiagram diagram = (XYDiagram)chartControl1.Diagram;
-                diagram.AxisX.DateTimeScaleOptions.ScaleMode = ScaleMode.Continuous;
-                diagram.AxisX.Label.ResolveOverlappingOptions.AllowRotate = false;
-                diagram.AxisX.Label.ResolveOverlappingOptions.AllowStagger = false;
-                diagram.AxisX.WholeRange.SideMarginsValue = 0;
-                diagram.DependentAxesYRange = DefaultBoolean.True;
-                diagram.AxisY.WholeRange.AlwaysShowZeroLevel = false;
-            }
-            #endregion
-            #region chart2
-            {
-                chartControl2.Titles.Add(new ChartTitle { Text = "Velocity" });
-
-                Series series = new Series();
-                series.ChangeView(ViewType.Point);
-                series.DataSource = velocityPoints;
-                series.DataSourceSorted = true;
-                series.ArgumentDataMember = "Argument";
-                series.ValueDataMembers.AddRange("Value");
-                chartControl2.Series.Add(series);
-
-                PointSeriesView seriesView = (PointSeriesView)series.View;
-                seriesView.LastPoint.LabelDisplayMode = SidePointDisplayMode.DiagramEdge;
-                seriesView.LastPoint.Label.TextPattern = "{V:f2}";
-                seriesView.AggregateFunction = SeriesAggregateFunction.None;
-
-                XYDiagram diagram = (XYDiagram)chartControl2.Diagram;
-                diagram.AxisX.DateTimeScaleOptions.ScaleMode = ScaleMode.Continuous;
-                diagram.AxisX.Label.ResolveOverlappingOptions.AllowRotate = false;
-                diagram.AxisX.Label.ResolveOverlappingOptions.AllowStagger = false;
-                diagram.AxisX.WholeRange.SideMarginsValue = 0;
-                diagram.DependentAxesYRange = DefaultBoolean.True;
-                diagram.AxisY.WholeRange.AlwaysShowZeroLevel = false;
+                CustomLegendItem customLegendItem = new CustomLegendItem();
+                customLegendItem.Text = "Velocity";
+                legend1.CustomItems.Add(customLegendItem);
+                customLegendItem.MarkerColor = color;
             }
             #endregion            
-            #region chart3
+            #region series3
             {
-                chartControl3.Titles.Add(new ChartTitle { Text = "Acceleration" });
+                Color color = Color.Blue;
 
                 Series series = new Series();
                 series.ChangeView(ViewType.Point);
@@ -80,35 +81,47 @@ namespace Sprezyna
                 series.DataSourceSorted = true;
                 series.ArgumentDataMember = "Argument";
                 series.ValueDataMembers.AddRange("Value");
-                chartControl3.Series.Add(series);
+                chartControl1.Series.Add(series);
 
                 PointSeriesView seriesView = (PointSeriesView)series.View;
                 seriesView.LastPoint.LabelDisplayMode = SidePointDisplayMode.DiagramEdge;
                 seriesView.LastPoint.Label.TextPattern = "{V:f2}";
                 seriesView.AggregateFunction = SeriesAggregateFunction.None;
+                seriesView.Color = color;
 
-                XYDiagram diagram = (XYDiagram)chartControl3.Diagram;
-                diagram.AxisX.DateTimeScaleOptions.ScaleMode = ScaleMode.Continuous;
-                diagram.AxisX.Label.ResolveOverlappingOptions.AllowRotate = false;
-                diagram.AxisX.Label.ResolveOverlappingOptions.AllowStagger = false;
-                diagram.AxisX.WholeRange.SideMarginsValue = 0;
-                diagram.DependentAxesYRange = DefaultBoolean.True;
-                diagram.AxisY.WholeRange.AlwaysShowZeroLevel = false;
+                CustomLegendItem customLegendItem = new CustomLegendItem();
+                customLegendItem.Text = "Acceleration";
+                legend1.CustomItems.Add(customLegendItem);
+                customLegendItem.MarkerColor = color;
             }
             #endregion
+
+            XYDiagram diagram = (XYDiagram)chartControl1.Diagram;
+            diagram.AxisX.DateTimeScaleOptions.ScaleMode = ScaleMode.Continuous;
+            diagram.AxisX.Label.ResolveOverlappingOptions.AllowRotate = false;
+            diagram.AxisX.Label.ResolveOverlappingOptions.AllowStagger = false;
+            diagram.AxisX.WholeRange.SideMarginsValue = 0;
+            diagram.DependentAxesYRange = DefaultBoolean.True;
+            diagram.AxisY.WholeRange.AlwaysShowZeroLevel = false;
 
             timer = new System.Windows.Forms.Timer();
             timer.Interval = 30;
             timer.Start();
             timer.Tick += Timer_Tick;
+            for (i = -ViewportPointCount; i < 0; ++i)
+            {
+                positionPoints.Add(new DataPoint(i, 0));
+                velocityPoints.Add(new DataPoint(i, 0));
+                accelerationPoints.Add(new DataPoint(i, 0));
+            }
         }
-        int counter = 0;
         void Timer_Tick(object sender, EventArgs e)
         {
             panel1.Invalidate();
-            positionPoints.Add(new DataPoint(DateTime.Now, x));
-            velocityPoints.Add(new DataPoint(DateTime.Now, v));
-            accelerationPoints.Add(new DataPoint(DateTime.Now, a));
+            positionPoints.Add(new DataPoint(i, x));
+            velocityPoints.Add(new DataPoint(i, v));
+            accelerationPoints.Add(new DataPoint(i, a));
+            i++;
             if (positionPoints.Count > ViewportPointCount)
             {
                 positionPoints.RemoveAt(0);
@@ -116,12 +129,9 @@ namespace Sprezyna
                 accelerationPoints.RemoveAt(0);
             }
         }
-        double GenerateValue(double x)
-        {
-            return Math.Sin(x) * 3 + x / 2 + 5;
-        }
         private float x = -1.0f, m = 1.0f;
         private float v = 0.0f, a = 0.0f;
+        private int i = 0;
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -152,7 +162,7 @@ namespace Sprezyna
 
             int amp = mid - (bias + blockSize / 2);
 
-            float k = 0.01f;
+            float k = 0.05f;
             float F = -k * x;
             a = F / m;
             v = v + a;
@@ -177,9 +187,9 @@ namespace Sprezyna
     }
     public class DataPoint
     {
-        public DateTime Argument { get; set; }
+        public int Argument { get; set; }
         public double Value { get; set; }
-        public DataPoint(DateTime argument, double value)
+        public DataPoint(int argument, double value)
         {
             Argument = argument;
             Value = value;
