@@ -12,10 +12,12 @@ Cube::Cube() : Figure()
 void Cube::Initialize(std::shared_ptr<Program> _program)
 {
 	height = _program->height;
-	width  = _program->width;
+	width = _program->width;
 	length = _program->length;
 	xSplit = _program->xSplit;
 	zSplit = _program->ySplit;
+	xDiff = width / xSplit;
+	zDiff = length / zSplit;
 
 	Figure::Initialize(_program);
 	shader = _program->lightShader;
@@ -82,6 +84,8 @@ void Cube::RecalcFigure()
 
 void Cube::Drill(glm::vec3 from, glm::vec3 to)
 {
+	xBias = ceil(drillSize / 2 / xDiff);
+	yBias = ceil(drillSize / 2 / zDiff);
 	auto pos1 = GetPos(glm::vec2(from.x, from.z));
 	auto pos2 = GetPos(glm::vec2(to.x, to.z));
 	DoBresenham(pos1, pos2, from.y, to.y);
@@ -124,24 +128,23 @@ void Cube::DoBresenham(glm::ivec2 v1, glm::ivec2 v2, float h1, float h2) {
 
 void Cube::PutDrill(int x, int y, float height)
 {
-	for (int i = -2; i <= 2; ++i)
-		for (int j = -2; j <= 2; ++j)
-			SetHeight(x + i, y + j, height);
+	for (int i = -xBias; i <= xBias; ++i)
+		for (int j = -yBias; j <= yBias; ++j)
+		{
+			if (x + i < 0 || y + j < 0 || x + i >= xSplit || y + j >= zSplit) continue;
+			if (distance(glm::vec2(0.0f, 0.0f), glm::vec2(i * xDiff, j * zDiff)) <= drillSize / 2)
+				SetHeight(x + i, y + j, height);
+		}
 }
 
 void Cube::SetHeight(int x, int y, float height)
 {
-	if (x < 0 || y < 0 || x >= xSplit || y >= zSplit) return;
-
 	if (data[y * xSplit + x] > height)
 		data[y * xSplit + x] = height;
 }
 
 glm::ivec2 Cube::GetPos(glm::vec2 coords)
 {
-	float xDiff = width / xSplit;
-	float zDiff = length / zSplit;
-
 	float xx = coords.x - (-width / 2);
 	float zz = -(coords.y - (length / 2));
 
@@ -190,8 +193,8 @@ bool Cube::Create()
 	int nX = xSplit + 1;
 	int nZ = zSplit + 1;
 
-	float w = width / xSplit;
-	float l = length / zSplit;
+	float w = xDiff;
+	float l = zDiff;
 	float wTex = 1.0f / xSplit;
 	float lTex = 1.0f / zSplit;
 
@@ -356,7 +359,7 @@ bool Cube::Create()
 	cur1 = vertices.size();
 	cur2 = indices.size();
 
-	for (int i = 0; i < nX* 2 * 12; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < nX * 2 * 12; ++i) vertices.push_back(0.0f);
 	for (int i = 0; i < xSplit * 2 * 3; ++i)indices.push_back(0);
 
 	for (int i = 0; i < nX; ++i)

@@ -339,10 +339,26 @@ void RenderGui()
 		// action if OK
 		if (ImGuiFileDialog::Instance()->IsOk())
 		{
+			int n = program->figures.size();
+			for (int i = 0; i < n; ++i)
+			{
+				if (program->figures[i]->figureType == FigureType::PointsLine)
+				{
+					std::shared_ptr<Figure> f = program->figures[i];
+					program->figures.erase(program->figures.begin() + i);
+					f->CleanUp();
+					i--;
+					n--;
+				}
+			}
+
 			std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
 			std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 			std::ifstream file(filePathName);
 			std::shared_ptr<PointsLine> pl = std::make_shared<PointsLine>();
+			std::string size = filePathName.substr(filePathName.length() - 2, 2);
+			int iSize = atoi(size.c_str());
+			program->cube->drillSize = iSize;
 			pl->Initialize(program);
 			pl->SetModel(program->cube->GetTransMat(), program->cube->GetScaleMat(), program->cube->GetRotation());
 			if (file.is_open()) {
@@ -355,7 +371,7 @@ void RenderGui()
 					std::string xx = line.substr(xPos + 1, yPos - xPos - 1);
 					std::string yy = line.substr(yPos + 1, zPos - yPos - 1);
 					std::string zz = line.substr(zPos + 1, length - zPos - 1);
-					glm::vec3 pos = glm::vec3(atof(xx.c_str()), atof(zz.c_str()), atof(yy.c_str()));
+					glm::vec3 pos = glm::vec3(atof(xx.c_str()), atof(zz.c_str()), -atof(yy.c_str()));
 					pl->AddPoint(pos);
 				}
 				program->figures.push_back(pl);
