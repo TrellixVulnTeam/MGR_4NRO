@@ -18,7 +18,6 @@ public:
 	glm::vec3 drillingPos;
 private:
 	bool virtual Create() override;
-	float drillingSpeed = 28.0f;
 	bool drillInitialized = false;
 };
 

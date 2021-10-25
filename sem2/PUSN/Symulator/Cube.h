@@ -19,8 +19,8 @@ private:
 
 	bool genTexture = true;
 	unsigned int heightTextureID;
-	int zSplit = 120, xSplit = 120;
-	float width = 180.0f, length = 180.0f, height = 60.0f;
+	int zSplit, xSplit;
+	float width, length, height;
 	glm::ivec2 GetPos(glm::vec2 coords);
 };
 

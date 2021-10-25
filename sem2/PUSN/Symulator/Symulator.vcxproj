@@ -171,7 +171,6 @@
     <ClCompile Include="MiddlePoint.cpp" />
     <ClCompile Include="Point.cpp" />
     <ClCompile Include="PointsLine.cpp" />
-    <ClCompile Include="PointsLines.cpp" />
     <ClCompile Include="processing.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Serialization.cpp" />
@@ -198,7 +197,6 @@
     <ClInclude Include="MiddlePoint.h" />
     <ClInclude Include="Point.h" />
     <ClInclude Include="PointsLine.h" />
-    <ClInclude Include="PointsLines.h" />
     <ClInclude Include="processing.h" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Serialization.h" />

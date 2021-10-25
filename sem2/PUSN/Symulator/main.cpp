@@ -274,6 +274,37 @@ void window_size_callback(GLFWwindow* window, int width, int height) {
 	program->current_height = height;
 }
 
+void GenerateCube()
+{
+	std::shared_ptr<Figure> f = std::make_shared<Cube>();
+	f->Initialize(program);
+	auto pos = program->cur->GetPos();
+	f->MoveTo(pos.x, pos.y, pos.z);
+	program->figures.push_back(f);
+	program->cube = std::dynamic_pointer_cast<Cube>(f);
+}
+
+void ResetAndGenerateCube()
+{
+	program->cube = {};
+	program->pl = {};
+	int n = program->figures.size();
+	for (int i = 0; i < n; ++i)
+	{
+		if (
+			program->figures[i]->figureType == FigureType::Cube ||
+			program->figures[i]->figureType == FigureType::PointsLine
+			)
+		{
+			std::shared_ptr<Figure> f = program->figures[i];
+			program->figures.erase(program->figures.begin() + i);
+			f->CleanUp();
+			i--;
+			n--;
+		}
+	}
+	GenerateCube();
+}
 
 void RenderGui()
 {
@@ -289,6 +320,18 @@ void RenderGui()
 	if (ImGui::Button("Open File Dialog"))
 		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".*", ".");
 	ImGui::Checkbox("Drill", &program->drill);
+	ImGui::Checkbox("Show simulation", &program->showSimulation);
+	ImGui::Checkbox("Show path", &program->showPath);
+	if (ImGui::Button("Reset and generate cube"))
+		ResetAndGenerateCube();
+
+	ImGui::SliderFloat("Drilling speed", &program->drillingSpeed, 0.1f, 50.0f);
+	ImGui::SliderFloat("Cube height", &program->height, 10.0f, 100.0f);
+	ImGui::SliderFloat("Cube width", &program->width, 50.0f, 300.0f);
+	ImGui::SliderFloat("Cube length", &program->length, 50.0f, 50.0f);
+
+	ImGui::SliderInt("Cube xSplits", &program->xSplit, 20, 400);
+	ImGui::SliderInt("Cube ySplits", &program->ySplit, 20, 400);
 
 	// display
 	if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
@@ -326,27 +369,7 @@ void RenderGui()
 	}
 	ImGui::Checkbox("Transformate around cursor", &rotate);
 	program->cur->GetGui(-1, nullptr);
-	if (ImGui::TreeNode("Adding"))
-	{
-		if (ImGui::Button("New Point"))
-		{
-			std::shared_ptr<Figure> f = std::make_shared<Point>();
-			f->Initialize(program);
-			auto pos = program->cur->GetPos();
-			f->MoveTo(pos.x, pos.y, pos.z);
-			program->figures.push_back(f);
-			for (int i = 0; i < program->figures.size(); ++i)
-			{
-				if (program->figures[i]->GetSelected() && program->figures[i]->isCurve)
-				{
-					(std::dynamic_pointer_cast<SomeCurve>(program->figures[i]))->AddPoint(std::dynamic_pointer_cast<Point>(f));
-					(std::dynamic_pointer_cast<Point>(f))->AddParent(program->figures[i]);
-				}
-			}
-		}
 
-		ImGui::TreePop();
-	}
 	if (ImGui::Button("Clear"))
 	{
 		Clear(program);
@@ -355,36 +378,9 @@ void RenderGui()
 	ImGui::End();
 }
 
-void CreateColorbuffer(unsigned int& framebuffer, unsigned int& textureColorbuffer)
-{
-	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	// create a color attachment texture
-	glGenTextures(1, &textureColorbuffer);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	/*
-	unsigned int rbo;
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, DEFAULT_WIDTH, DEFAULT_WIDTH); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	*/
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-
-	// draw as wireframe
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-}
-
 void DrawScene()
 {
-	if (program->drill)
+	if (!!program->pl && program->drill)
 	{
 		program->drillPoint->MoveToVec(program->pl->Drill());
 		//(program->pl->drillingPos);
@@ -488,12 +484,7 @@ int main()
 	program->cur = std::make_shared<Cursor>();
 	program->cur->Initialize(program);
 
-	std::shared_ptr<Figure> f = std::make_shared<Cube>();
-	f->Initialize(program);
-	auto pos = program->cur->GetPos();
-	f->MoveTo(pos.x, pos.y, pos.z);
-	program->figures.push_back(f);
-	program->cube = std::dynamic_pointer_cast<Cube>(f);
+	GenerateCube();
 
 	std::shared_ptr<Point> p = std::make_shared<Point>();
 	p->Initialize(program);
@@ -543,12 +534,6 @@ int main()
 
 
 #pragma endregion
-
-	unsigned int framebufferRed, textureColorbufferRed;
-	CreateColorbuffer(framebufferRed, textureColorbufferRed);
-
-	unsigned int framebufferBlue, textureColorbufferBlue;
-	CreateColorbuffer(framebufferBlue, textureColorbufferBlue);
 
 	program->lightShader->use();
 	glGenTextures(1, &program->colorTexture);

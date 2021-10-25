@@ -18,11 +18,19 @@ public:
 	~Program() = default;
 
 	bool useCursor = false;
+	bool showPath = true;
 	bool drill = false;
+	bool showSimulation = true;
 	int current_width = 0;
 	int current_height = 0;
-	unsigned int colorTexture;
-	std::vector<std::shared_ptr<Figure>> figures;
+	float drillingSpeed = 8.0f;
+	unsigned int colorTexture = 0;
+	float width = 180.0f;
+	float length = 180.0f;
+	float height = 60.0f;
+	int xSplit = 120;
+	int ySplit = 120;
+	std::vector<std::shared_ptr<Figure>> figures = {};
 	//Cursor* cur;
 	//Camera* cam;
 	//MiddlePoint* mp;

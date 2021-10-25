@@ -16,11 +16,14 @@ void PointsLine::Initialize(std::shared_ptr<Program> _program)
 
 void PointsLine::Draw()
 {
-	Figure::Draw();
-	glDisable(GL_DEPTH_TEST);
-	glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-	glEnable(GL_DEPTH_TEST);
+	if (program->showPath)
+	{
+		Figure::Draw();
+		glDisable(GL_DEPTH_TEST);
+		glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+		glEnable(GL_DEPTH_TEST);
+	}
 }
 
 void PointsLine::AddPoint(glm::vec3 point)
@@ -86,11 +89,11 @@ glm::vec3 PointsLine::Drill()
 		drillingPos = points[0];
 	}
 	if (points.size() < 2) return glm::vec3(0.0f, 0.0f, 0.0f);
-	float drillLeft = drillingSpeed;
-	while (drillLeft > 0.0f && points.size() > 1)
+	float drillLeft = program->drillingSpeed;
+	while ((drillLeft > 0.0f || !program->showSimulation) && points.size() > 1)
 	{
 		float dist = glm::distance(drillingPos, points[1]);
-		if (dist > drillLeft)
+		if (dist > drillLeft && program->showSimulation)
 		{
 			glm::vec3 v = points[1] - drillingPos;
 			v = v / dist * drillLeft;

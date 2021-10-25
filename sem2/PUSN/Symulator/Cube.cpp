@@ -6,12 +6,20 @@ Cube::Cube() : Figure()
 {
 	sprintf_s(name, STRMAX, ("Cube - " + std::to_string(idx++) + " " + gen_random(12, idx)).c_str());
 	figureType = FigureType::Cube;
+
 }
 
 void Cube::Initialize(std::shared_ptr<Program> _program)
 {
+	height = _program->height;
+	width  = _program->width;
+	length = _program->length;
+	xSplit = _program->xSplit;
+	zSplit = _program->ySplit;
+
 	Figure::Initialize(_program);
 	shader = _program->lightShader;
+
 
 	data.clear();
 	int XDIV = xSplit;
@@ -179,14 +187,13 @@ bool Cube::Create()
 {
 	bool fCreate = Figure::Create();
 	if (!fCreate) return false;
-	int split_count = xSplit;
-	int n = split_count + 1;
+	int nX = xSplit + 1;
+	int nZ = zSplit + 1;
 
-	float w = width / split_count;
-	float l = length / split_count;
-	float h = height / split_count;
-	float wTex = 1.0f / split_count;
-	float lTex = 1.0f / split_count;
+	float w = width / xSplit;
+	float l = length / zSplit;
+	float wTex = 1.0f / xSplit;
+	float lTex = 1.0f / zSplit;
 
 	vertices.clear();
 	indices.clear();
@@ -234,10 +241,10 @@ bool Cube::Create()
 	cur1 = vertices.size();
 	cur2 = indices.size();
 
-	for (int i = 0; i < n * n * 12; ++i) vertices.push_back(0.0f);
-	for (int i = 0; i < split_count * split_count * 2 * 3; ++i)indices.push_back(0);
+	for (int i = 0; i < nX * nZ * 12; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < xSplit * zSplit * 2 * 3; ++i)indices.push_back(0);
 
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < nX; ++i)
 	{
 		int idx1 = i * 12 + cur1;
 		vertices[idx1] = i * w - width / 2;
@@ -253,14 +260,14 @@ bool Cube::Create()
 	}
 
 
-	for (int j = 1; j < n; ++j)
+	for (int j = 1; j < nZ; ++j)
 	{
 		float z = -l * j;
 
-		int nn = j * n + a;
-		int mm = (j - 1) * 2 * 3 * split_count + cur2;
+		int nn = j * nX + a;
+		int mm = (j - 1) * 2 * 3 * xSplit + cur2;
 
-		for (int i = 0; i < n; ++i)
+		for (int i = 0; i < nX; ++i)
 		{
 			int idx = nn + i;
 			int idx1 = 12 * idx;
@@ -278,27 +285,27 @@ bool Cube::Create()
 			int idx2 = (i - 1) * 2 * 3 + mm;
 			if (i > 0)
 			{
-				indices[idx2] = idx - n - 1;
-				indices[idx2 + 1] = idx - n;
+				indices[idx2] = idx - nX - 1;
+				indices[idx2 + 1] = idx - nX;
 				indices[idx2 + 2] = idx;
 
 				indices[idx2 + 3] = idx;
 				indices[idx2 + 4] = idx - 1;
-				indices[idx2 + 5] = idx - n - 1;
+				indices[idx2 + 5] = idx - nX - 1;
 			}
 		}
 	}
-	a += n * n;
+	a += nZ * nX;
 #pragma endregion
 
 #pragma region Ty³
 	cur1 = vertices.size();
 	cur2 = indices.size();
 
-	for (int i = 0; i < n * 2 * 12; ++i) vertices.push_back(0.0f);
-	for (int i = 0; i < split_count * 2 * 3; ++i)indices.push_back(0);
+	for (int i = 0; i < nX * 2 * 12; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < xSplit * 2 * 3; ++i)indices.push_back(0);
 
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < nX; ++i)
 	{
 		int idx1 = i * 12 + cur1;
 		vertices[idx1] = i * w - width / 2;
@@ -313,9 +320,9 @@ bool Cube::Create()
 		vertices[idx1 + 9] = -2.0f;
 	}
 
-	nn = n + a;
+	nn = nX + a;
 
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < nX; ++i)
 	{
 		int idx = nn + i;
 		int idx1 = 12 * idx;
@@ -333,26 +340,26 @@ bool Cube::Create()
 		int idx2 = (i - 1) * 2 * 3 + cur2;
 		if (i > 0)
 		{
-			indices[idx2] = idx - n - 1;
-			indices[idx2 + 2] = idx - n;
+			indices[idx2] = idx - nX - 1;
+			indices[idx2 + 2] = idx - nX;
 			indices[idx2 + 1] = idx;
 
 			indices[idx2 + 3] = idx;
 			indices[idx2 + 5] = idx - 1;
-			indices[idx2 + 4] = idx - n - 1;
+			indices[idx2 + 4] = idx - nX - 1;
 		}
 	}
-	a += 2 * n;
+	a += 2 * nX;
 #pragma endregion
 
 #pragma region Przód
 	cur1 = vertices.size();
 	cur2 = indices.size();
 
-	for (int i = 0; i < n * 2 * 12; ++i) vertices.push_back(0.0f);
-	for (int i = 0; i < split_count * 2 * 3; ++i)indices.push_back(0);
+	for (int i = 0; i < nX* 2 * 12; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < xSplit * 2 * 3; ++i)indices.push_back(0);
 
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < nX; ++i)
 	{
 		int idx1 = i * 12 + cur1;
 		vertices[idx1] = i * w - width / 2;
@@ -367,9 +374,9 @@ bool Cube::Create()
 		vertices[idx1 + 9] = -2.0f;
 	}
 
-	nn = n + a;
+	nn = nX + a;
 
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < nX; ++i)
 	{
 		int idx = nn + i;
 		int idx1 = 12 * idx;
@@ -387,27 +394,27 @@ bool Cube::Create()
 		int idx2 = (i - 1) * 2 * 3 + cur2;
 		if (i > 0)
 		{
-			indices[idx2] = idx - n - 1;
-			indices[idx2 + 1] = idx - n;
+			indices[idx2] = idx - nX - 1;
+			indices[idx2 + 1] = idx - nX;
 			indices[idx2 + 2] = idx;
 
 			indices[idx2 + 3] = idx;
 			indices[idx2 + 4] = idx - 1;
-			indices[idx2 + 5] = idx - n - 1;
+			indices[idx2 + 5] = idx - nX - 1;
 		}
 
 	}
-	a += 2 * n;
+	a += 2 * nX;
 #pragma endregion
 
 #pragma region Lewo
 	cur1 = vertices.size();
 	cur2 = indices.size();
 
-	for (int i = 0; i < n * 2 * 12; ++i) vertices.push_back(0.0f);
-	for (int i = 0; i < split_count * 2 * 3; ++i)indices.push_back(0);
+	for (int i = 0; i < nZ * 2 * 12; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < zSplit * 2 * 3; ++i)indices.push_back(0);
 
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < nZ; ++i)
 	{
 		int idx1 = i * 12 + cur1;
 		vertices[idx1] = -width / 2;
@@ -422,9 +429,9 @@ bool Cube::Create()
 		vertices[idx1 + 9] = -2.0f;
 	}
 
-	nn = n + a;
+	nn = nZ + a;
 
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < nZ; ++i)
 	{
 		int idx = nn + i;
 		int idx1 = 12 * idx;
@@ -442,26 +449,26 @@ bool Cube::Create()
 		int idx2 = (i - 1) * 2 * 3 + cur2;
 		if (i > 0)
 		{
-			indices[idx2] = idx - n - 1;
-			indices[idx2 + 2] = idx - n;
+			indices[idx2] = idx - nZ - 1;
+			indices[idx2 + 2] = idx - nZ;
 			indices[idx2 + 1] = idx;
 
 			indices[idx2 + 3] = idx;
 			indices[idx2 + 5] = idx - 1;
-			indices[idx2 + 4] = idx - n - 1;
+			indices[idx2 + 4] = idx - nZ - 1;
 		}
 	}
-	a += 2 * n;
+	a += 2 * nZ;
 #pragma endregion
 
 #pragma region Prawo
 	cur1 = vertices.size();
 	cur2 = indices.size();
 
-	for (int i = 0; i < n * 2 * 12; ++i) vertices.push_back(0.0f);
-	for (int i = 0; i < split_count * 2 * 3; ++i)indices.push_back(0);
+	for (int i = 0; i < nZ * 2 * 12; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < zSplit * 2 * 3; ++i)indices.push_back(0);
 
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < nZ; ++i)
 	{
 		int idx1 = i * 12 + cur1;
 		vertices[idx1] = width / 2;
@@ -476,9 +483,9 @@ bool Cube::Create()
 		vertices[idx1 + 9] = -2.0f;
 	}
 
-	nn = n + a;
+	nn = nZ + a;
 
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < nZ; ++i)
 	{
 		int idx = nn + i;
 		int idx1 = 12 * idx;
@@ -496,16 +503,16 @@ bool Cube::Create()
 		int idx2 = (i - 1) * 2 * 3 + cur2;
 		if (i > 0)
 		{
-			indices[idx2] = idx - n - 1;
-			indices[idx2 + 1] = idx - n;
+			indices[idx2] = idx - nZ - 1;
+			indices[idx2 + 1] = idx - nZ;
 			indices[idx2 + 2] = idx;
 
 			indices[idx2 + 3] = idx;
 			indices[idx2 + 4] = idx - 1;
-			indices[idx2 + 5] = idx - n - 1;
+			indices[idx2 + 5] = idx - nZ - 1;
 		}
 	}
-	a += 2 * n;
+	a += 2 * nZ;
 #pragma endregion
 	return true;
 }
