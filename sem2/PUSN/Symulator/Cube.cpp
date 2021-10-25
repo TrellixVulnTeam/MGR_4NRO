@@ -34,6 +34,28 @@ void Cube::Initialize(std::shared_ptr<Program> _program)
 		}
 }
 
+void Cube::SetDrill(float size, bool isSphere)
+{
+	drillTemplate.clear();
+	drillRadius = size / 2;
+	xBias = ceil(drillRadius / xDiff);
+	yBias = ceil(drillRadius / zDiff);
+	for (int i = -yBias; i <= yBias; ++i)
+		for (int j = -xBias; j <= xBias; ++j)
+		{
+			DrillStruct s;
+			s.drillHeight = 0.0f;
+			s.shouldDrill = true;
+			float xCoord = j * xDiff, yCoord = i * zDiff;
+			if (isSphere)
+			{
+				s.drillHeight = drillRadius - sqrt(drillRadius * drillRadius - xCoord * xCoord - yCoord * yCoord);
+			}
+			if (distance(glm::vec2(0.0f, 0.0f), glm::vec2(xCoord, yCoord)) > drillRadius) s.shouldDrill = false;
+			drillTemplate.push_back(s);
+		}
+}
+
 void Cube::RecalcFigure()
 {
 	if (genTexture || true)
@@ -84,8 +106,6 @@ void Cube::RecalcFigure()
 
 void Cube::Drill(glm::vec3 from, glm::vec3 to)
 {
-	xBias = ceil(drillSize / 2 / xDiff);
-	yBias = ceil(drillSize / 2 / zDiff);
 	auto pos1 = GetPos(glm::vec2(from.x, from.z));
 	auto pos2 = GetPos(glm::vec2(to.x, to.z));
 	DoBresenham(pos1, pos2, from.y, to.y);
@@ -128,19 +148,31 @@ void Cube::DoBresenham(glm::ivec2 v1, glm::ivec2 v2, float h1, float h2) {
 
 void Cube::PutDrill(int x, int y, float height)
 {
-	for (int i = -xBias; i <= xBias; ++i)
-		for (int j = -yBias; j <= yBias; ++j)
+	for (int i = -yBias; i <= yBias; ++i)
+		for (int j = -xBias; j <= xBias; ++j)
 		{
-			if (x + i < 0 || y + j < 0 || x + i >= xSplit || y + j >= zSplit) continue;
-			if (distance(glm::vec2(0.0f, 0.0f), glm::vec2(i * xDiff, j * zDiff)) <= drillSize / 2)
-				SetHeight(x + i, y + j, height);
+			if (x + j < 0 || y + i < 0 || x + j >= xSplit || y + i >= zSplit) continue;
+
+			int yCoord = i + yBias;
+			int xCoord = j + xBias;
+			int coord = yCoord * (2 * xBias + 1) + xCoord;
+
+
+			if (drillTemplate[coord].shouldDrill)
+				SetHeight(x + j, y + i, height + drillTemplate[coord].drillHeight);
 		}
 }
 
 void Cube::SetHeight(int x, int y, float height)
 {
+	if (height < program->minimumHeight)
+		program->error = "Material height is too low";
 	if (data[y * xSplit + x] > height)
+	{
+		if (data[y * xSplit + x] - height > program->drillHeight)
+			program->error = "Drill is too deep";
 		data[y * xSplit + x] = height;
+	}
 }
 
 glm::ivec2 Cube::GetPos(glm::vec2 coords)

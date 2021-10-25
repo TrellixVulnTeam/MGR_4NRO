@@ -30,10 +30,10 @@ public:
 	float height = 60.0f;
 	int xSplit = 120;
 	int ySplit = 120;
+	float drillHeight = 50.0f;
+	float minimumHeight = 20.0f;
 	std::vector<std::shared_ptr<Figure>> figures = {};
-	//Cursor* cur;
-	//Camera* cam;
-	//MiddlePoint* mp;
+	std::string error = "";
 	std::shared_ptr<MiddlePoint> mp = {};
 	std::shared_ptr<Cursor> cur = {};
 	std::shared_ptr<Camera> cam = {};

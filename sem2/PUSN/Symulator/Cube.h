@@ -1,5 +1,12 @@
 #pragma once
 #include "Figure.h"
+
+struct DrillStruct
+{
+	bool shouldDrill;
+	float drillHeight;
+};
+
 class Cube : public Figure
 {
 public:
@@ -9,7 +16,7 @@ public:
 	void virtual Initialize(std::shared_ptr<Program> _program) override;
 	void virtual RecalcFigure() override;
 	void Drill(glm::vec3 from, glm::vec3 to);
-	float drillSize;
+	void SetDrill(float size, bool isSphere);
 private:
 	bool virtual Create() override;
 	void GenTexture();
@@ -18,11 +25,13 @@ private:
 	void SetHeight(int x, int y, float height);
 	std::vector<float> data{};
 
+	float drillRadius;
 	bool genTexture = true;
 	unsigned int heightTextureID;
 	int zSplit, xSplit, xBias, yBias;
 	float xDiff, zDiff;
 	float width, length, height;
+	std::vector<DrillStruct> drillTemplate = {};
 	glm::ivec2 GetPos(glm::vec2 coords);
 };
 

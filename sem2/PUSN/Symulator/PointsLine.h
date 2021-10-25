@@ -13,11 +13,13 @@ public:
 	void Clear();
 	void Recalc() { Create(); };
 	void virtual Initialize(std::shared_ptr<Program> _program) override;
-	std::vector<glm::vec3> points;
 	glm::vec3 Drill();
-	glm::vec3 drillingPos;
+	std::vector<glm::vec3> points = {};
+	glm::vec3 drillingPos = { 0,0,0 };
 private:
 	bool virtual Create() override;
 	bool drillInitialized = false;
+	int startPoints = 0;
+	int lastP = -1;
 };
 

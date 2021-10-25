@@ -1,4 +1,5 @@
 #include "PointsLine.h"
+#include <iostream>
 #include "Cube.h"
 #include <string>
 
@@ -87,11 +88,17 @@ glm::vec3 PointsLine::Drill()
 	{
 		drillInitialized = true;
 		drillingPos = points[0];
+		startPoints = points.size() - 1;
 	}
 	if (points.size() < 2) return glm::vec3(0.0f, 0.0f, 0.0f);
 	float drillLeft = program->drillingSpeed;
-	while ((drillLeft > 0.0f || !program->showSimulation) && points.size() > 1)
+	while ((drillLeft > 0.0f || !program->showSimulation) && points.size() > 1 && program->error.length() == 0)
 	{
+		int p = round(100 * (1.0f - (((float)(points.size() - 1)) / startPoints)));
+		if (p != lastP) {
+			std::cout << p << "% done" << std::endl;
+			lastP = p;
+		}
 		float dist = glm::distance(drillingPos, points[1]);
 		if (dist > drillLeft && program->showSimulation)
 		{

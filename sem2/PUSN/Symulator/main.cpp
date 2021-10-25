@@ -326,13 +326,31 @@ void RenderGui()
 		ResetAndGenerateCube();
 
 	ImGui::SliderFloat("Drilling speed", &program->drillingSpeed, 0.1f, 50.0f);
+	ImGui::SliderFloat("Dril height", &program->drillHeight, 10.0f, 100.0f);
+	ImGui::SliderFloat("Minimum height", &program->minimumHeight, 10.0f, 50.0f);
 	ImGui::SliderFloat("Cube height", &program->height, 10.0f, 100.0f);
 	ImGui::SliderFloat("Cube width", &program->width, 50.0f, 300.0f);
-	ImGui::SliderFloat("Cube length", &program->length, 50.0f, 50.0f);
+	ImGui::SliderFloat("Cube length", &program->length, 50.0f, 500.0f);
 
-	ImGui::SliderInt("Cube xSplits", &program->xSplit, 20, 400);
-	ImGui::SliderInt("Cube ySplits", &program->ySplit, 20, 400);
+	ImGui::SliderInt("Cube xSplits", &program->xSplit, 20, 1000);
+	ImGui::SliderInt("Cube ySplits", &program->ySplit, 20, 1000);
 
+	if (program->error.length() > 0)
+	{
+		program->drill = false;
+		if (!ImGui::IsPopupOpen("Error"))
+			ImGui::OpenPopup("Error");
+		if (ImGui::BeginPopupModal("Error", NULL))
+		{
+			ImGui::Text(program->error.c_str());
+			if (ImGui::Button("Close"))
+			{
+				ImGui::CloseCurrentPopup();
+				program->error = "";
+			}
+			ImGui::EndPopup();
+		}
+	}
 	// display
 	if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
 	{
@@ -357,8 +375,9 @@ void RenderGui()
 			std::ifstream file(filePathName);
 			std::shared_ptr<PointsLine> pl = std::make_shared<PointsLine>();
 			std::string size = filePathName.substr(filePathName.length() - 2, 2);
+			std::string type = filePathName.substr(filePathName.length() - 3, 1);
 			int iSize = atoi(size.c_str());
-			program->cube->drillSize = iSize;
+			program->cube->SetDrill(iSize, type == "k");
 			pl->Initialize(program);
 			pl->SetModel(program->cube->GetTransMat(), program->cube->GetScaleMat(), program->cube->GetRotation());
 			if (file.is_open()) {
@@ -399,7 +418,6 @@ void DrawScene()
 	if (!!program->pl && program->drill)
 	{
 		program->drillPoint->MoveToVec(program->pl->Drill());
-		//(program->pl->drillingPos);
 	}
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -518,39 +536,6 @@ int main()
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
-#pragma region quad  
-	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-	// positions   // texCoords
-	-1.0f, 1.0f, 0.0f, 1.0f,
-		-1.0f, -1.0f, 0.0f, 0.0f,
-		1.0f, -1.0f, 1.0f, 0.0f,
-
-		-1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, -1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 1.0f, 1.0f
-	};
-	// screen quad VAO
-	unsigned int quadVAO, quadVBO;
-	glGenVertexArrays(1, &quadVAO);
-	glGenBuffers(1, &quadVBO);
-	glBindVertexArray(quadVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	glLineWidth(0.2f);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-
-	Shader screenShader("shaders/textureVertexShader.vs", "shaders/textureFragmentShader.fs");
-	screenShader.use();
-	screenShader.setInt("screenTexture", 0);
-
-
-
-
-#pragma endregion
-
 	program->lightShader->use();
 	glGenTextures(1, &program->colorTexture);
 	glBindTexture(GL_TEXTURE_2D, program->colorTexture);
@@ -600,14 +585,9 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	glDeleteVertexArrays(1, &quadVAO);
-	glDeleteBuffers(1, &quadVBO);
 
 	glfwTerminate();
 	Clear(program);
-	//delete program->mp;
-	//delete program->cam;
-	//delete program->cur;
 	return 0;
 }
 
