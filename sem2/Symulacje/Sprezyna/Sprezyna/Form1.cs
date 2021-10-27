@@ -9,11 +9,22 @@ namespace Sprezyna
 {
     public partial class Form1 : Form
     {
-        const int ViewportPointCount = 100;
+        const int ViewportPointCount = 1000;
         ObservableCollection<DataPoint> positionPoints = new ObservableCollection<DataPoint>();
         ObservableCollection<DataPoint> velocityPoints = new ObservableCollection<DataPoint>();
         ObservableCollection<DataPoint> accelerationPoints = new ObservableCollection<DataPoint>();
-        System.Windows.Forms.Timer timer;
+        Timer timer;
+        private double time = 0.0f;
+        private double x = 0.0f, m = 1.0f;
+        private double v = 0.0f, a = 0.0f, v0 = 0, x0 = 1;
+        private double c = 1, k = 0;
+        private int delta = 30;
+        private int i = 0;
+        private double xPrev, xPrev2, vPrev, diff;
+        private bool firstTick = true;
+        private double minArg = -10, maxArg = 0;
+        //
+        private double w = 0, h = 0;
         public Form1() { InitializeComponent(); }
 
         void Form1_Load(object sender, EventArgs e)
@@ -97,30 +108,58 @@ namespace Sprezyna
             #endregion
 
             XYDiagram diagram = (XYDiagram)chartControl1.Diagram;
-            diagram.AxisX.DateTimeScaleOptions.ScaleMode = ScaleMode.Continuous;
+            diagram.AxisX.WholeRange.SetMinMaxValues(minArg, maxArg);
             diagram.AxisX.Label.ResolveOverlappingOptions.AllowRotate = false;
             diagram.AxisX.Label.ResolveOverlappingOptions.AllowStagger = false;
-            diagram.AxisX.WholeRange.SideMarginsValue = 0;
             diagram.DependentAxesYRange = DefaultBoolean.True;
-            diagram.AxisY.WholeRange.AlwaysShowZeroLevel = false;
+            diagram.AxisY.WholeRange.AlwaysShowZeroLevel = true;
+            diagram.AxisY.WholeRange.Auto = false;
+            diagram.AxisY.WholeRange.MinValue = -1;
+            diagram.AxisY.WholeRange.MaxValue = 1;
 
-            timer = new System.Windows.Forms.Timer();
-            timer.Interval = 30;
-            timer.Start();
+            timer = new Timer();
             timer.Tick += Timer_Tick;
-            for (i = -ViewportPointCount; i < 0; ++i)
-            {
-                positionPoints.Add(new DataPoint(i, 0));
-                velocityPoints.Add(new DataPoint(i, 0));
-                accelerationPoints.Add(new DataPoint(i, 0));
-            }
         }
         void Timer_Tick(object sender, EventArgs e)
         {
+            time += diff;
             panel1.Invalidate();
-            positionPoints.Add(new DataPoint(i, x));
-            velocityPoints.Add(new DataPoint(i, v));
-            accelerationPoints.Add(new DataPoint(i, a));
+
+            if (firstTick)
+            {
+                x = x0;
+                v = v0;
+
+                xPrev2 = x;
+
+                a = (c * (w - x) - k * v + h) / m;
+                x = x + v0 * diff;
+
+                xPrev = x;
+                vPrev = v;
+                firstTick = false;
+            }
+            else
+            {
+
+            https://www.wolframalpha.com/input/?i=solve+%28x-2*j%2Bi%29%2F%28d*d%29%3D%28c*%28w-j%29-k*%28%28x-i%29%2F%282*d%29%29%2Bh%29%2Fm+for+x&assumption=%22i%22+-%3E+%22Variable%22
+                double diff2 = diff * diff;
+                double div = diff * k + 2 * m;
+                double temp = 2 * diff2 * (c * (w - xPrev) + h) +
+                            xPrev2 * diff * k -
+                            2 * m * (xPrev2 - 2 * xPrev);
+
+                xPrev2 = x;
+                x = temp / div;
+                v = (x - xPrev) / diff;
+                a = (v - vPrev) / diff;
+                xPrev = x;
+                vPrev = v;
+            }
+
+            positionPoints.Add(new DataPoint(time, x));
+            velocityPoints.Add(new DataPoint(time, v));
+            accelerationPoints.Add(new DataPoint(time, a));
             i++;
             if (positionPoints.Count > ViewportPointCount)
             {
@@ -128,10 +167,9 @@ namespace Sprezyna
                 velocityPoints.RemoveAt(0);
                 accelerationPoints.RemoveAt(0);
             }
+            XYDiagram diagram = (XYDiagram)chartControl1.Diagram;
+            diagram.AxisX.WholeRange.SetMinMaxValues(time - 10, time);
         }
-        private float x = -1.0f, m = 1.0f;
-        private float v = 0.0f, a = 0.0f;
-        private int i = 0;
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -140,12 +178,15 @@ namespace Sprezyna
 
         private void button1_Click(object sender, EventArgs e)
         {
+            delta = (int)delta_ctrl.Value;
+            x0 = (double)x0_ctrl.Value;
+            v0 = (double)v0_ctrl.Value;
+            c = (double)c_ctrl.Value;
+            k = (double)k_ctrl.Value;
+            m = (double)m_ctrl.Value;
+            timer.Interval = delta;
+            diff = (double)delta / 1000;
             timer.Start();
-        }
-
-        private void chartControl1_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void panel1_Paint(object sender, PaintEventArgs e)
@@ -162,16 +203,9 @@ namespace Sprezyna
 
             int amp = mid - (bias + blockSize / 2);
 
-            float k = 0.05f;
-            float F = -k * x;
-            a = F / m;
-            v = v + a;
-            x += v;
-
             int pos = mid + (int)(x * amp) - blockSize / 2;
 
             int len = pos - bias / 2;
-
 
             using (var myPen = new SolidBrush(Color.Aqua))
             {
@@ -187,9 +221,9 @@ namespace Sprezyna
     }
     public class DataPoint
     {
-        public int Argument { get; set; }
+        public double Argument { get; set; }
         public double Value { get; set; }
-        public DataPoint(int argument, double value)
+        public DataPoint(double argument, double value)
         {
             Argument = argument;
             Value = value;
