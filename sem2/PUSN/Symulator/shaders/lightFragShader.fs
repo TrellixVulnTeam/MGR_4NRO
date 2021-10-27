@@ -12,8 +12,8 @@ void main()
 {
     vec3 lightColor = vec3(1.0f,1.0f,1.0f);
     vec3 objectColor = vec3(texture(colorTexture, TexCoord));
-    vec3 lightPos = vec3(0.0f,0.0f,0.0f);
-    vec3 viewPos = vec3(0.0f,0.0f,3.0f);
+    vec3 lightPos = vec3(0.0f,100.0f,0.0f);
+    vec3 viewPos = vec3(0.0f,0.0f,100.0f);
     // ambient
     float ambientStrength = 0.4;
     vec3 ambient = ambientStrength * lightColor;

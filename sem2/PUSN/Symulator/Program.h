@@ -32,6 +32,7 @@ public:
 	int ySplit = 120;
 	float drillHeight = 50.0f;
 	float minimumHeight = 20.0f;
+	bool ignoreErrors = false;
 	std::vector<std::shared_ptr<Figure>> figures = {};
 	std::string error = "";
 	std::shared_ptr<MiddlePoint> mp = {};

@@ -322,6 +322,7 @@ void RenderGui()
 	ImGui::Checkbox("Drill", &program->drill);
 	ImGui::Checkbox("Show simulation", &program->showSimulation);
 	ImGui::Checkbox("Show path", &program->showPath);
+	ImGui::Checkbox("Ignore errors", &program->ignoreErrors);
 	if (ImGui::Button("Reset and generate cube"))
 		ResetAndGenerateCube();
 
@@ -335,7 +336,7 @@ void RenderGui()
 	ImGui::SliderInt("Cube xSplits", &program->xSplit, 20, 1000);
 	ImGui::SliderInt("Cube ySplits", &program->ySplit, 20, 1000);
 
-	if (program->error.length() > 0)
+	if (program->error.length() > 0 && !program->ignoreErrors)
 	{
 		program->drill = false;
 		if (!ImGui::IsPopupOpen("Error"))

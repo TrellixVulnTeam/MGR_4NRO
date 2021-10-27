@@ -92,7 +92,7 @@ glm::vec3 PointsLine::Drill()
 	}
 	if (points.size() < 2) return glm::vec3(0.0f, 0.0f, 0.0f);
 	float drillLeft = program->drillingSpeed;
-	while ((drillLeft > 0.0f || !program->showSimulation) && points.size() > 1 && program->error.length() == 0)
+	while ((drillLeft > 0.0f || !program->showSimulation) && points.size() > 1 && (program->error.length() == 0 || program->ignoreErrors))
 	{
 		int p = round(100 * (1.0f - (((float)(points.size() - 1)) / startPoints)));
 		if (p != lastP) {
