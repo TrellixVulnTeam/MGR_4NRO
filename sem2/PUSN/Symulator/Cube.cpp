@@ -36,6 +36,7 @@ void Cube::Initialize(std::shared_ptr<Program> _program)
 
 void Cube::SetDrill(float size, bool isSphere)
 {
+	drillSphere = isSphere;
 	drillTemplate.clear();
 	drillRadius = size / 2;
 	xBias = ceil(drillRadius / xDiff);
@@ -153,11 +154,19 @@ void Cube::PutDrill(int x, int y, float height)
 		{
 			if (x + j < 0 || y + i < 0 || x + j >= xSplit || y + i >= zSplit) continue;
 
+
 			int yCoord = i + yBias;
 			int xCoord = j + xBias;
 			int coord = yCoord * (2 * xBias + 1) + xCoord;
 
 
+			if (i == 0 && j == 0 && drillSphere == false)
+			{
+				if (data[(y + i) * xSplit + (x + j)] > height)
+				{
+					program->error = "Drilling vertically";
+				}
+			}
 			if (drillTemplate[coord].shouldDrill)
 				SetHeight(x + j, y + i, height + drillTemplate[coord].drillHeight);
 		}

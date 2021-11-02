@@ -26,7 +26,7 @@ private:
 	std::vector<float> data{};
 
 	float drillRadius;
-	bool genTexture = true;
+	bool genTexture = true, drillSphere = false;
 	unsigned int heightTextureID;
 	int zSplit, xSplit, xBias, yBias;
 	float xDiff, zDiff;
