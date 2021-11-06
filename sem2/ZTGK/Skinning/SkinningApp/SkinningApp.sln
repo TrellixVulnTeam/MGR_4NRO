@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.757
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SkinningApp", "SkinningApp\SkinningApp.vcxproj", "{500FF8A0-23A0-40AB-BAB1-A36206D5510A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{17E03B5B-9D9A-4371-9B81-9AF2A16B12B1} = {17E03B5B-9D9A-4371-9B81-9AF2A16B12B1}
+		{63E601DE-4217-46B0-93D0-970465AABACE} = {63E601DE-4217-46B0-93D0-970465AABACE}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectInput_Utils", "DirectInput_Utils\DirectInput_Utils.vcxproj", "{63E601DE-4217-46B0-93D0-970465AABACE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{17E03B5B-9D9A-4371-9B81-9AF2A16B12B1} = {17E03B5B-9D9A-4371-9B81-9AF2A16B12B1}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectX_11_Utils", "DirectX_11_Utils\DirectX_11_Utils.vcxproj", "{17E03B5B-9D9A-4371-9B81-9AF2A16B12B1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{500FF8A0-23A0-40AB-BAB1-A36206D5510A}.Debug|x64.ActiveCfg = Debug|x64
+		{500FF8A0-23A0-40AB-BAB1-A36206D5510A}.Debug|x64.Build.0 = Debug|x64
+		{500FF8A0-23A0-40AB-BAB1-A36206D5510A}.Debug|x86.ActiveCfg = Debug|Win32
+		{500FF8A0-23A0-40AB-BAB1-A36206D5510A}.Debug|x86.Build.0 = Debug|Win32
+		{500FF8A0-23A0-40AB-BAB1-A36206D5510A}.Release|x64.ActiveCfg = Release|x64
+		{500FF8A0-23A0-40AB-BAB1-A36206D5510A}.Release|x64.Build.0 = Release|x64
+		{500FF8A0-23A0-40AB-BAB1-A36206D5510A}.Release|x86.ActiveCfg = Release|Win32
+		{500FF8A0-23A0-40AB-BAB1-A36206D5510A}.Release|x86.Build.0 = Release|Win32
+		{63E601DE-4217-46B0-93D0-970465AABACE}.Debug|x64.ActiveCfg = Debug|x64
+		{63E601DE-4217-46B0-93D0-970465AABACE}.Debug|x64.Build.0 = Debug|x64
+		{63E601DE-4217-46B0-93D0-970465AABACE}.Debug|x86.ActiveCfg = Debug|Win32
+		{63E601DE-4217-46B0-93D0-970465AABACE}.Debug|x86.Build.0 = Debug|Win32
+		{63E601DE-4217-46B0-93D0-970465AABACE}.Release|x64.ActiveCfg = Release|x64
+		{63E601DE-4217-46B0-93D0-970465AABACE}.Release|x64.Build.0 = Release|x64
+		{63E601DE-4217-46B0-93D0-970465AABACE}.Release|x86.ActiveCfg = Release|Win32
+		{63E601DE-4217-46B0-93D0-970465AABACE}.Release|x86.Build.0 = Release|Win32
+		{17E03B5B-9D9A-4371-9B81-9AF2A16B12B1}.Debug|x64.ActiveCfg = Debug|x64
+		{17E03B5B-9D9A-4371-9B81-9AF2A16B12B1}.Debug|x64.Build.0 = Debug|x64
+		{17E03B5B-9D9A-4371-9B81-9AF2A16B12B1}.Debug|x86.ActiveCfg = Debug|Win32
+		{17E03B5B-9D9A-4371-9B81-9AF2A16B12B1}.Debug|x86.Build.0 = Debug|Win32
+		{17E03B5B-9D9A-4371-9B81-9AF2A16B12B1}.Release|x64.ActiveCfg = Release|x64
+		{17E03B5B-9D9A-4371-9B81-9AF2A16B12B1}.Release|x64.Build.0 = Release|x64
+		{17E03B5B-9D9A-4371-9B81-9AF2A16B12B1}.Release|x86.ActiveCfg = Release|Win32
+		{17E03B5B-9D9A-4371-9B81-9AF2A16B12B1}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8C666062-8691-4303-BA61-0A8DD93C59B1}
+	EndGlobalSection
+EndGlobal
