@@ -2,6 +2,7 @@
 *.suo
 *.user
 *.cso
+*.fxo
 _ReSharper.*
 bin/
 obj/
