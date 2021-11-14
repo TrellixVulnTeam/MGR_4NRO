@@ -25,13 +25,13 @@ public:
 	int current_height = 0;
 	float drillingSpeed = 8.0f;
 	unsigned int colorTexture = 0;
-	float width = 180.0f;
-	float length = 180.0f;
-	float height = 60.0f;
+	float width = 150.0f;
+	float length = 150.0f;
+	float height = 50.0f;
 	int xSplit = 120;
 	int ySplit = 120;
 	float drillHeight = 50.0f;
-	float minimumHeight = 20.0f;
+	float minimumHeight = 15.0f;
 	bool ignoreErrors = false;
 	std::vector<std::shared_ptr<Figure>> figures = {};
 	std::string error = "";

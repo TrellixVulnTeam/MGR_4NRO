@@ -81,8 +81,8 @@ bool PointsLine::Create()
 	}
 	return true;
 }
-
-glm::vec3 PointsLine::Drill()
+ 
+glm::vec3 PointsLine::Drill() 
 {
 	if (!drillInitialized)
 	{
@@ -90,7 +90,7 @@ glm::vec3 PointsLine::Drill()
 		drillingPos = points[0];
 		startPoints = points.size() - 1;
 	}
-	if (points.size() < 2) return glm::vec3(0.0f, 0.0f, 0.0f);
+	if (points.size() < 2) { program->drill = false; return glm::vec3(0.0f, 0.0f, 0.0f); }
 	float drillLeft = program->drillingSpeed;
 	while ((drillLeft > 0.0f || !program->showSimulation) && points.size() > 1 && (program->error.length() == 0 || program->ignoreErrors))
 	{

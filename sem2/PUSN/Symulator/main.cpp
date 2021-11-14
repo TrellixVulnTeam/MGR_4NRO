@@ -318,7 +318,7 @@ void RenderGui()
 	ImGui::Begin("Menu");
 	// open Dialog Simple
 	if (ImGui::Button("Open File Dialog"))
-		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".*", ".");
+		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", "{.f10,.f12,.k16,.k08,.k01}", "D:\\studia\\MGR\\sem2\\PUSN\\Sciezki\\");
 	ImGui::Checkbox("Drill", &program->drill);
 	ImGui::Checkbox("Show simulation", &program->showSimulation);
 	ImGui::Checkbox("Show path", &program->showPath);
@@ -439,7 +439,7 @@ void DrawScene()
 	viewLoc = glGetUniformLocation(program->lightShader->ID, "view");
 	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
+	 
 
 
 	program->mp->Reset();
