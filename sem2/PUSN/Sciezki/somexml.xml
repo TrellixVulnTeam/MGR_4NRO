@@ -1,0 +1,1035 @@
+﻿<Scene>
+	<Point Name="Point - 14">
+		<Position X="-19.024132" Y="-30.224758" Z="-4.639563"/>
+	</Point>
+	<Point Name="Point - 15">
+		<Position X="-70.106323" Y="-10.737711" Z="-7.754169"/>
+	</Point>
+	<Point Name="Point - 16">
+		<Position X="-47.918079" Y="34.070915" Z="-0.107174"/>
+	</Point>
+	<Point Name="Point - 17">
+		<Position X="1.232689" Y="12.646105" Z="0.673897"/>
+	</Point>
+	<Point Name="DZ11 - 18">
+		<Position X="-17.934055" Y="3.078608" Z="-51.945084"/>
+	</Point>
+	<Point Name="DZ12 - 19">
+		<Position X="-17.965611" Y="2.362809" Z="-51.944462"/>
+	</Point>
+	<Point Name="DZ13 - 20">
+		<Position X="-18.002754" Y="3.494778" Z="-52.147537"/>
+	</Point>
+	<Point Name="DZ14 - 21">
+		<Position X="-18.051088" Y="3.167927" Z="-52.106873"/>
+	</Point>
+	<Point Name="Point - 22">
+		<Position X="-48.478745" Y="33.747662" Z="-0.137918"/>
+	</Point>
+	<Point Name="Point - 23">
+		<Position X="2.924747" Y="14.108734" Z="2.385063"/>
+	</Point>
+	<Point Name="Point - 24">
+		<Position X="-19.541706" Y="-29.829712" Z="-4.994878"/>
+	</Point>
+	<Point Name="Point - 25">
+		<Position X="-70.946136" Y="-10.192266" Z="-7.517711"/>
+	</Point>
+	<Point Name="Point - 26">
+		<Position X="-49.524788" Y="33.451431" Z="3.791792"/>
+	</Point>
+	<Point Name="Point - 27">
+		<Position X="1.880192" Y="13.812065" Z="6.313461"/>
+	</Point>
+	<Point Name="Point - 28">
+		<Position X="-20.587629" Y="-30.127157" Z="-1.066034"/>
+	</Point>
+	<Point Name="Point - 29">
+		<Position X="-71.991531" Y="-10.488520" Z="-3.590030"/>
+	</Point>
+	<Point Name="Point - 30">
+		<Position X="-50.569592" Y="33.153954" Z="7.720163"/>
+	</Point>
+	<Point Name="Point - 31">
+		<Position X="0.835735" Y="13.514259" Z="10.242027"/>
+	</Point>
+	<Point Name="Point - 32">
+		<Position X="-21.630962" Y="-30.424288" Z="2.861153"/>
+	</Point>
+	<Point Name="Point - 33">
+		<Position X="-73.035637" Y="-10.786383" Z="0.339066"/>
+	</Point>
+	<Point Name="Point - 34">
+		<Position X="-51.614162" Y="32.857018" Z="11.648331"/>
+	</Point>
+	<Point Name="Point - 35">
+		<Position X="-0.208008" Y="13.217102" Z="14.170593"/>
+	</Point>
+	<Point Name="Point - 36">
+		<Position X="-22.674061" Y="-30.721500" Z="6.789843"/>
+	</Point>
+	<Point Name="Point - 37">
+		<Position X="-74.079384" Y="-11.083799" Z="4.267082"/>
+	</Point>
+	<Point Name="Point - 38">
+		<Position X="-52.658199" Y="32.559174" Z="15.576288"/>
+	</Point>
+	<Point Name="Point - 39">
+		<Position X="-1.253178" Y="12.919470" Z="18.098900"/>
+	</Point>
+	<Point Name="Point - 40">
+		<Position X="-23.720514" Y="-31.018120" Z="10.718102"/>
+	</Point>
+	<Point Name="Point - 41">
+		<Position X="-75.124420" Y="-11.381205" Z="8.195862"/>
+	</Point>
+	<Point Name="DZ1 - 42">
+		<Position X="-54.674698" Y="-4.423368" Z="69.534019"/>
+	</Point>
+	<Point Name="DZ2 - 43">
+		<Position X="-54.832230" Y="-4.465942" Z="69.415588"/>
+	</Point>
+	<Point Name="DZ3 - 44">
+		<Position X="-54.567379" Y="-4.044891" Z="70.229263"/>
+	</Point>
+	<Point Name="DZ4 - 45">
+		<Position X="-54.688709" Y="-4.483361" Z="69.931000"/>
+	</Point>
+	<Point Name="Point - 46">
+		<Position X="-25.372669" Y="-32.314556" Z="10.742910"/>
+	</Point>
+	<Point Name="Point - 47">
+		<Position X="-75.447906" Y="-10.683102" Z="8.226652"/>
+	</Point>
+	<Point Name="Point - 48">
+		<Position X="-50.307098" Y="32.522362" Z="16.106253"/>
+	</Point>
+	<Point Name="Point - 49">
+		<Position X="-1.609871" Y="12.906096" Z="18.432705"/>
+	</Point>
+	<Point Name="Pointt - 14">
+		<Position X="68.479752" Y="-14.088819" Z="-9.131133"/>
+	</Point>
+	<Point Name="Pointt - 15">
+		<Position X="18.371672" Y="-33.514999" Z="-1.761961"/>
+	</Point>
+	<Point Name="Pointt - 16">
+		<Position X="-4.196888" Y="11.380074" Z="3.386778"/>
+	</Point>
+	<Point Name="Pointt - 17">
+		<Position X="45.176521" Y="27.854137" Z="-5.889235"/>
+	</Point>
+	<Point Name="DZZ11 - 18">
+		<Position X="12.795063" Y="-1.133408" Z="-51.754959"/>
+	</Point>
+	<Point Name="DZZ12 - 19">
+		<Position X="13.420193" Y="-1.625202" Z="-51.781258"/>
+	</Point>
+	<Point Name="DZZ13 - 20">
+		<Position X="12.266068" Y="-0.942532" Z="-51.910629"/>
+	</Point>
+	<Point Name="DZZ14 - 21">
+		<Position X="12.553169" Y="-1.179619" Z="-51.880440"/>
+	</Point>
+	<Point Name="Pointt - 22">
+		<Position X="-4.262703" Y="10.812531" Z="3.446277"/>
+	</Point>
+	<Point Name="Pointt - 23">
+		<Position X="45.840916" Y="30.218954" Z="-4.539005"/>
+	</Point>
+	<Point Name="Pointt - 24">
+		<Position X="67.611496" Y="-14.222017" Z="-9.349148"/>
+	</Point>
+	<Point Name="Pointt - 25">
+		<Position X="17.506628" Y="-33.625340" Z="-1.362670"/>
+	</Point>
+	<Point Name="Pointt - 26">
+		<Position X="-2.432228" Y="10.775628" Z="7.276948"/>
+	</Point>
+	<Point Name="Pointt - 27">
+		<Position X="47.669502" Y="30.181761" Z="-0.708591"/>
+	</Point>
+	<Point Name="Pointt - 28">
+		<Position X="69.442200" Y="-14.257715" Z="-5.518262"/>
+	</Point>
+	<Point Name="Pointt - 29">
+		<Position X="19.338121" Y="-33.663174" Z="2.467375"/>
+	</Point>
+	<Point Name="Pointt - 30">
+		<Position X="-0.601742" Y="10.737627" Z="11.107329"/>
+	</Point>
+	<Point Name="Pointt - 31">
+		<Position X="49.501205" Y="30.143202" Z="3.120682"/>
+	</Point>
+	<Point Name="Pointt - 32">
+		<Position X="71.272263" Y="-14.295958" Z="-1.688102"/>
+	</Point>
+	<Point Name="Pointt - 33">
+		<Position X="21.169121" Y="-33.700214" Z="6.297864"/>
+	</Point>
+	<Point Name="Pointt - 34">
+		<Position X="1.228966" Y="10.700397" Z="14.937319"/>
+	</Point>
+	<Point Name="Pointt - 35">
+		<Position X="51.331913" Y="30.106970" Z="6.950824"/>
+	</Point>
+	<Point Name="Pointt - 36">
+		<Position X="73.103142" Y="-14.332846" Z="2.142191"/>
+	</Point>
+	<Point Name="Pointt - 37">
+		<Position X="20.824266" Y="-33.723785" Z="11.021114"/>
+	</Point>
+	<Point Name="Pointt - 38">
+		<Position X="3.059776" Y="10.662071" Z="18.768322"/>
+	</Point>
+	<Point Name="Pointt - 39">
+		<Position X="53.160851" Y="30.068846" Z="10.780604"/>
+	</Point>
+	<Point Name="Pointt - 40">
+		<Position X="74.932373" Y="-14.370318" Z="5.971857"/>
+	</Point>
+	<Point Name="Pointt - 41">
+		<Position X="24.829176" Y="-33.774578" Z="13.957640"/>
+	</Point>
+	<Point Name="DZZ1 - 42">
+		<Position X="65.200356" Y="-3.925329" Z="67.576164"/>
+	</Point>
+	<Point Name="DZZ2 - 43">
+		<Position X="65.076454" Y="-4.075299" Z="67.494385"/>
+	</Point>
+	<Point Name="DZZ3 - 44">
+		<Position X="65.313484" Y="-3.465178" Z="68.221901"/>
+	</Point>
+	<Point Name="DZZ4 - 45">
+		<Position X="65.469749" Y="-3.890980" Z="67.947662"/>
+	</Point>
+	<Point Name="Pointt - 46">
+		<Position X="75.111862" Y="-16.245911" Z="6.237144"/>
+	</Point>
+	<Point Name="Pointt - 47">
+		<Position X="24.024145" Y="-33.508171" Z="14.078832"/>
+	</Point>
+	<Point Name="Pointt - 48">
+		<Position X="4.809820" Y="12.202605" Z="18.828083"/>
+	</Point>
+	<Point Name="Pointt - 49">
+		<Position X="53.144485" Y="29.906693" Z="11.155396"/>
+	</Point>
+	<Point Name="Point - 188 MfyysxeCm6">
+		<Position X="37.730389" Y="-1.687562" Z="-30.657513"/>
+	</Point>
+	<Point Name="Point - 189 P26aFHqzZw">
+		<Position X="38.125694" Y="3.175736" Z="-28.446812"/>
+	</Point>
+	<Point Name="Point - 190 SOiBbc3mtm">
+		<Position X="37.937080" Y="0.005021" Z="-25.052422"/>
+	</Point>
+	<Point Name="Point - 191 VEqmSxFZgc">
+		<Position X="37.542542" Y="-4.858347" Z="-27.263092"/>
+	</Point>
+	<Point Name="Point - 192 ZbTuoHRL0S">
+		<Position X="25.151440" Y="-1.000762" Z="-30.592594"/>
+	</Point>
+	<Point Name="Point - 193 cxbVB6e8on">
+		<Position X="25.546156" Y="3.862079" Z="-28.382488"/>
+	</Point>
+	<Point Name="Point - 194 foD61Rqv7d">
+		<Position X="25.359306" Y="0.690871" Z="-24.987923"/>
+	</Point>
+	<Point Name="Point - 195 iApDOm3ivT">
+		<Position X="24.963823" Y="-4.172053" Z="-27.198944"/>
+	</Point>
+	<Point Name="Point - 196 mXxpl6jUEJ">
+		<Position X="12.573613" Y="-0.314750" Z="-30.528795"/>
+	</Point>
+	<Point Name="Point - 197 pNZQbRwn29">
+		<Position X="12.969271" Y="4.548663" Z="-28.318233"/>
+	</Point>
+	<Point Name="Point - 198 sji1ym8aLV">
+		<Position X="12.781067" Y="1.377867" Z="-24.923561"/>
+	</Point>
+	<Point Name="Point - 199 v6K9K7LM9L">
+		<Position X="12.385409" Y="-3.486217" Z="-27.134268"/>
+	</Point>
+	<Point Name="Point - 200 zwSkhRX9TB">
+		<Position X="-0.005088" Y="0.371407" Z="-30.464155"/>
+	</Point>
+	<Point Name="Point - 201 2J4LYGkwG1">
+		<Position X="0.390804" Y="5.234752" Z="-28.253735"/>
+	</Point>
+	<Point Name="Point - 202 5fCxubwjar">
+		<Position X="0.202424" Y="2.063612" Z="-24.859657"/>
+	</Point>
+	<Point Name="Point - 203 9Vp4Hv8VNh">
+		<Position X="-0.193585" Y="-2.799671" Z="-27.069979"/>
+	</Point>
+	<Point Name="Point - 204 Csxf7GLIh3">
+		<Position X="-12.583478" Y="1.057702" Z="-30.400040"/>
+	</Point>
+	<Point Name="Point - 205 FEZHUbX5Vt">
+		<Position X="-12.188232" Y="5.921160" Z="-28.189585"/>
+	</Point>
+	<Point Name="Point - 206 I5Bsqwksoj">
+		<Position X="-12.376083" Y="2.750416" Z="-24.795261"/>
+	</Point>
+	<Point Name="Point - 207 MRJzhGQecY">
+		<Position X="-12.771800" Y="-2.113183" Z="-27.005480"/>
+	</Point>
+	<Point Name="Point - 208 Pnvb4bdxvO">
+		<Position X="-25.164038" Y="1.743896" Z="-30.336102"/>
+	</Point>
+	<Point Name="Point - 209 Se4CQwpkjk">
+		<Position X="-24.769146" Y="6.607011" Z="-28.125713"/>
+	</Point>
+	<Point Name="Point - 210 V0gnHl2W3a">
+		<Position X="-24.955936" Y="3.436165" Z="-24.731041"/>
+	</Point>
+	<Point Name="Point - 211 ZNoud5EJqQ">
+		<Position X="-25.351477" Y="-1.426930" Z="-26.941715"/>
+	</Point>
+	<Point Name="Point - 212 cDQW0QQ6AG">
+		<Position X="-37.742886" Y="2.429489" Z="-30.272020"/>
+	</Point>
+	<Point Name="Point - 213 fZY7qldtx6">
+		<Position X="-37.347935" Y="7.293312" Z="-28.061531"/>
+	</Point>
+	<Point Name="Point - 214 iwAED6pfHS">
+		<Position X="-37.535606" Y="4.122097" Z="-24.666859"/>
+	</Point>
+	<Point Name="Point - 215 mmJqaQ2S5I">
+		<Position X="-37.930855" Y="-0.740832" Z="-26.877567"/>
+	</Point>
+	<Point Name="Point - 217 IcsQU3Jn1A">
+		<Position X="38.252953" Y="-1.219343" Z="8.492914"/>
+	</Point>
+	<Point Name="Point - 218 MyU1LOVao0">
+		<Position X="38.429802" Y="1.324410" Z="12.000128"/>
+	</Point>
+	<Point Name="Point - 219 PpcchjiN8M">
+		<Position X="38.148598" Y="-3.706981" Z="13.773804"/>
+	</Point>
+	<Point Name="Point - 220 SBEE44u9vC">
+		<Position X="37.970833" Y="-6.250060" Z="10.266741"/>
+	</Point>
+	<Point Name="Point - 221 VYMLvO7wF2">
+		<Position X="26.039446" Y="-0.693461" Z="8.526518"/>
+	</Point>
+	<Point Name="Point - 222 ZOywHjnj3s">
+		<Position X="26.217199" Y="1.849652" Z="12.033661"/>
+	</Point>
+	<Point Name="Point - 223 ckbYe40VMi">
+		<Position X="24.997971" Y="-3.229016" Z="14.316875"/>
+	</Point>
+	<Point Name="Point - 224 f7j9UtCIA4">
+		<Position X="25.756525" Y="-5.724809" Z="10.300650"/>
+	</Point>
+	<Point Name="Point - 225 jxLGrDP5Tt">
+		<Position X="13.825309" Y="-0.167529" Z="8.560358"/>
+	</Point>
+	<Point Name="Point - 226 mKTsDYbOHj">
+		<Position X="14.002836" Y="2.375140" Z="12.067432"/>
+	</Point>
+	<Point Name="Point - 227 pg5TatnAbZ">
+		<Position X="13.719405" Y="-2.656254" Z="13.841515"/>
+	</Point>
+	<Point Name="Point - 228 sWD4RD0xOP">
+		<Position X="13.542732" Y="-5.199036" Z="10.334047"/>
+	</Point>
+	<Point Name="Point - 229 wtqCnYCkiF">
+		<Position X="1.609584" Y="0.358115" Z="8.594402"/>
+	</Point>
+	<Point Name="Point - 230 zFynAtPWVb">
+		<Position X="1.787287" Y="2.901217" Z="12.101377"/>
+	</Point>
+	<Point Name="Point - 231 26aO0EbJpR">
+		<Position X="1.504538" Y="-2.129889" Z="13.875425"/>
+	</Point>
+	<Point Name="Point - 232 5SiWNYI6cH">
+		<Position X="1.327182" Y="-4.673303" Z="10.367851"/>
+	</Point>
+	<Point Name="Point - 233 9pK7jNUtw7">
+		<Position X="-10.604468" Y="0.883663" Z="8.628380"/>
+	</Point>
+	<Point Name="Point - 234 Cfwiaihfkx">
+		<Position X="-10.426880" Y="3.426709" Z="12.135283"/>
+	</Point>
+	<Point Name="Point - 235 F15Jx3tS3J">
+		<Position X="-10.709627" Y="-1.604451" Z="13.909470"/>
+	</Point>
+	<Point Name="Point - 236 IOhRJN5Fr9">
+		<Position X="-10.887273" Y="-4.147328" Z="10.402273"/>
+	</Point>
+	<Point Name="Point - 237 MEp2AiIYAz">
+		<Position X="-22.820515" Y="1.409652" Z="8.661743"/>
+	</Point>
+	<Point Name="Point - 238 PbRdW3UKyp">
+		<Position X="-22.643093" Y="3.952594" Z="12.169395"/>
+	</Point>
+	<Point Name="Point - 239 SxZFtNh7Ie">
+		<Position X="-22.925558" Y="-1.078967" Z="13.943615"/>
+	</Point>
+	<Point Name="Point - 240 WnBMjitu50">
+		<Position X="-23.103313" Y="-3.621355" Z="10.435974"/>
+	</Point>
+	<Point Name="Point - 241 ZAKx6X6gPq">
+		<Position X="-35.035065" Y="1.934747" Z="8.696161"/>
+	</Point>
+	<Point Name="Point - 242 cWwZTsITCg">
+		<Position X="-34.858452" Y="4.478085" Z="12.203133"/>
+	</Point>
+	<Point Name="Point - 243 fN4AJCzGWW">
+		<Position X="-35.140854" Y="-0.553336" Z="13.977251"/>
+	</Point>
+	<Point Name="Point - 244 jjgHgXB3KM">
+		<Position X="-35.318840" Y="-3.096116" Z="10.470121"/>
+	</Point>
+	<Point Name="Point - 363 BAn1ks6UK6">
+		<Position X="35.015720" Y="9.060815" Z="-7.434978"/>
+	</Point>
+	<Point Name="Point - 364 E1w86DJHew">
+		<Position X="19.123434" Y="13.896144" Z="-10.402061"/>
+	</Point>
+	<Point Name="Point - 365 HNYjxYV4RI">
+		<Position X="13.552063" Y="11.506869" Z="-20.187214"/>
+	</Point>
+	<Point Name="Point - 366 LjgLJsirl8">
+		<Position X="24.418690" Y="5.341156" Z="-22.736805"/>
+	</Point>
+	<Point Name="Point - 367 OaIwgDudZy">
+		<Position X="39.765968" Y="-0.553836" Z="-24.039160"/>
+	</Point>
+	<Point Name="Point - 368 RwQ3XY7Qso">
+		<Position X="45.337498" Y="1.835136" Z="-14.253925"/>
+	</Point>
+	<Point Name="Point - 369 VJ2fttJDge">
+		<Position X="38.968235" Y="16.428988" Z="-9.103704"/>
+	</Point>
+	<Point Name="Point - 370 Y9BGGD00zz">
+		<Position X="23.075361" Y="21.265392" Z="-12.070789"/>
+	</Point>
+	<Point Name="Point - 371 bVnr6YCInp">
+		<Position X="17.505238" Y="18.875761" Z="-21.856750"/>
+	</Point>
+	<Point Name="Point - 372 esPzTNP57f">
+		<Position X="30.730965" Y="12.436848" Z="-23.577787"/>
+	</Point>
+	<Point Name="Point - 373 iiXapibsuV">
+		<Position X="43.719959" Y="6.814003" Z="-25.707783"/>
+	</Point>
+	<Point Name="Point - 374 l59BC2neEL">
+		<Position X="49.290955" Y="9.203479" Z="-15.922491"/>
+	</Point>
+	<Point Name="Point - 375 oRIJ3N0R1h">
+		<Position X="39.038055" Y="15.079624" Z="-10.102638"/>
+	</Point>
+	<Point Name="Point - 376 rHuuPiCELX">
+		<Position X="36.669464" Y="17.318338" Z="-13.282755"/>
+	</Point>
+	<Point Name="Point - 377 ve2Vm2P19N">
+		<Position X="21.458410" Y="26.244215" Z="-23.525017"/>
+	</Point>
+	<Point Name="Point - 378 y0e6cNbnSD">
+		<Position X="34.682816" Y="19.805416" Z="-25.246305"/>
+	</Point>
+	<Point Name="Point - 379 1NmEzioaG3">
+		<Position X="47.672413" Y="14.182619" Z="-27.376476"/>
+	</Point>
+	<Point Name="Point - 380 4DOpLXUNZt">
+		<Position X="40.985321" Y="16.297836" Z="-15.699299"/>
+	</Point>
+	<Point Name="Point - 381 8aXQCrh9NF">
+		<Position X="38.869278" Y="27.815233" Z="-26.325256"/>
+	</Point>
+	<Point Name="Point - 382 Bw92ZCtSg5">
+		<Position X="38.891235" Y="27.817696" Z="-26.301098"/>
+	</Point>
+	<Point Name="Point - 383 Eml9vX6FUv">
+		<Position X="38.858387" Y="27.804319" Z="-26.358068"/>
+	</Point>
+	<Point Name="Point - 384 I9tkmsI2ol">
+		<Position X="38.865509" Y="27.813471" Z="-26.331665"/>
+	</Point>
+	<Point Name="Point - 385 LVVM8CUoba">
+		<Position X="39.090565" Y="27.751320" Z="-26.276480"/>
+	</Point>
+	<Point Name="Point - 386 OMdxVXhbvw">
+		<Position X="39.061604" Y="27.739201" Z="-26.326693"/>
+	</Point>
+	<Point Name="Pointt - 363 BAn1ks6UK6">
+		<Position X="-26.757795" Y="16.485575" Z="-6.234716"/>
+	</Point>
+	<Point Name="Pointt - 364 E1w86DJHew">
+		<Position X="-42.422195" Y="16.788546" Z="-11.221857"/>
+	</Point>
+	<Point Name="Pointt - 365 HNYjxYV4RI">
+		<Position X="-43.357620" Y="13.264326" Z="-21.488050"/>
+	</Point>
+	<Point Name="Pointt - 366 LjgLJsirl8">
+		<Position X="-29.989935" Y="10.466711" Z="-22.513859"/>
+	</Point>
+	<Point Name="Pointt - 367 OaIwgDudZy">
+		<Position X="-12.963182" Y="9.134035" Z="-21.780190"/>
+	</Point>
+	<Point Name="Pointt - 368 RwQ3XY7Qso">
+		<Position X="-12.028050" Y="12.658583" Z="-11.513927"/>
+	</Point>
+	<Point Name="Pointt - 369 VJ2fttJDge">
+		<Position X="-25.269119" Y="24.680828" Z="-7.646916"/>
+	</Point>
+	<Point Name="Pointt - 370 Y9BGGD00zz">
+		<Position X="-40.934109" Y="24.983747" Z="-12.633931"/>
+	</Point>
+	<Point Name="Pointt - 371 bVnr6YCInp">
+		<Position X="-41.870476" Y="21.459114" Z="-22.900261"/>
+	</Point>
+	<Point Name="Pointt - 372 esPzTNP57f">
+		<Position X="-29.941544" Y="20.972326" Z="-23.557302"/>
+	</Point>
+	<Point Name="Pointt - 373 iiXapibsuV">
+		<Position X="-11.475506" Y="17.329412" Z="-23.192539"/>
+	</Point>
+	<Point Name="Pointt - 374 l59BC2neEL">
+		<Position X="-10.540021" Y="20.853861" Z="-12.925999"/>
+	</Point>
+	<Point Name="Pointt - 375 oRIJ3N0R1h">
+		<Position X="-24.350471" Y="23.441374" Z="-8.582932"/>
+	</Point>
+	<Point Name="Pointt - 376 rHuuPiCELX">
+		<Position X="-26.574242" Y="25.570881" Z="-11.579932"/>
+	</Point>
+	<Point Name="Pointt - 377 ve2Vm2P19N">
+		<Position X="-40.383095" Y="29.654675" Z="-24.312634"/>
+	</Point>
+	<Point Name="Pointt - 378 y0e6cNbnSD">
+		<Position X="-28.454103" Y="29.167809" Z="-24.969292"/>
+	</Point>
+	<Point Name="Pointt - 379 1NmEzioaG3">
+		<Position X="-9.987184" Y="25.524418" Z="-24.604565"/>
+	</Point>
+	<Point Name="Pointt - 380 4DOpLXUNZt">
+		<Position X="-21.171373" Y="25.503700" Z="-13.708609"/>
+	</Point>
+	<Point Name="Pointt - 381 8aXQCrh9NF">
+		<Position X="-23.730581" Y="36.081207" Z="-25.051720"/>
+	</Point>
+	<Point Name="Pointt - 382 Bw92ZCtSg5">
+		<Position X="-23.718925" Y="36.088749" Z="-25.025143"/>
+	</Point>
+	<Point Name="Pointt - 383 Eml9vX6FUv">
+		<Position X="-23.723928" Y="36.067932" Z="-25.084215"/>
+	</Point>
+	<Point Name="Pointt - 384 I9tkmsI2ol">
+		<Position X="-23.730934" Y="36.078293" Z="-25.058233"/>
+	</Point>
+	<Point Name="Pointt - 385 LVVM8CUoba">
+		<Position X="-23.515827" Y="36.079750" Z="-24.974440"/>
+	</Point>
+	<Point Name="Pointt - 386 OMdxVXhbvw">
+		<Position X="-23.520479" Y="36.061646" Z="-25.027069"/>
+	</Point>
+	<Point Name="Point - 412 8x9MEyTF1t">
+		<Position X="-11.073020" Y="2.956037" Z="-30.205246"/>
+	</Point>
+	<Point Name="Point - 413 BKHTaJgXpF">
+		<Position X="-10.944334" Y="2.774301" Z="-29.289196"/>
+	</Point>
+	<Point Name="Point - 414 Egt5xeMK85">
+		<Position X="-10.928203" Y="2.599155" Z="-28.370512"/>
+	</Point>
+	<Point Name="Point - 415 I21gnyY7wv">
+		<Position X="-10.912132" Y="2.424209" Z="-27.451620"/>
+	</Point>
+	<Point Name="Point - 416 LteHAnluGl">
+		<Position X="-10.895824" Y="2.249115" Z="-26.533007"/>
+	</Point>
+	<Point Name="Point - 417 OFmOX8xg3b">
+		<Position X="-10.879695" Y="2.074322" Z="-25.613869"/>
+	</Point>
+	<Point Name="Point - 418 RcO0NTATNx">
+		<Position X="-10.863387" Y="1.899378" Z="-24.695290"/>
+	</Point>
+	<Point Name="Point - 419 VS0bknMGAn">
+		<Position X="-12.359306" Y="3.076269" Z="-30.166342"/>
+	</Point>
+	<Point Name="Point - 420 Yo8C68Z3Ud">
+		<Position X="-12.342999" Y="2.901325" Z="-29.247631"/>
+	</Point>
+	<Point Name="Point - 421 bBkKxTlpHT">
+		<Position X="-12.327045" Y="2.726278" Z="-28.328808"/>
+	</Point>
+	<Point Name="Point - 422 e1tvJoycbJ">
+		<Position X="-12.310680" Y="2.551282" Z="-27.409882"/>
+	</Point>
+	<Point Name="Point - 423 iOVWg8APPf">
+		<Position X="-12.294667" Y="2.376388" Z="-26.491093"/>
+	</Point>
+	<Point Name="Point - 424 lkd8XxqhiV">
+		<Position X="-12.278596" Y="2.201343" Z="-25.572269"/>
+	</Point>
+	<Point Name="Point - 425 oaFFtI3UWL">
+		<Position X="-12.262584" Y="2.026651" Z="-24.653622"/>
+	</Point>
+	<Point Name="Point - 426 rxNqGcFHpA">
+		<Position X="-11.497877" Y="3.050775" Z="-30.065180"/>
+	</Point>
+	<Point Name="Point - 427 vJzScxS4d0">
+		<Position X="-11.481748" Y="2.875577" Z="-29.146574"/>
+	</Point>
+	<Point Name="Point - 428 yA8ZTIeqxq">
+		<Position X="-11.465794" Y="2.700833" Z="-28.227682"/>
+	</Point>
+	<Point Name="Point - 429 1WkApdrdkC">
+		<Position X="-10.161965" Y="15.838057" Z="-28.089825"/>
+	</Point>
+	<Point Name="Point - 430 5sMmCx3Q42">
+		<Position X="-11.433298" Y="2.350942" Z="-26.390141"/>
+	</Point>
+	<Point Name="Point - 431 8jUN3IGDrs">
+		<Position X="-11.417050" Y="2.175899" Z="-25.471249"/>
+	</Point>
+	<Point Name="Point - 432 B56UPdSzBi">
+		<Position X="-11.400862" Y="2.001157" Z="-24.552391"/>
+	</Point>
+	<Point Name="Point - 433 ESF5mSfmzY">
+		<Position X="-3.205400" Y="2.555908" Z="-30.162176"/>
+	</Point>
+	<Point Name="Point - 434 IIrhcmrZIu">
+		<Position X="-3.189094" Y="2.381064" Z="-29.243254"/>
+	</Point>
+	<Point Name="Point - 435 LezIz7XL6k">
+		<Position X="-3.172963" Y="2.206422" Z="-28.324432"/>
+	</Point>
+	<Point Name="Point - 436 O1bPLSkePa">
+		<Position X="-4.295126" Y="-3.153731" Z="-26.884991"/>
+	</Point>
+	<Point Name="Point - 437 Rrj1CmwRDQ">
+		<Position X="-4.200582" Y="3.073705" Z="-26.437273"/>
+	</Point>
+	<Point Name="Point - 438 VELcZ79EXG">
+		<Position X="-3.124985" Y="1.681592" Z="-25.568279"/>
+	</Point>
+	<Point Name="Point - 439 YaUDvSL0Kc">
+		<Position X="-3.109032" Y="1.506699" Z="-24.649139"/>
+	</Point>
+	<Point Name="Point - 440 bQ6LmnYneS">
+		<Position X="5.087283" Y="2.061096" Z="-30.259275"/>
+	</Point>
+	<Point Name="Point - 441 eniw8bkaRH">
+		<Position X="5.103001" Y="1.886354" Z="-29.340599"/>
+	</Point>
+	<Point Name="Point - 442 i9qXVwxNl7">
+		<Position X="5.119189" Y="1.711511" Z="-28.421707"/>
+	</Point>
+	<Point Name="Point - 443 l0SfLH99Yx">
+		<Position X="6.203730" Y="14.049941" Z="-28.198303"/>
+	</Point>
+	<Point Name="Point - 444 oMaGicLwsn">
+		<Position X="5.151155" Y="1.361827" Z="-26.583885"/>
+	</Point>
+	<Point Name="Point - 445 sjDr5w2jg9">
+		<Position X="5.167226" Y="1.186885" Z="-25.665203"/>
+	</Point>
+	<Point Name="Point - 446 vZLTRHEVzz">
+		<Position X="5.183415" Y="1.011942" Z="-24.746449"/>
+	</Point>
+	<Point Name="Point - 447 yvxaIcRonp">
+		<Position X="4.927278" Y="2.110025" Z="-30.250662"/>
+	</Point>
+	<Point Name="Point - 448 1I5Bexdb6f">
+		<Position X="5.506075" Y="1.899881" Z="-29.346762"/>
+	</Point>
+	<Point Name="Point - 449 58hn1lqOuV">
+		<Position X="5.522263" Y="1.724989" Z="-28.428043"/>
+	</Point>
+	<Point Name="Point - 450 8VpOr62AEr">
+		<Position X="5.538158" Y="1.549996" Z="-27.509081"/>
+	</Point>
+	<Point Name="Point - 451 BrSVERFx1h">
+		<Position X="5.554288" Y="1.375202" Z="-26.590258"/>
+	</Point>
+	<Point Name="Point - 452 Eh46blRkLX">
+		<Position X="5.578189" Y="1.189801" Z="-25.552275"/>
+	</Point>
+	<Point Name="Point - 453 I4CiR6eW8N">
+		<Position X="5.135731" Y="1.053881" Z="-24.740601"/>
+	</Point>
+	<Point Name="Point - 454 LQoJoRqJSD">
+		<Position X="5.209494" Y="2.141101" Z="-30.373007"/>
+	</Point>
+	<Point Name="Point - 455 OHwQAm26GZ">
+		<Position X="5.225447" Y="1.966510" Z="-29.453945"/>
+	</Point>
+	<Point Name="Point - 456 RdY216jtZO">
+		<Position X="5.241459" Y="1.791415" Z="-28.535194"/>
+	</Point>
+	<Point Name="Point - 457 VzhdNRvfNE">
+		<Position X="5.257707" Y="1.616472" Z="-27.616615"/>
+	</Point>
+	<Point Name="Point - 458 YqJEkG8yg4">
+		<Position X="5.273661" Y="1.441831" Z="-26.697582"/>
+	</Point>
+	<Point Name="Point - 459 bCRMbbKlUu">
+		<Position X="5.289732" Y="1.266788" Z="-25.778900"/>
+	</Point>
+	<Point Name="Point - 460 eZ3xxvXYok">
+		<Position X="5.305508" Y="1.091996" Z="-24.859867"/>
+	</Point>
+	<PatchC2 N="4" M="6" NSlices="4" MSlices="4" Name="Prawa Tuba">
+		<Points>
+			<PointRef Name="Point - 14"/>
+			<PointRef Name="Point - 15"/>
+			<PointRef Name="Point - 16"/>
+			<PointRef Name="Point - 17"/>
+			<PointRef Name="Point - 14"/>
+			<PointRef Name="Point - 15"/>
+			<PointRef Name="Point - 16"/>
+			<PointRef Name="DZ11 - 18"/>
+			<PointRef Name="DZ12 - 19"/>
+			<PointRef Name="DZ13 - 20"/>
+			<PointRef Name="DZ14 - 21"/>
+			<PointRef Name="DZ11 - 18"/>
+			<PointRef Name="DZ12 - 19"/>
+			<PointRef Name="DZ13 - 20"/>
+			<PointRef Name="Point - 22"/>
+			<PointRef Name="Point - 23"/>
+			<PointRef Name="Point - 24"/>
+			<PointRef Name="Point - 25"/>
+			<PointRef Name="Point - 22"/>
+			<PointRef Name="Point - 23"/>
+			<PointRef Name="Point - 24"/>
+			<PointRef Name="Point - 26"/>
+			<PointRef Name="Point - 27"/>
+			<PointRef Name="Point - 28"/>
+			<PointRef Name="Point - 29"/>
+			<PointRef Name="Point - 26"/>
+			<PointRef Name="Point - 27"/>
+			<PointRef Name="Point - 28"/>
+			<PointRef Name="Point - 30"/>
+			<PointRef Name="Point - 31"/>
+			<PointRef Name="Point - 32"/>
+			<PointRef Name="Point - 33"/>
+			<PointRef Name="Point - 30"/>
+			<PointRef Name="Point - 31"/>
+			<PointRef Name="Point - 32"/>
+			<PointRef Name="Point - 34"/>
+			<PointRef Name="Point - 35"/>
+			<PointRef Name="Point - 36"/>
+			<PointRef Name="Point - 37"/>
+			<PointRef Name="Point - 34"/>
+			<PointRef Name="Point - 35"/>
+			<PointRef Name="Point - 36"/>
+			<PointRef Name="Point - 38"/>
+			<PointRef Name="Point - 39"/>
+			<PointRef Name="Point - 40"/>
+			<PointRef Name="Point - 41"/>
+			<PointRef Name="Point - 38"/>
+			<PointRef Name="Point - 39"/>
+			<PointRef Name="Point - 40"/>
+			<PointRef Name="DZ1 - 42"/>
+			<PointRef Name="DZ2 - 43"/>
+			<PointRef Name="DZ3 - 44"/>
+			<PointRef Name="DZ4 - 45"/>
+			<PointRef Name="DZ1 - 42"/>
+			<PointRef Name="DZ2 - 43"/>
+			<PointRef Name="DZ3 - 44"/>
+			<PointRef Name="Point - 46"/>
+			<PointRef Name="Point - 47"/>
+			<PointRef Name="Point - 48"/>
+			<PointRef Name="Point - 49"/>
+			<PointRef Name="Point - 46"/>
+			<PointRef Name="Point - 47"/>
+			<PointRef Name="Point - 48"/>
+		</Points>
+	</PatchC2>
+	<PatchC2 N="4" M="6" NSlices="4" MSlices="4" Name="Lewa Tuba">
+		<Points>
+			<PointRef Name="Pointt - 14"/>
+			<PointRef Name="Pointt - 15"/>
+			<PointRef Name="Pointt - 16"/>
+			<PointRef Name="Pointt - 17"/>
+			<PointRef Name="Pointt - 14"/>
+			<PointRef Name="Pointt - 15"/>
+			<PointRef Name="Pointt - 16"/>
+			<PointRef Name="DZZ11 - 18"/>
+			<PointRef Name="DZZ12 - 19"/>
+			<PointRef Name="DZZ13 - 20"/>
+			<PointRef Name="DZZ14 - 21"/>
+			<PointRef Name="DZZ11 - 18"/>
+			<PointRef Name="DZZ12 - 19"/>
+			<PointRef Name="DZZ13 - 20"/>
+			<PointRef Name="Pointt - 22"/>
+			<PointRef Name="Pointt - 23"/>
+			<PointRef Name="Pointt - 24"/>
+			<PointRef Name="Pointt - 25"/>
+			<PointRef Name="Pointt - 22"/>
+			<PointRef Name="Pointt - 23"/>
+			<PointRef Name="Pointt - 24"/>
+			<PointRef Name="Pointt - 26"/>
+			<PointRef Name="Pointt - 27"/>
+			<PointRef Name="Pointt - 28"/>
+			<PointRef Name="Pointt - 29"/>
+			<PointRef Name="Pointt - 26"/>
+			<PointRef Name="Pointt - 27"/>
+			<PointRef Name="Pointt - 28"/>
+			<PointRef Name="Pointt - 30"/>
+			<PointRef Name="Pointt - 31"/>
+			<PointRef Name="Pointt - 32"/>
+			<PointRef Name="Pointt - 33"/>
+			<PointRef Name="Pointt - 30"/>
+			<PointRef Name="Pointt - 31"/>
+			<PointRef Name="Pointt - 32"/>
+			<PointRef Name="Pointt - 34"/>
+			<PointRef Name="Pointt - 35"/>
+			<PointRef Name="Pointt - 36"/>
+			<PointRef Name="Pointt - 37"/>
+			<PointRef Name="Pointt - 34"/>
+			<PointRef Name="Pointt - 35"/>
+			<PointRef Name="Pointt - 36"/>
+			<PointRef Name="Pointt - 38"/>
+			<PointRef Name="Pointt - 39"/>
+			<PointRef Name="Pointt - 40"/>
+			<PointRef Name="Pointt - 41"/>
+			<PointRef Name="Pointt - 38"/>
+			<PointRef Name="Pointt - 39"/>
+			<PointRef Name="Pointt - 40"/>
+			<PointRef Name="DZZ1 - 42"/>
+			<PointRef Name="DZZ2 - 43"/>
+			<PointRef Name="DZZ3 - 44"/>
+			<PointRef Name="DZZ4 - 45"/>
+			<PointRef Name="DZZ1 - 42"/>
+			<PointRef Name="DZZ2 - 43"/>
+			<PointRef Name="DZZ3 - 44"/>
+			<PointRef Name="Pointt - 46"/>
+			<PointRef Name="Pointt - 47"/>
+			<PointRef Name="Pointt - 48"/>
+			<PointRef Name="Pointt - 49"/>
+			<PointRef Name="Pointt - 46"/>
+			<PointRef Name="Pointt - 47"/>
+			<PointRef Name="Pointt - 48"/>
+		</Points>
+	</PatchC2>
+	<PatchC2 N="4" M="4" NSlices="7" MSlices="2" Name="Tyl">
+		<Points>
+			<PointRef Name="Point - 188 MfyysxeCm6"/>
+			<PointRef Name="Point - 189 P26aFHqzZw"/>
+			<PointRef Name="Point - 190 SOiBbc3mtm"/>
+			<PointRef Name="Point - 191 VEqmSxFZgc"/>
+			<PointRef Name="Point - 188 MfyysxeCm6"/>
+			<PointRef Name="Point - 189 P26aFHqzZw"/>
+			<PointRef Name="Point - 190 SOiBbc3mtm"/>
+			<PointRef Name="Point - 192 ZbTuoHRL0S"/>
+			<PointRef Name="Point - 193 cxbVB6e8on"/>
+			<PointRef Name="Point - 194 foD61Rqv7d"/>
+			<PointRef Name="Point - 195 iApDOm3ivT"/>
+			<PointRef Name="Point - 192 ZbTuoHRL0S"/>
+			<PointRef Name="Point - 193 cxbVB6e8on"/>
+			<PointRef Name="Point - 194 foD61Rqv7d"/>
+			<PointRef Name="Point - 196 mXxpl6jUEJ"/>
+			<PointRef Name="Point - 197 pNZQbRwn29"/>
+			<PointRef Name="Point - 198 sji1ym8aLV"/>
+			<PointRef Name="Point - 199 v6K9K7LM9L"/>
+			<PointRef Name="Point - 196 mXxpl6jUEJ"/>
+			<PointRef Name="Point - 197 pNZQbRwn29"/>
+			<PointRef Name="Point - 198 sji1ym8aLV"/>
+			<PointRef Name="Point - 200 zwSkhRX9TB"/>
+			<PointRef Name="Point - 201 2J4LYGkwG1"/>
+			<PointRef Name="Point - 202 5fCxubwjar"/>
+			<PointRef Name="Point - 203 9Vp4Hv8VNh"/>
+			<PointRef Name="Point - 200 zwSkhRX9TB"/>
+			<PointRef Name="Point - 201 2J4LYGkwG1"/>
+			<PointRef Name="Point - 202 5fCxubwjar"/>
+			<PointRef Name="Point - 204 Csxf7GLIh3"/>
+			<PointRef Name="Point - 205 FEZHUbX5Vt"/>
+			<PointRef Name="Point - 206 I5Bsqwksoj"/>
+			<PointRef Name="Point - 207 MRJzhGQecY"/>
+			<PointRef Name="Point - 204 Csxf7GLIh3"/>
+			<PointRef Name="Point - 205 FEZHUbX5Vt"/>
+			<PointRef Name="Point - 206 I5Bsqwksoj"/>
+			<PointRef Name="Point - 208 Pnvb4bdxvO"/>
+			<PointRef Name="Point - 209 Se4CQwpkjk"/>
+			<PointRef Name="Point - 210 V0gnHl2W3a"/>
+			<PointRef Name="Point - 211 ZNoud5EJqQ"/>
+			<PointRef Name="Point - 208 Pnvb4bdxvO"/>
+			<PointRef Name="Point - 209 Se4CQwpkjk"/>
+			<PointRef Name="Point - 210 V0gnHl2W3a"/>
+			<PointRef Name="Point - 212 cDQW0QQ6AG"/>
+			<PointRef Name="Point - 213 fZY7qldtx6"/>
+			<PointRef Name="Point - 214 iwAED6pfHS"/>
+			<PointRef Name="Point - 215 mmJqaQ2S5I"/>
+			<PointRef Name="Point - 212 cDQW0QQ6AG"/>
+			<PointRef Name="Point - 213 fZY7qldtx6"/>
+			<PointRef Name="Point - 214 iwAED6pfHS"/>
+		</Points>
+	</PatchC2>
+	<PatchC2 N="4" M="4" NSlices="5" MSlices="5" Name="Przod">
+		<Points>
+			<PointRef Name="Point - 217 IcsQU3Jn1A"/>
+			<PointRef Name="Point - 218 MyU1LOVao0"/>
+			<PointRef Name="Point - 219 PpcchjiN8M"/>
+			<PointRef Name="Point - 220 SBEE44u9vC"/>
+			<PointRef Name="Point - 217 IcsQU3Jn1A"/>
+			<PointRef Name="Point - 218 MyU1LOVao0"/>
+			<PointRef Name="Point - 219 PpcchjiN8M"/>
+			<PointRef Name="Point - 221 VYMLvO7wF2"/>
+			<PointRef Name="Point - 222 ZOywHjnj3s"/>
+			<PointRef Name="Point - 223 ckbYe40VMi"/>
+			<PointRef Name="Point - 224 f7j9UtCIA4"/>
+			<PointRef Name="Point - 221 VYMLvO7wF2"/>
+			<PointRef Name="Point - 222 ZOywHjnj3s"/>
+			<PointRef Name="Point - 223 ckbYe40VMi"/>
+			<PointRef Name="Point - 225 jxLGrDP5Tt"/>
+			<PointRef Name="Point - 226 mKTsDYbOHj"/>
+			<PointRef Name="Point - 227 pg5TatnAbZ"/>
+			<PointRef Name="Point - 228 sWD4RD0xOP"/>
+			<PointRef Name="Point - 225 jxLGrDP5Tt"/>
+			<PointRef Name="Point - 226 mKTsDYbOHj"/>
+			<PointRef Name="Point - 227 pg5TatnAbZ"/>
+			<PointRef Name="Point - 229 wtqCnYCkiF"/>
+			<PointRef Name="Point - 230 zFynAtPWVb"/>
+			<PointRef Name="Point - 231 26aO0EbJpR"/>
+			<PointRef Name="Point - 232 5SiWNYI6cH"/>
+			<PointRef Name="Point - 229 wtqCnYCkiF"/>
+			<PointRef Name="Point - 230 zFynAtPWVb"/>
+			<PointRef Name="Point - 231 26aO0EbJpR"/>
+			<PointRef Name="Point - 233 9pK7jNUtw7"/>
+			<PointRef Name="Point - 234 Cfwiaihfkx"/>
+			<PointRef Name="Point - 235 F15Jx3tS3J"/>
+			<PointRef Name="Point - 236 IOhRJN5Fr9"/>
+			<PointRef Name="Point - 233 9pK7jNUtw7"/>
+			<PointRef Name="Point - 234 Cfwiaihfkx"/>
+			<PointRef Name="Point - 235 F15Jx3tS3J"/>
+			<PointRef Name="Point - 237 MEp2AiIYAz"/>
+			<PointRef Name="Point - 238 PbRdW3UKyp"/>
+			<PointRef Name="Point - 239 SxZFtNh7Ie"/>
+			<PointRef Name="Point - 240 WnBMjitu50"/>
+			<PointRef Name="Point - 237 MEp2AiIYAz"/>
+			<PointRef Name="Point - 238 PbRdW3UKyp"/>
+			<PointRef Name="Point - 239 SxZFtNh7Ie"/>
+			<PointRef Name="Point - 241 ZAKx6X6gPq"/>
+			<PointRef Name="Point - 242 cWwZTsITCg"/>
+			<PointRef Name="Point - 243 fN4AJCzGWW"/>
+			<PointRef Name="Point - 244 jjgHgXB3KM"/>
+			<PointRef Name="Point - 241 ZAKx6X6gPq"/>
+			<PointRef Name="Point - 242 cWwZTsITCg"/>
+			<PointRef Name="Point - 243 fN4AJCzGWW"/>
+		</Points>
+	</PatchC2>
+	<PatchC0 N="2" M="1" NSlices="18" MSlices="6" Name="BezierPatchC0 - 362 8oBPN3uiXG">
+		<Points>
+			<PointRef Name="Point - 363 BAn1ks6UK6"/>
+			<PointRef Name="Point - 364 E1w86DJHew"/>
+			<PointRef Name="Point - 365 HNYjxYV4RI"/>
+			<PointRef Name="Point - 366 LjgLJsirl8"/>
+			<PointRef Name="Point - 367 OaIwgDudZy"/>
+			<PointRef Name="Point - 368 RwQ3XY7Qso"/>
+			<PointRef Name="Point - 363 BAn1ks6UK6"/>
+			<PointRef Name="Point - 369 VJ2fttJDge"/>
+			<PointRef Name="Point - 370 Y9BGGD00zz"/>
+			<PointRef Name="Point - 371 bVnr6YCInp"/>
+			<PointRef Name="Point - 372 esPzTNP57f"/>
+			<PointRef Name="Point - 373 iiXapibsuV"/>
+			<PointRef Name="Point - 374 l59BC2neEL"/>
+			<PointRef Name="Point - 369 VJ2fttJDge"/>
+			<PointRef Name="Point - 375 oRIJ3N0R1h"/>
+			<PointRef Name="Point - 376 rHuuPiCELX"/>
+			<PointRef Name="Point - 377 ve2Vm2P19N"/>
+			<PointRef Name="Point - 378 y0e6cNbnSD"/>
+			<PointRef Name="Point - 379 1NmEzioaG3"/>
+			<PointRef Name="Point - 380 4DOpLXUNZt"/>
+			<PointRef Name="Point - 375 oRIJ3N0R1h"/>
+			<PointRef Name="Point - 381 8aXQCrh9NF"/>
+			<PointRef Name="Point - 382 Bw92ZCtSg5"/>
+			<PointRef Name="Point - 383 Eml9vX6FUv"/>
+			<PointRef Name="Point - 384 I9tkmsI2ol"/>
+			<PointRef Name="Point - 385 LVVM8CUoba"/>
+			<PointRef Name="Point - 386 OMdxVXhbvw"/>
+			<PointRef Name="Point - 381 8aXQCrh9NF"/>
+		</Points>
+	</PatchC0>
+	<PatchC0 N="2" M="1" NSlices="9" MSlices="9" Name="BezierPatchhC0 - 362 8oBPN3uiXG">
+		<Points>
+			<PointRef Name="Pointt - 363 BAn1ks6UK6"/>
+			<PointRef Name="Pointt - 364 E1w86DJHew"/>
+			<PointRef Name="Pointt - 365 HNYjxYV4RI"/>
+			<PointRef Name="Pointt - 366 LjgLJsirl8"/>
+			<PointRef Name="Pointt - 367 OaIwgDudZy"/>
+			<PointRef Name="Pointt - 368 RwQ3XY7Qso"/>
+			<PointRef Name="Pointt - 363 BAn1ks6UK6"/>
+			<PointRef Name="Pointt - 369 VJ2fttJDge"/>
+			<PointRef Name="Pointt - 370 Y9BGGD00zz"/>
+			<PointRef Name="Pointt - 371 bVnr6YCInp"/>
+			<PointRef Name="Pointt - 372 esPzTNP57f"/>
+			<PointRef Name="Pointt - 373 iiXapibsuV"/>
+			<PointRef Name="Pointt - 374 l59BC2neEL"/>
+			<PointRef Name="Pointt - 369 VJ2fttJDge"/>
+			<PointRef Name="Pointt - 375 oRIJ3N0R1h"/>
+			<PointRef Name="Pointt - 376 rHuuPiCELX"/>
+			<PointRef Name="Pointt - 377 ve2Vm2P19N"/>
+			<PointRef Name="Pointt - 378 y0e6cNbnSD"/>
+			<PointRef Name="Pointt - 379 1NmEzioaG3"/>
+			<PointRef Name="Pointt - 380 4DOpLXUNZt"/>
+			<PointRef Name="Pointt - 375 oRIJ3N0R1h"/>
+			<PointRef Name="Pointt - 381 8aXQCrh9NF"/>
+			<PointRef Name="Pointt - 382 Bw92ZCtSg5"/>
+			<PointRef Name="Pointt - 383 Eml9vX6FUv"/>
+			<PointRef Name="Pointt - 384 I9tkmsI2ol"/>
+			<PointRef Name="Pointt - 385 LVVM8CUoba"/>
+			<PointRef Name="Pointt - 386 OMdxVXhbvw"/>
+			<PointRef Name="Pointt - 381 8aXQCrh9NF"/>
+		</Points>
+	</PatchC0>
+	<PatchC2 N="4" M="4" NSlices="5" MSlices="8" Name="BezierPatchC2 - 411 47XlNeHSi4">
+		<Points>
+			<PointRef Name="Point - 412 8x9MEyTF1t"/>
+			<PointRef Name="Point - 413 BKHTaJgXpF"/>
+			<PointRef Name="Point - 414 Egt5xeMK85"/>
+			<PointRef Name="Point - 415 I21gnyY7wv"/>
+			<PointRef Name="Point - 416 LteHAnluGl"/>
+			<PointRef Name="Point - 417 OFmOX8xg3b"/>
+			<PointRef Name="Point - 418 RcO0NTATNx"/>
+			<PointRef Name="Point - 419 VS0bknMGAn"/>
+			<PointRef Name="Point - 420 Yo8C68Z3Ud"/>
+			<PointRef Name="Point - 421 bBkKxTlpHT"/>
+			<PointRef Name="Point - 422 e1tvJoycbJ"/>
+			<PointRef Name="Point - 423 iOVWg8APPf"/>
+			<PointRef Name="Point - 424 lkd8XxqhiV"/>
+			<PointRef Name="Point - 425 oaFFtI3UWL"/>
+			<PointRef Name="Point - 426 rxNqGcFHpA"/>
+			<PointRef Name="Point - 427 vJzScxS4d0"/>
+			<PointRef Name="Point - 428 yA8ZTIeqxq"/>
+			<PointRef Name="Point - 429 1WkApdrdkC"/>
+			<PointRef Name="Point - 430 5sMmCx3Q42"/>
+			<PointRef Name="Point - 431 8jUN3IGDrs"/>
+			<PointRef Name="Point - 432 B56UPdSzBi"/>
+			<PointRef Name="Point - 433 ESF5mSfmzY"/>
+			<PointRef Name="Point - 434 IIrhcmrZIu"/>
+			<PointRef Name="Point - 435 LezIz7XL6k"/>
+			<PointRef Name="Point - 436 O1bPLSkePa"/>
+			<PointRef Name="Point - 437 Rrj1CmwRDQ"/>
+			<PointRef Name="Point - 438 VELcZ79EXG"/>
+			<PointRef Name="Point - 439 YaUDvSL0Kc"/>
+			<PointRef Name="Point - 440 bQ6LmnYneS"/>
+			<PointRef Name="Point - 441 eniw8bkaRH"/>
+			<PointRef Name="Point - 442 i9qXVwxNl7"/>
+			<PointRef Name="Point - 443 l0SfLH99Yx"/>
+			<PointRef Name="Point - 444 oMaGicLwsn"/>
+			<PointRef Name="Point - 445 sjDr5w2jg9"/>
+			<PointRef Name="Point - 446 vZLTRHEVzz"/>
+			<PointRef Name="Point - 447 yvxaIcRonp"/>
+			<PointRef Name="Point - 448 1I5Bexdb6f"/>
+			<PointRef Name="Point - 449 58hn1lqOuV"/>
+			<PointRef Name="Point - 450 8VpOr62AEr"/>
+			<PointRef Name="Point - 451 BrSVERFx1h"/>
+			<PointRef Name="Point - 452 Eh46blRkLX"/>
+			<PointRef Name="Point - 453 I4CiR6eW8N"/>
+			<PointRef Name="Point - 454 LQoJoRqJSD"/>
+			<PointRef Name="Point - 455 OHwQAm26GZ"/>
+			<PointRef Name="Point - 456 RdY216jtZO"/>
+			<PointRef Name="Point - 457 VzhdNRvfNE"/>
+			<PointRef Name="Point - 458 YqJEkG8yg4"/>
+			<PointRef Name="Point - 459 bCRMbbKlUu"/>
+			<PointRef Name="Point - 460 eZ3xxvXYok"/>
+		</Points>
+	</PatchC2>
+</Scene>
+
