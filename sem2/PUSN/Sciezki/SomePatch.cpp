@@ -39,7 +39,7 @@ bool SomePatch::GetGuiInternal(Figure* par)
 	{
 		if (ImGui::Button("Inverse"))
 		{
-			SetTexture(trimTex, trimTex, false, true, wrapParametrizationFloodFill);
+			SetTexture(trimTex, trimTex, false, true, wrapParametrizationFloodFill, program);
 		}
 	}
 	int to_del = -1;

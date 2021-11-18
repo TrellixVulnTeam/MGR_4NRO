@@ -45,10 +45,21 @@ public:
 	float newtonD = 1.0f;
 	float stopSearchingPointsLoopD = 1.0f;
 	float stopSearchingPointsFarD = 5.0f;
-	float connectLineToWallEps = 1e-1f;
+	float connectLineToWallEps = 0.0f;
 	float pointsDistNewton = 1.0f;
 	int split = 5000;
 	float smallMoveF= 1.0f;
-	bool specialCase1 = true;
+	unsigned int texRP = 0;
+	unsigned int texRL = 0;
+	unsigned int texSP = 0;
+	unsigned int texSL = 0;
+	unsigned int texT = 0;
+	unsigned int texP = 0;
+	bool showTexRP = false;
+	bool showTexRL = false;
+	bool showTexSP = false;
+	bool showTexSL = false;
+	bool showTexT  = false;  
+	bool showTexP  = false;  
 };
 

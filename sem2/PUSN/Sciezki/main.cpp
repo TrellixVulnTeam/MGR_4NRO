@@ -39,6 +39,78 @@ glm::vec3 lookAt;
 GLFWwindow* window;
 Program* program;
 
+bool linesIntersect(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
+	// Return false if either of the lines have zero length
+	if (x1 == x2 && y1 == y2 ||
+		x3 == x4 && y3 == y4) {
+		return false;
+	}
+	// Fastest method, based on Franklin Antonio's "Faster Line Segment Intersection" topic "in Graphics Gems III" book (http://www.graphicsgems.org/)
+	double ax = x2 - x1;
+	double ay = y2 - y1;
+	double bx = x3 - x4;
+	double by = y3 - y4;
+	double cx = x1 - x3;
+	double cy = y1 - y3;
+
+	double alphaNumerator = by * cx - bx * cy;
+	double commonDenominator = ay * bx - ax * by;
+	if (commonDenominator > 0) {
+		if (alphaNumerator < 0 || alphaNumerator > commonDenominator) {
+			return false;
+		}
+	}
+	else if (commonDenominator < 0) {
+		if (alphaNumerator > 0 || alphaNumerator < commonDenominator) {
+			return false;
+		}
+	}
+	double betaNumerator = ax * cy - ay * cx;
+	if (commonDenominator > 0) {
+		if (betaNumerator < 0 || betaNumerator > commonDenominator) {
+			return false;
+		}
+	}
+	else if (commonDenominator < 0) {
+		if (betaNumerator > 0 || betaNumerator < commonDenominator) {
+			return false;
+		}
+	}
+	if (commonDenominator == 0) {
+		// This code wasn't in Franklin Antonio's method. It was added by Keith Woodward.
+		// The lines are parallel.
+		// Check if they're collinear.
+		double y3LessY1 = y3 - y1;
+		double collinearityTestForP3 = x1 * (y2 - y3) + x2 * (y3LessY1)+x3 * (y1 - y2);	// see http://mathworld.wolfram.com/Collinear.html
+		// If p3 is collinear with p1 and p2 then p4 will also be collinear, since p1-p2 is parallel with p3-p4
+		if (collinearityTestForP3 == 0) {
+			// The lines are collinear. Now check if they overlap.
+			if (x1 >= x3 && x1 <= x4 || x1 <= x3 && x1 >= x4 ||
+				x2 >= x3 && x2 <= x4 || x2 <= x3 && x2 >= x4 ||
+				x3 >= x1 && x3 <= x2 || x3 <= x1 && x3 >= x2) {
+				if (y1 >= y3 && y1 <= y4 || y1 <= y3 && y1 >= y4 ||
+					y2 >= y3 && y2 <= y4 || y2 <= y3 && y2 >= y4 ||
+					y3 >= y1 && y3 <= y2 || y3 <= y1 && y3 >= y2) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	return true;
+}
+bool LinesIntersect(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, glm::vec2 p4) { return linesIntersect(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y); }
+float crossP(glm::vec2 v, glm::vec2 w)
+{
+	return v.x * w.y - v.y * w.x;
+}
+glm::vec2 pointIntersect(glm::vec2 p, glm::vec2 p2, glm::vec2 q, glm::vec2 q2)
+{
+	auto s = q2 - q;
+	auto r = p2 - p;
+	auto u = crossP(q - p, r) / crossP(r, s);
+	return q + u * s;
+}
 void ResetParameters()
 {
 	program->startPointsSplits = 10;
@@ -433,6 +505,7 @@ void RenderGui()
 		}
 		ImGui::SliderInt("split", &program->split, 100, 10000);
 
+		/*
 		if (ImGui::Button("Aaa"))
 		{
 			float maxX = 0.0f, minX = 0.0f;
@@ -545,7 +618,8 @@ void RenderGui()
 			}
 
 		}
-		if (ImGui::Button("Bbb"))
+		*/
+		if (ImGui::Button("Zgrubna i plaska"))
 		{
 			auto start = high_resolution_clock::now();
 
@@ -563,7 +637,8 @@ void RenderGui()
 
 			for (int i = 0; i < program->figures.size(); ++i)
 				if (program->figures[i]->figureType == FigureType::BezierPatchC0 ||
-					program->figures[i]->figureType == FigureType::BezierPatchC2)
+					program->figures[i]->figureType == FigureType::BezierPatchC2 ||
+					program->figures[i]->figureType == FigureType::Torus)
 				{
 					std::for_each(
 						//std::execution::par_unseq,
@@ -587,7 +662,7 @@ void RenderGui()
 			auto duration = duration_cast<seconds>(stop - start);
 			start = stop;
 
-			int split2 = 41;
+			int split2 = 31;
 			int r = ceil(8.0f / cellSize);
 			float cellSize2 = 150.0f / (split2 - 1);
 			std::vector<glm::vec3> points1;
@@ -1217,7 +1292,7 @@ void RenderGui()
 			}
 			out_file.close();
 		}
-		if (ImGui::Button("Ccc"))
+		if (ImGui::Button("Obwod"))
 		{
 			Figure* f = new BezierPatchC2(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length, program->bezierC0r, false);
 			f->Initialize(program);
@@ -1225,8 +1300,11 @@ void RenderGui()
 			sprintf_s(f->newName, STRMAX, (std::string("Plaski")).c_str());
 			sprintf_s(f->name, STRMAX, (std::string("Plaski")).c_str());
 
-			program->cur->MoveTo(7.0f, 0.0f, 0.0f);
+			program->stopSearchingPointsLoopD = 1.0f;
+			program->stopSearchingPointsFarD = 5.0f;
+			program->cur->MoveTo(50.0f, 0.0f, 0.0f);
 			program->newtonD = 0.1f;
+			program->useCursor = true;
 			for (int i = 0; i < program->figures.size(); ++i)
 			{
 				if (strcmp(program->figures[i]->name, "Lewa Tuba") == 0)
@@ -1238,8 +1316,9 @@ void RenderGui()
 			}
 			auto points1 = Intersect2(program, 1.0f);
 
-			program->cur->MoveTo(-7.0f, 0.0f, 0.0f);
+			program->cur->MoveTo(-10.0f, 0.0f, 0.0f);
 			program->newtonD = 0.1f;
+			program->useCursor = true;
 			for (int i = 0; i < program->figures.size(); ++i)
 			{
 				if (strcmp(program->figures[i]->name, "Prawa Tuba") == 0)
@@ -1251,40 +1330,34 @@ void RenderGui()
 			}
 			auto points2 = Intersect2(program, 1.0f);
 
-			program->specialCase1 = true;
-
-			program->cur->MoveTo(30.0f, 0.0f, 15.0f);
-			program->newtonD = 0.1f;
+			program->newtonD = 0.08f;
+			program->useCursor = true;
+			program->stopSearchingPointsFarD = 1.5f;
+			program->stopSearchingPointsLoopD = 0.3f;
+			program->cur->MoveTo(30.0f, 0.0f, 0.0f);
 			for (int i = 0; i < program->figures.size(); ++i)
 			{
-				if (strcmp(program->figures[i]->name, "Przod") == 0)
+				if (strcmp(program->figures[i]->name, "Torus") == 0)
 					program->figures[i]->Select();
 				else if (strcmp(program->figures[i]->name, "Plaski") == 0)
 					program->figures[i]->Select();
 				else
 					program->figures[i]->Unselect();
 			}
-			auto points3 = Intersect2(program, -1.0f);
+			auto points3 = Intersect2(program, 1.0f);
 
-			program->cur->MoveTo(30.0f, 0.0f, -30.0f);
-			program->newtonD = 0.1f;
-			for (int i = 0; i < program->figures.size(); ++i)
-			{
-				if (strcmp(program->figures[i]->name, "Tyl") == 0)
-					program->figures[i]->Select();
-				else if (strcmp(program->figures[i]->name, "Plaski") == 0)
-					program->figures[i]->Select();
-				else
-					program->figures[i]->Unselect();
-			}
-			auto points4 = Intersect2(program, 1.0f);
-
-			program->specialCase1 = false;
+			//for (int i = 0; i < 200; ++i)
+			//{
+			//	Figure* f = new Point();
+			//	((Point*)f)->special = true;
+			//	f->Initialize(program);
+			//	f->MoveTo(points3[i].x, points3[i].y, points3[i].z);
+			//	program->figures.push_back(f);
+			//}
 
 			std::vector<glm::vec3> ppoints1;
 			std::vector<glm::vec3> ppoints2;
 			std::vector<glm::vec3> ppoints3;
-			std::vector<glm::vec3> ppoints4;
 			float r = 5.0f;
 			for (int i = 1; i < points1.size() - 1; ++i)
 			{
@@ -1304,13 +1377,6 @@ void RenderGui()
 				glm::vec3 v2 = glm::normalize(glm::vec3(v.z, 0.0f, -v.x));
 				ppoints3.push_back(points3[i] + r * v2);
 			}
-			for (int i = 1; i < points4.size() - 1; ++i)
-			{
-				glm::vec3 v = points4[i + 1] - points4[i - 1];
-				glm::vec3 v2 = glm::normalize(glm::vec3(-v.z, 0.0f, v.x));
-				ppoints4.push_back(points4[i] + r * v2);
-			}
-
 			std::vector<glm::vec3> points;
 			bool putNextPoint = true;
 			int i = ppoints1.size() - 1;
@@ -1355,12 +1421,14 @@ void RenderGui()
 			}
 
 			putNextPoint = true;
+			int count = 0;
 			while (putNextPoint)
 			{
+				count++;
 				points.push_back(ppoints2[i]);
-				for (int j = 0; j < ppoints4.size(); ++j)
+				for (int j = 0; j < ppoints3.size(); ++j)
 				{
-					if (glm::distance(ppoints2[i], ppoints4[j]) < eps)
+					if (glm::distance(ppoints2[i], ppoints3[j]) < eps && count > 20)
 					{
 						i = j;
 						putNextPoint = false;
@@ -1377,10 +1445,10 @@ void RenderGui()
 			putNextPoint = true;
 			while (putNextPoint)
 			{
-				points.push_back(ppoints4[i]);
+				points.push_back(ppoints3[i]);
 				for (int j = 0; j < ppoints1.size(); ++j)
 				{
-					if (glm::distance(ppoints4[i], ppoints1[j]) < eps)
+					if (glm::distance(ppoints3[i], ppoints1[j]) < eps)
 					{
 						i = j;
 						putNextPoint = false;
@@ -1389,7 +1457,7 @@ void RenderGui()
 				}
 				if (putNextPoint)
 				{
-					i--;
+					i++;
 				}
 			}
 
@@ -1400,14 +1468,16 @@ void RenderGui()
 			}
 
 
-			for (int i = 0; i < points.size(); ++i)
-			{
-				Figure* f = new Point();
-				((Point*)f)->special = true;
-				f->Initialize(program);
-				f->MoveTo(points[i].x, points[i].y, points[i].z);
-				program->figures.push_back(f);
-			}
+			//for (int i = 0; i < points.size(); ++i)
+			//{
+			//	Figure* f = new Point();
+			//	((Point*)f)->special = true;
+			//	f->Initialize(program);
+			//	f->MoveTo(points[i].x, points[i].y, points[i].z);
+			//	program->figures.push_back(f);
+			//}
+
+			points.push_back(points[0]);
 
 			std::ofstream out_file;
 			out_file.open("paths.f10");
@@ -1416,22 +1486,2033 @@ void RenderGui()
 
 			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 0.0f << "Y" << 0.0f << "Z" << 70.0f << std::endl;
 			n++;
-			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 85.0f << "Y" << 85.0f << "Z" << 70.0f << std::endl;
+			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 85.0f << "Y" << -85.0f << "Z" << 70.0f << std::endl;
 			n++;
-			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 85.0f << "Y" << 85.0f << "Z" << 15.0f << std::endl;
+			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 85.0f << "Y" << -85.0f << "Z" << 15.0f << std::endl;
 			n++;
 			for (int i = 0; i < points.size(); ++i)
 			{
 				auto pos = points[i];
 				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << 15.0f << std::endl;
 			}
-			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 85.0f << "Y" << 85.0f << "Z" << 15.0f << std::endl;
+			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 85.0f << "Y" << -85.0f << "Z" << 15.0f << std::endl;
 			n++;
-			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 85.0f << "Y" << 85.0f << "Z" << 70.0f << std::endl;
+			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 85.0f << "Y" << -85.0f << "Z" << 70.0f << std::endl;
 			n++;
 			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 0.0f << "Y" << 0.0f << "Z" << 70.0f << std::endl;
 			n++;
 			out_file.close();
+
+			int del = -1;
+			for (int i = 0; i < program->figures.size(); ++i)
+			{
+				program->figures[i]->Unselect();
+				if (strcmp(program->figures[i]->name, "Plaski") == 0)
+				{
+					del = i;
+				}
+			}
+
+			if (del >= 0)
+			{
+				Figure* f = program->figures[del];
+				program->figures.erase(program->figures.begin() + del);
+				f->CleanUp();
+				delete f;
+			}
+		}
+
+		if (ImGui::Button("Dokladna"))
+		{
+			Figure* f = new BezierPatchC2(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length, program->bezierC0r, false);
+			f->Initialize(program);
+			program->figures.push_back(f);
+			sprintf_s(f->newName, STRMAX, (std::string("Plaski")).c_str());
+			sprintf_s(f->name, STRMAX, (std::string("Plaski")).c_str());
+
+			std::vector<std::vector<glm::vec2>>pointsRP;
+			std::vector<std::vector<glm::vec2>>pointsRL;
+			std::vector<std::vector<glm::vec2>>pointsSP;
+			std::vector<std::vector<glm::vec2>>pointsSL;
+			std::vector<std::vector<glm::vec2>>pointsT;
+			std::vector<std::vector<glm::vec2>>pointsP;
+			bool lt = true;
+			bool pt = true;
+			bool ls = true;
+			bool ps = true;
+			bool t = true;
+			bool p = true;
+			if (lt || ls) {
+				std::vector<glm::vec2> points1, points2;
+				for (int i = 0; i < program->figures.size(); ++i)
+				{
+					if (strcmp(program->figures[i]->name, "Lewa Tuba") == 0)
+						program->figures[i]->Select();
+					else if (strcmp(program->figures[i]->name, "Lewy szczyt") == 0)
+						program->figures[i]->Select();
+					else
+						program->figures[i]->Unselect();
+				}
+
+				program->newtonD = 0.08f;
+				program->stopSearchingPointsFarD = 1.5f;
+				program->useCursor = true;
+				program->cur->MoveTo(24.0f, 20.0f, 10.0f);
+				auto pnts = Intersect2Tool(program, -1.0f, 1, 1, program->texRL, program->texSL, points1, points2);
+				pointsRL.push_back(points1);
+				pointsSL.push_back(points2);
+				points1.clear();
+				points2.clear();
+				auto pnts2 = Intersect2Tool(program, 1.0f, 1, 1, program->texRL, program->texSL, points1, points2);
+				pointsRL.push_back(points1);
+				pointsSL.push_back(points2);
+			}
+			if (pt || ps) {
+				std::vector<glm::vec2> points1, points2;
+				for (int i = 0; i < program->figures.size(); ++i)
+				{
+					if (strcmp(program->figures[i]->name, "Prawa Tuba") == 0)
+						program->figures[i]->Select();
+					else if (strcmp(program->figures[i]->name, "Prawy szczyt") == 0)
+						program->figures[i]->Select();
+					else
+						program->figures[i]->Unselect();
+				}
+				{
+					program->newtonD = 0.08f;
+					program->useCursor = true;
+					program->stopSearchingPointsFarD = 1.5f;
+					program->cur->MoveTo(-22.0f, 10.0f, 0.0f);
+					auto pnts = Intersect2Tool(program, -1.0f, 1, 1, program->texRP, program->texSP, points1, points2);
+					pointsRP.push_back(points1);
+					pointsSP.push_back(points2);
+					points1.clear();
+					points2.clear();
+					auto pnts2 = Intersect2Tool(program, 1.0f, 1, 1, program->texRP, program->texSP, points1, points2);
+					pointsRP.push_back(points1);
+					pointsSP.push_back(points2);
+				}
+			}
+			if (lt || t) {
+				std::vector<glm::vec2> points1, points2;
+				for (int i = 0; i < program->figures.size(); ++i)
+				{
+					if (strcmp(program->figures[i]->name, "Lewa Tuba") == 0)
+						program->figures[i]->Select();
+					else if (strcmp(program->figures[i]->name, "Torus") == 0)
+						program->figures[i]->Select();
+					else
+						program->figures[i]->Unselect();
+				}
+				{
+					program->newtonD = 0.08f;
+					program->useCursor = true;
+					program->stopSearchingPointsFarD = 1.5f;
+					program->stopSearchingPointsLoopD = 0.3f;
+					program->cur->MoveTo(10.0f, 0.0f, 10.0f);
+					auto pnts = Intersect2Tool(program, -1.0f, 1, -1, program->texRL, program->texT, points1, points2);
+					pointsRL.push_back(points1);
+					pointsT.push_back(points2);
+					program->stopSearchingPointsLoopD = 1.0f;
+				}
+			}
+			if (lt || t) {
+				std::vector<glm::vec2> points1, points2;
+				for (int i = 0; i < program->figures.size(); ++i)
+				{
+					if (strcmp(program->figures[i]->name, "Lewa Tuba") == 0)
+						program->figures[i]->Select();
+					else if (strcmp(program->figures[i]->name, "Torus") == 0)
+						program->figures[i]->Select();
+					else
+						program->figures[i]->Unselect();
+				}
+				{
+					program->newtonD = 0.08f;
+					program->useCursor = true;
+					program->stopSearchingPointsFarD = 1.5f;
+					program->stopSearchingPointsLoopD = 0.3f;
+					program->cur->MoveTo(10.0f, 0.0f, -23.0f);
+					auto pnts = Intersect2Tool(program, -1.0f, 1, -1, program->texRL, program->texT, points1, points2);
+					pointsRL.push_back(points1);
+					pointsT.push_back(points2);
+					program->stopSearchingPointsLoopD = 1.0f;
+				}
+			}
+			if (pt || t) {
+				std::vector<glm::vec2> points1, points2;
+				for (int i = 0; i < program->figures.size(); ++i)
+				{
+					if (strcmp(program->figures[i]->name, "Prawa Tuba") == 0)
+						program->figures[i]->Select();
+					else if (strcmp(program->figures[i]->name, "Torus") == 0)
+						program->figures[i]->Select();
+					else
+						program->figures[i]->Unselect();
+				}
+				{
+					program->newtonD = 0.08f;
+					program->useCursor = true;
+					program->stopSearchingPointsFarD = 1.5f;
+					program->stopSearchingPointsLoopD = 0.3f;
+					program->cur->MoveTo(-10.0f, 0.0f, 10.0f);
+					auto pnts = Intersect2Tool(program, -1.0f, 1, -1, program->texRP, program->texT, points1, points2);
+					pointsRP.push_back(points1);
+					pointsT.push_back(points2);
+					program->stopSearchingPointsLoopD = 1.0f;
+				}
+			}
+			if (pt || t) {
+				std::vector<glm::vec2> points1, points2;
+				for (int i = 0; i < program->figures.size(); ++i)
+				{
+					if (strcmp(program->figures[i]->name, "Prawa Tuba") == 0)
+						program->figures[i]->Select();
+					else if (strcmp(program->figures[i]->name, "Torus") == 0)
+						program->figures[i]->Select();
+					else
+						program->figures[i]->Unselect();
+				}
+				{
+					program->newtonD = 0.08f;
+					program->useCursor = true;
+					program->stopSearchingPointsFarD = 1.5f;
+					program->stopSearchingPointsLoopD = 0.3f;
+					program->cur->MoveTo(-10.0f, 0.0f, -23.0f);
+					auto pnts = Intersect2Tool(program, -1.0f, 1, -1, program->texRP, program->texT, points1, points2);
+					pointsRP.push_back(points1);
+					pointsT.push_back(points2);
+					program->stopSearchingPointsLoopD = 1.0f;
+				}
+			}
+			if (pt || p) {
+				std::vector<glm::vec2> points1, points2;
+				for (int i = 0; i < program->figures.size(); ++i)
+				{
+					if (strcmp(program->figures[i]->name, "Prawa Tuba") == 0)
+						program->figures[i]->Select();
+					else if (strcmp(program->figures[i]->name, "Plaski") == 0)
+						program->figures[i]->Select();
+					else
+						program->figures[i]->Unselect();
+				}
+				{
+					program->stopSearchingPointsLoopD = 1.0f;
+					program->stopSearchingPointsFarD = 5.0f;
+					program->cur->MoveTo(-10.0f, 0.0f, 0.0f);
+					program->newtonD = 0.1f;
+					program->useCursor = true;
+					auto pnts = Intersect2Tool(program, -1.0f, 1, -1, program->texRP, program->texP, points1, points2);
+					pointsRP.push_back(points1);
+					pointsP.push_back(points2);
+				}
+			}
+			if (lt || p) {
+				std::vector<glm::vec2> points1, points2;
+				for (int i = 0; i < program->figures.size(); ++i)
+				{
+					if (strcmp(program->figures[i]->name, "Lewa Tuba") == 0)
+						program->figures[i]->Select();
+					else if (strcmp(program->figures[i]->name, "Plaski") == 0)
+						program->figures[i]->Select();
+					else
+						program->figures[i]->Unselect();
+				}
+				{
+					program->cur->MoveTo(10.0f, 0.0f, 0.0f);
+					program->newtonD = 0.1f;
+					program->useCursor = true;
+					program->cur->MoveTo(5.0f, 0.0f, 0.0f);
+					auto pnts = Intersect2Tool(program, -1.0f, 1, -1, program->texRL, program->texP, points1, points2);
+					pointsRL.push_back(points1);
+					pointsP.push_back(points2);
+
+					program->stopSearchingPointsLoopD = 1.0f;
+				}
+			}
+			if (t || p) {
+				std::vector<glm::vec2> points1, points2;
+				for (int i = 0; i < program->figures.size(); ++i)
+				{
+					if (strcmp(program->figures[i]->name, "Torus") == 0)
+						program->figures[i]->Select();
+					else if (strcmp(program->figures[i]->name, "Plaski") == 0)
+						program->figures[i]->Select();
+					else
+						program->figures[i]->Unselect();
+				}
+				{
+					program->newtonD = 0.08f;
+					program->useCursor = true;
+					program->stopSearchingPointsFarD = 1.5f;
+					program->stopSearchingPointsLoopD = 0.3f;
+					program->cur->MoveTo(30.0f, 0.0f, 0.0f);
+					auto pnts = Intersect2Tool(program, -1.0f, -1, -1, program->texT, program->texP, points1, points2);
+					pointsT.push_back(points1);
+					pointsP.push_back(points2);
+
+					program->stopSearchingPointsLoopD = 1.0f;
+				}
+			}
+			if (t || p) {
+				std::vector<glm::vec2> points1, points2;
+				for (int i = 0; i < program->figures.size(); ++i)
+				{
+					if (strcmp(program->figures[i]->name, "Torus") == 0)
+						program->figures[i]->Select();
+					else if (strcmp(program->figures[i]->name, "Plaski") == 0)
+						program->figures[i]->Select();
+					else
+						program->figures[i]->Unselect();
+				}
+				{
+					program->newtonD = 0.08f;
+					program->useCursor = true;
+					program->stopSearchingPointsFarD = 1.5f;
+					program->stopSearchingPointsLoopD = 0.3f;
+					program->cur->MoveTo(18.0f, 0.0f, 0.0f);
+					auto pnts = Intersect2Tool(program, -1.0f, -1, -1, program->texT, program->texP, points1, points2);
+					pointsT.push_back(points1);
+					pointsP.push_back(points2);
+
+					program->stopSearchingPointsLoopD = 1.0f;
+				}
+			}
+
+			for (int i = 0; i < program->figures.size(); ++i)
+			{
+				program->figures[i]->Unselect();
+			}
+			program->cur->MoveTo(0.0f, 0.0f, 0.0f);
+
+			bool top1 = true;
+			bool top2 = true;
+			bool tube1 = true;
+			bool tube2 = true;
+			bool torus1 = true;
+			bool torus2 = true;
+			bool otwor = true;
+
+			if (top1 || top2)
+			{
+				std::vector<glm::vec3> drillPoints1, drillPoints2;
+				if (top1)
+				{
+					Figure* ff = nullptr;
+					for (int i = 0; i < program->figures.size(); ++i) if (strcmp(program->figures[i]->name, "Lewy szczyt") == 0) ff = program->figures[i];
+
+					std::vector<glm::vec2> pnts;
+					for (int i = pointsSL[0].size() - 1; i >= 0; i--)
+						pnts.push_back(pointsSL[0][i]);
+					for (int i = 0; i < pointsSL[1].size(); i++)
+						pnts.push_back(pointsSL[1][i]);
+
+
+					float fromU = 0.3f;
+					float toU = 0.97;
+					float fromV = 0.0f;
+					float toV = 1.0f;
+					int n = 100;
+					float diffU = (toU - fromU) / n;
+					float diffV = (toV - fromV) / n;
+
+					int dir = 1;
+					glm::vec3 last{ 0.0f,0.0f,0.0f };
+					glm::vec3 beforeLast{ 0.0f,0.0f,0.0f };
+					bool any = false;
+					bool doSmth = false;
+					for (int i = 0; i <= n; ++i)
+					{
+						bool drilling_started = false;
+						bool drilling = false;
+						float u = fromU + i * diffU;
+						int start = dir == 1 ? 0 : n;
+						for (int j = start; (dir == 1 && j < n) || (dir == -1 && j > 0); j += dir)
+						{
+							int j_next = j + dir;
+							float v = fromV + j * diffV;
+							float v_next = fromV + j_next * diffV;
+
+							int cuts = 0;
+							for (int k = 0; k < pnts.size(); ++k)
+							{
+								int k_next = k + 1;
+								if (k_next == pnts.size()) k_next = 0;
+								if (LinesIntersect(glm::vec2(u, v), glm::vec2(u, v_next), pnts[k], pnts[k_next])) cuts++;
+							}
+							if (u > 0.65f && (v - 0.001f) * (v_next - 0.001f) < 0.0f) cuts++;
+							if (u > 0.65f && (v - 0.999f) * (v_next - 0.999f) < 0.0f) cuts++;
+
+							bool shouldChange = cuts % 2 == 1;
+
+							if (shouldChange)
+							{
+								if (!drilling_started)
+								{
+									auto pos2 = GetToolPos(ff, u, v_next, 1);
+									if (any && glm::distance(pos2, last) > 2.0f)
+									{
+										drillPoints1.push_back(glm::vec3(last.x, 50.0f, last.z));
+										drillPoints1.push_back(glm::vec3(pos2.x, 50.0f, pos2.z));
+										drillPoints1.push_back(pos2);
+									}
+									else
+									{
+										drillPoints1.push_back(pos2);
+									}
+									if (u > 0.65 && (j == 0 && dir == 1 || j == n && dir == -1)) doSmth = true;
+									drilling_started = true;
+									drilling = true;
+									any = true;
+									beforeLast = last;
+									last = pos2;
+								}
+								else
+								{
+									doSmth = false;
+									if (!drilling)
+									{
+										auto pos2 = GetToolPos(ff, u, v_next, 1);
+										drillPoints1.push_back(glm::vec3(last.x, 50.0f, last.z));
+										drillPoints1.push_back(glm::vec3(pos2.x, 50.0f, pos2.z));
+										drillPoints1.push_back(pos2);
+										beforeLast = last;
+										last = pos2;
+									}
+									if (drilling)
+									{
+										if (u > 0.65f && (dir == 1 && j == n - 1 || dir == -1 && j == 1))
+										{
+											auto dir = beforeLast - last;
+											drillPoints1.push_back(last + dir);
+											drillPoints1.push_back(last + 2.0f * dir);
+											drillPoints1.push_back(last + dir);
+											drillPoints1.push_back(last);
+										}
+									}
+									drilling = !drilling;
+								}
+							}
+							else if (drilling)
+							{
+								auto pos2 = GetToolPos(ff, u, v_next, 1);
+								if (u > 0.65 && doSmth && (dir == 1 && j == 1 || dir == -1 && j == n - 1))
+								{
+									auto dir = last - pos2;;
+									drillPoints1.push_back(last + dir);
+									drillPoints1.push_back(last + 2.0f * dir);
+									drillPoints1.push_back(last + dir);
+									drillPoints1.push_back(last);
+								}
+								drillPoints1.push_back(pos2);
+								doSmth = false;
+								beforeLast = last;
+								last = pos2;
+							}
+						}
+						dir = dir * -1;
+					}
+					pnts.push_back(glm::vec3(last.x, last.y + 20.0f, last.z));
+					fromV = 0.001f;
+					toV = 0.999f;
+					diffV = (toV - fromV) / n;
+					auto u1 = toU - diffU;
+					auto u2 = toU;
+					for (int i = 0; i <= n; ++i)
+					{
+						float v = fromV + i * diffV;
+						auto p1 = GetToolPos(ff, u1, v, 1);
+						auto p2 = GetToolPos(ff, u2, v, 1);
+						drillPoints1.push_back(glm::vec3(p2.x, p2.y + 20.0f, p2.z));
+						drillPoints1.push_back(glm::vec3(p2.x, p2.y, p2.z));
+						auto dir = p2 - p1;
+						p2 = p2 + 10.0f * dir;
+						drillPoints1.push_back(glm::vec3(p2.x, p2.y, p2.z));
+						drillPoints1.push_back(glm::vec3(p2.x, p2.y + 20.0f, p2.z));
+					}
+				}
+				if (top2)
+				{
+					Figure* ff = nullptr;
+					for (int i = 0; i < program->figures.size(); ++i) if (strcmp(program->figures[i]->name, "Prawy szczyt") == 0) ff = program->figures[i];
+
+					std::vector<glm::vec2> pnts;
+					for (int i = pointsSP[0].size() - 1; i >= 0; i--)
+						pnts.push_back(pointsSP[0][i]);
+					for (int i = 0; i < pointsSP[1].size(); i++)
+						pnts.push_back(pointsSP[1][i]);
+
+
+					float fromU = 0.3f;
+					float toU = 0.97;
+					float fromV = 0.0f;
+					float toV = 1.0f;
+					int n = 100;
+					float diffU = (toU - fromU) / n;
+					float diffV = (toV - fromV) / n;
+
+					int dir = 1;
+					glm::vec3 last{ 0.0f,0.0f,0.0f };
+					glm::vec3 beforeLast{ 0.0f,0.0f,0.0f };
+					bool any = false;
+					bool doSmth = false;
+					for (int i = 0; i <= n; ++i)
+					{
+						bool drilling_started = false;
+						bool drilling = false;
+						float u = fromU + i * diffU;
+						int start = dir == 1 ? 0 : n;
+						for (int j = start; (dir == 1 && j < n) || (dir == -1 && j > 0); j += dir)
+						{
+							int j_next = j + dir;
+							float v = fromV + j * diffV;
+							float v_next = fromV + j_next * diffV;
+
+							int cuts = 0;
+							for (int k = 0; k < pnts.size(); ++k)
+							{
+								int k_next = k + 1;
+								if (k_next == pnts.size()) k_next = 0;
+								if (LinesIntersect(glm::vec2(u, v), glm::vec2(u, v_next), pnts[k], pnts[k_next])) cuts++;
+							}
+							if (u > 0.72f && (v - 0.001f) * (v_next - 0.001f) < 0.0f) cuts++;
+							if (u > 0.72f && (v - 0.999f) * (v_next - 0.999f) < 0.0f) cuts++;
+
+							bool shouldChange = cuts % 2 == 1;
+
+							if (shouldChange)
+							{
+								if (!drilling_started)
+								{
+									auto pos2 = GetToolPos(ff, u, v_next, 1);
+									if (any && glm::distance(pos2, last) > 2.0f)
+									{
+										drillPoints2.push_back(glm::vec3(last.x, 50.0f, last.z));
+										drillPoints2.push_back(glm::vec3(pos2.x, 50.0f, pos2.z));
+										drillPoints2.push_back(pos2);
+									}
+									else
+									{
+										drillPoints2.push_back(pos2);
+									}
+									if (u > 0.65 && (j == 0 && dir == 1 || j == n && dir == -1)) doSmth = true;
+									drilling_started = true;
+									drilling = true;
+									any = true;
+									beforeLast = last;
+									last = pos2;
+								}
+								else
+								{
+									doSmth = false;
+									if (!drilling)
+									{
+										auto pos2 = GetToolPos(ff, u, v_next, 1);
+										drillPoints2.push_back(glm::vec3(last.x, 50.0f, last.z));
+										drillPoints2.push_back(glm::vec3(pos2.x, 50.0f, pos2.z));
+										drillPoints2.push_back(pos2);
+										beforeLast = last;
+										last = pos2;
+									}
+									if (drilling)
+									{
+										if (u > 0.65f && (dir == 1 && j == n - 1 || dir == -1 && j == 1))
+										{
+											auto dir = beforeLast - last;
+											drillPoints2.push_back(last + dir);
+											drillPoints2.push_back(last + 2.0f * dir);
+											drillPoints2.push_back(last + dir);
+											drillPoints2.push_back(last);
+										}
+									}
+									drilling = !drilling;
+								}
+							}
+							else if (drilling)
+							{
+								auto pos2 = GetToolPos(ff, u, v_next, 1);
+								if (u > 0.65 && doSmth && (dir == 1 && j == 1 || dir == -1 && j == n - 1))
+								{
+									auto dir = last - pos2;;
+									drillPoints2.push_back(last + dir);
+									drillPoints2.push_back(last + 2.0f * dir);
+									drillPoints2.push_back(last + dir);
+									drillPoints2.push_back(last);
+								}
+								drillPoints2.push_back(pos2);
+								doSmth = false;
+								beforeLast = last;
+								last = pos2;
+							}
+						}
+						dir = dir * -1;
+					}
+					pnts.push_back(glm::vec3(last.x, last.y + 20.0f, last.z));
+					fromV = 0.001f;
+					toV = 0.999f;
+					diffV = (toV - fromV) / n;
+					auto u1 = toU - diffU;
+					auto u2 = toU;
+					for (int i = 0; i <= n; ++i)
+					{
+						float v = fromV + i * diffV;
+						auto p1 = GetToolPos(ff, u1, v, 1);
+						auto p2 = GetToolPos(ff, u2, v, 1);
+						drillPoints2.push_back(glm::vec3(p2.x, p2.y + 20.0f, p2.z));
+						drillPoints2.push_back(glm::vec3(p2.x, p2.y, p2.z));
+						auto dir = p2 - p1;
+						p2 = p2 + 10.0f * dir;
+						drillPoints2.push_back(glm::vec3(p2.x, p2.y, p2.z));
+						drillPoints2.push_back(glm::vec3(p2.x, p2.y + 20.0f, p2.z));
+					}
+				}
+				Figure* pl = new PointsLine();
+				pl->Initialize(program);
+				for (int i = 0; i < drillPoints1.size(); ++i)
+				{
+					Figure* pp = new Point();
+					pp->Initialize(program);
+					pp->MoveTo(drillPoints1[i].x, drillPoints1[i].y, drillPoints1[i].z);
+					((PointsLine*)pl)->AddPoint(((Point*)pp));
+					program->figures.push_back(pp);
+				}
+				program->figures.push_back(pl);
+
+				pl = new PointsLine();
+				pl->Initialize(program);
+				for (int i = 0; i < drillPoints2.size(); ++i)
+				{
+					Figure* pp = new Point();
+					pp->Initialize(program);
+					pp->MoveTo(drillPoints2[i].x, drillPoints2[i].y, drillPoints2[i].z);
+					((PointsLine*)pl)->AddPoint(((Point*)pp));
+					program->figures.push_back(pp);
+				}
+				program->figures.push_back(pl);
+
+				std::ofstream out_file;
+				out_file.open("szczyty.k08");
+
+				int n = 0;
+				int j;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[0].x << "Y" << drillPoints1[0].z << "Z" << 70.0f << std::endl;
+				n++;
+				for (int i = 0; i < drillPoints1.size(); ++i)
+				{
+					auto pos = drillPoints1[i];
+					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+				}
+				j = drillPoints1.size() - 1;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[j].x << "Y" << drillPoints1[j].z << "Z" << 70.0f << std::endl;
+				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[0].x << "Y" << drillPoints2[0].z << "Z" << 70.0f << std::endl;
+				n++;
+				for (int i = 0; i < drillPoints2.size(); ++i)
+				{
+					auto pos = drillPoints2[i];
+					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+				}
+				j = drillPoints2.size() - 1;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[j].x << "Y" << drillPoints2[j].z << "Z" << 70.0f << std::endl;
+				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+				n++;
+				out_file.close();
+
+			}
+			if (tube1 || tube2)
+			{
+				std::vector<glm::vec3> drillPoints1, drillPoints2;
+				if (tube1)
+				{
+					std::vector<glm::vec2> pnts1, pnts2;
+
+
+					for (int i = 0; i < pointsRL.size(); ++i)
+						for (int j = 0; j < pointsRL[i].size(); ++j)
+						{
+							float v = pointsRL[i][j].y;
+							v = v + 0.5f;
+							if (v >= 1.0f) v = v - 1.0f;
+							pointsRL[i][j].y = v;
+						}
+
+					for (int i = pointsRL[0].size() - 1; i >= 0; i--)
+						pnts1.push_back(pointsRL[0][i]);
+					for (int i = 0; i < pointsRL[1].size(); i++)
+						pnts1.push_back(pointsRL[1][i]);
+
+
+					int k = 0;
+					int tmp = 0;
+					bool loop = true;
+					while (loop)
+					{
+						int k_next = k + 1;
+						if (k_next >= pointsRL[4].size()) k_next = 0;
+						auto p1 = pointsRL[4][k];
+						auto p2 = pointsRL[4][k_next];
+						for (int j = 0; j < pointsRL[2].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsRL[2][j];
+							auto p4 = pointsRL[2][j_next];
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								tmp = k;
+								k = j_next;
+								pnts2.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						int k_next = k + 1;
+						if (k_next >= pointsRL[2].size()) k_next = 0;
+						auto p1 = pointsRL[2][k];
+						auto p2 = pointsRL[2][k_next];
+						pnts2.push_back(p1);
+						for (int j = 0; j < pointsRL[4].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsRL[4][j];
+							auto p4 = pointsRL[4][j_next];
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								k = j_next;
+								pnts2.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						int k_next = k + 1;
+						if (k_next >= pointsRL[4].size()) k_next = 0;
+						auto p1 = pointsRL[4][k];
+						auto p2 = pointsRL[4][k_next];
+						pnts2.push_back(p1);
+						for (int j = 0; j < pointsRL[3].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsRL[3][j];
+							auto p4 = pointsRL[3][j_next];
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								k = j_next;
+								pnts2.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						int k_next = k + 1;
+						if (k_next >= pointsRL[3].size()) k_next = 0;
+						auto p1 = pointsRL[3][k];
+						auto p2 = pointsRL[3][k_next];
+						pnts2.push_back(p1);
+						for (int j = 0; j < pointsRL[4].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsRL[4][j];
+							auto p4 = pointsRL[4][j_next];
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								k = j_next;
+								pnts2.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						pnts2.push_back(pointsRL[4][k]);
+						if (k == tmp) loop = false;
+						k++;
+						if (k >= pointsRL[4].size()) k = 0;
+					}
+
+					Figure* ff = nullptr;
+					for (int i = 0; i < program->figures.size(); ++i) if (strcmp(program->figures[i]->name, "Lewa Tuba") == 0) ff = program->figures[i];
+
+					/*
+					float minx = 2.0f;
+					float miny = 2.0f;
+					float maxx = -2.0f;
+					float maxy = -2.0f;
+					for (int j = 0; j < pnts1.size(); ++j)
+					{
+						Figure* f = new Point();
+						((Point*)f)->special = true;
+						f->Initialize(program);
+						auto params = pnts1[j];
+
+						if (params.x < minx) minx = params.x;
+						if (params.y < miny) miny = params.y;
+						if (params.x > maxx) maxx = params.x;
+						if (params.y > maxy) maxy = params.y;
+
+						float v = params.y;
+						v = v - 0.5f;
+						if (v < 0.0f) v = v + 1.0f;
+						params.y = v;
+
+
+						auto pos = GetToolPos(ff, params.x, params.y, 1);
+						f->MoveTo(pos.x, pos.y, pos.z);
+						program->figures.push_back(f);
+					}
+					for (int j = 0; j < pnts2.size(); ++j)
+					{
+						Figure* f = new Point();
+						((Point*)f)->special = true;
+						f->Initialize(program);
+						auto params = pnts2[j];
+
+						if (params.x < minx) minx = params.x;
+						if (params.y < miny) miny = params.y;
+						if (params.x > maxx) maxx = params.x;
+						if (params.y > maxy) maxy = params.y;
+
+						float v = params.y;
+						v = v - 0.5f;
+						if (v < 0.0f) v = v + 1.0f;
+						params.y = v;
+
+
+						auto pos = GetToolPos(ff, params.x, params.y, 1);
+						f->MoveTo(pos.x, pos.y, pos.z);
+						program->figures.push_back(f);
+					}
+					*/
+
+
+					float fromU = 0.01f;
+					float toU = 0.95f;
+					float fromV = 0.22f;
+					float toV = 0.66f;
+					int n = 100;
+					float diffU = (toU - fromU) / n;
+					float diffV = (toV - fromV) / n;
+
+					int dir = 1;
+					glm::vec3 last{ 0.0f,0.0f,0.0f };
+					bool any = false;
+					for (int i = 0; i <= n; ++i)
+					{
+						bool drilling_started = false;
+						bool drilling = false;
+						float v = fromV + i * diffV;
+						int start = dir == 1 ? 0 : n;
+						for (int j = start; (dir == 1 && j < n) || (dir == -1 && j > 0); j += dir)
+						{
+							int j_next = j + dir;
+							float u = fromU + j * diffU;
+							float u_next = fromU + j_next * diffU;
+
+							int cuts = 0;
+							for (int k = 0; k < pnts1.size(); ++k)
+							{
+								int k_next = k + 1;
+								if (k_next == pnts1.size()) k_next = 0;
+								if (LinesIntersect(glm::vec2(u, v), glm::vec2(u_next, v), pnts1[k], pnts1[k_next])) cuts++;
+							}
+							for (int k = 0; k < pnts2.size(); ++k)
+							{
+								int k_next = k + 1;
+								if (k_next == pnts2.size()) k_next = 0;
+								if (LinesIntersect(glm::vec2(u, v), glm::vec2(u_next, v), pnts2[k], pnts2[k_next])) cuts++;
+							}
+							float v2 = v - 0.5f;
+							if (v2 < 0.0f) v2 = v2 + 1.0f;
+							bool shouldChange = cuts % 2 == 1;
+							if (shouldChange)
+							{
+								if (!drilling_started)
+								{
+									auto pos2 = GetToolPos(ff, u_next, v2, 1);
+									if (any && glm::distance(pos2, last) > 2.0f)
+									{
+										drillPoints1.push_back(glm::vec3(last.x, 50.0f, last.z));
+										drillPoints1.push_back(glm::vec3(pos2.x, 50.0f, pos2.z));
+										drillPoints1.push_back(pos2);
+									}
+									else
+									{
+										drillPoints1.push_back(pos2);
+									}
+									drilling_started = true;
+									drilling = true;
+									any = true;
+									last = pos2;
+								}
+								else
+								{
+									if (!drilling)
+									{
+										auto pos2 = GetToolPos(ff, u_next, v2, 1);
+										drillPoints1.push_back(glm::vec3(last.x, 50.0f, last.z));
+										drillPoints1.push_back(glm::vec3(pos2.x, 50.0f, pos2.z));
+										drillPoints1.push_back(pos2);
+
+										last = pos2;
+									}
+									drilling = !drilling;
+								}
+							}
+							else if (drilling)
+							{
+								auto pos2 = GetToolPos(ff, u_next, v2, 1);
+								drillPoints1.push_back(pos2);
+								last = pos2;
+							}
+						}
+						dir = dir * -1;
+					}
+
+				}
+				if (tube2)
+				{
+					std::vector<glm::vec2> pnts1, pnts2;
+
+
+					for (int i = 0; i < pointsRP.size(); ++i)
+						for (int j = 0; j < pointsRP[i].size(); ++j)
+						{
+							float v = pointsRP[i][j].y;
+							v = v + 0.5f;
+							if (v >= 1.0f) v = v - 1.0f;
+							pointsRP[i][j].y = v;
+						}
+
+					for (int i = pointsRP[0].size() - 1; i >= 0; i--)
+						pnts1.push_back(pointsRP[0][i]);
+					for (int i = 0; i < pointsRP[1].size(); i++)
+						pnts1.push_back(pointsRP[1][i]);
+
+
+					int k = 0;
+					int tmp = 0;
+					bool loop = true;
+					while (loop)
+					{
+						int k_next = k + 1;
+						if (k_next >= pointsRP[4].size()) k_next = 0;
+						auto p1 = pointsRP[4][k];
+						auto p2 = pointsRP[4][k_next];
+						for (int j = 0; j < pointsRP[2].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsRP[2][j];
+							auto p4 = pointsRP[2][j_next];
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								tmp = k;
+								k = j_next;
+								pnts2.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						int k_next = k + 1;
+						if (k_next >= pointsRP[2].size()) k_next = 0;
+						auto p1 = pointsRP[2][k];
+						auto p2 = pointsRP[2][k_next];
+						pnts2.push_back(p1);
+						for (int j = 0; j < pointsRP[4].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsRP[4][j];
+							auto p4 = pointsRP[4][j_next];
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								k = j_next;
+								pnts2.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						int k_next = k + 1;
+						if (k_next >= pointsRP[4].size()) k_next = 0;
+						auto p1 = pointsRP[4][k];
+						auto p2 = pointsRP[4][k_next];
+						pnts2.push_back(p1);
+						for (int j = 0; j < pointsRP[3].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsRP[3][j];
+							auto p4 = pointsRP[3][j_next];
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								k = j_next;
+								pnts2.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						int k_next = k + 1;
+						if (k_next >= pointsRP[3].size()) k_next = 0;
+						auto p1 = pointsRP[3][k];
+						auto p2 = pointsRP[3][k_next];
+						pnts2.push_back(p1);
+						for (int j = 0; j < pointsRP[4].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsRP[4][j];
+							auto p4 = pointsRP[4][j_next];
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								k = j_next;
+								pnts2.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						pnts2.push_back(pointsRP[4][k]);
+						if (k == tmp) loop = false;
+						k++;
+						if (k >= pointsRP[4].size()) k = 0;
+					}
+
+					Figure* ff = nullptr;
+					for (int i = 0; i < program->figures.size(); ++i) if (strcmp(program->figures[i]->name, "Prawa Tuba") == 0) ff = program->figures[i];
+
+					/*
+					float minx = 2.0f;
+					float miny = 2.0f;
+					float maxx = -2.0f;
+					float maxy = -2.0f;
+					for (int j = 0; j < pnts1.size(); ++j)
+					{
+						Figure* f = new Point();
+						((Point*)f)->special = true;
+						f->Initialize(program);
+						auto params = pnts1[j];
+
+						if (params.x < minx) minx = params.x;
+						if (params.y < miny) miny = params.y;
+						if (params.x > maxx) maxx = params.x;
+						if (params.y > maxy) maxy = params.y;
+
+						float v = params.y;
+						v = v - 0.5f;
+						if (v < 0.0f) v = v + 1.0f;
+						params.y = v;
+
+
+						auto pos = GetToolPos(ff, params.x, params.y, 1);
+						f->MoveTo(pos.x, pos.y, pos.z);
+						program->figures.push_back(f);
+					}
+					for (int j = 0; j < pnts2.size(); ++j)
+					{
+						Figure* f = new Point();
+						((Point*)f)->special = true;
+						f->Initialize(program);
+						auto params = pnts2[j];
+
+						if (params.x < minx) minx = params.x;
+						if (params.y < miny) miny = params.y;
+						if (params.x > maxx) maxx = params.x;
+						if (params.y > maxy) maxy = params.y;
+
+						float v = params.y;
+						v = v - 0.5f;
+						if (v < 0.0f) v = v + 1.0f;
+						params.y = v;
+
+
+						auto pos = GetToolPos(ff, params.x, params.y, 1);
+						f->MoveTo(pos.x, pos.y, pos.z);
+						program->figures.push_back(f);
+					}
+					*/
+
+					float fromU = 0.0f;
+					float toU = 0.95f;
+					float fromV = 0.05f;
+					float toV = 0.55f;
+					int n = 100;
+					float diffU = (toU - fromU) / n;
+					float diffV = (toV - fromV) / n;
+
+					int dir = 1;
+					glm::vec3 last{ 0.0f,0.0f,0.0f };
+					bool any = false;
+					for (int i = 0; i <= n; ++i)
+					{
+						bool drilling_started = false;
+						bool drilling = false;
+						float v = fromV + i * diffV;
+						int start = dir == 1 ? 0 : n;
+						for (int j = start; (dir == 1 && j < n) || (dir == -1 && j > 0); j += dir)
+						{
+							int j_next = j + dir;
+							float u = fromU + j * diffU;
+							float u_next = fromU + j_next * diffU;
+
+							int cuts = 0;
+							for (int k = 0; k < pnts1.size(); ++k)
+							{
+								int k_next = k + 1;
+								if (k_next == pnts1.size()) k_next = 0;
+								if (LinesIntersect(glm::vec2(u, v), glm::vec2(u_next, v), pnts1[k], pnts1[k_next])) cuts++;
+							}
+							for (int k = 0; k < pnts2.size(); ++k)
+							{
+								int k_next = k + 1;
+								if (k_next == pnts2.size()) k_next = 0;
+								if (LinesIntersect(glm::vec2(u, v), glm::vec2(u_next, v), pnts2[k], pnts2[k_next])) cuts++;
+							}
+							float v2 = v - 0.5f;
+							if (v2 < 0.0f) v2 = v2 + 1.0f;
+							bool shouldChange = cuts % 2 == 1;
+							if (shouldChange)
+							{
+								if (!drilling_started)
+								{
+									auto pos2 = GetToolPos(ff, u_next, v2, 1);
+									if (any && glm::distance(pos2, last) > 2.0f)
+									{
+										drillPoints2.push_back(glm::vec3(last.x, 50.0f, last.z));
+										drillPoints2.push_back(glm::vec3(pos2.x, 50.0f, pos2.z));
+										drillPoints2.push_back(pos2);
+									}
+									else
+									{
+										drillPoints2.push_back(pos2);
+									}
+									drilling_started = true;
+									drilling = true;
+									any = true;
+									last = pos2;
+								}
+								else
+								{
+									if (!drilling)
+									{
+										auto pos2 = GetToolPos(ff, u_next, v2, 1);
+										drillPoints2.push_back(glm::vec3(last.x, 50.0f, last.z));
+										drillPoints2.push_back(glm::vec3(pos2.x, 50.0f, pos2.z));
+										drillPoints2.push_back(pos2);
+
+										last = pos2;
+									}
+									drilling = !drilling;
+								}
+							}
+							else if (drilling)
+							{
+								auto pos2 = GetToolPos(ff, u_next, v2, 1);
+								drillPoints2.push_back(pos2);
+								last = pos2;
+							}
+						}
+						dir = dir * -1;
+					}
+				}
+
+
+				/*Figure* pl = new PointsLine();
+				pl->Initialize(program);
+				for (int i = 0; i < drillPoints1.size(); ++i)
+				{
+					Figure* pp = new Point();
+					pp->Initialize(program);
+					pp->MoveTo(drillPoints1[i].x, drillPoints1[i].y, drillPoints1[i].z);
+					((PointsLine*)pl)->AddPoint(((Point*)pp));
+					program->figures.push_back(pp);
+				}
+				program->figures.push_back(pl);
+
+				pl = new PointsLine();
+				pl->Initialize(program);
+				for (int i = 0; i < drillPoints2.size(); ++i)
+				{
+					Figure* pp = new Point();
+					pp->Initialize(program);
+					pp->MoveTo(drillPoints2[i].x, drillPoints2[i].y, drillPoints2[i].z);
+					((PointsLine*)pl)->AddPoint(((Point*)pp));
+					program->figures.push_back(pp);
+				}
+				program->figures.push_back(pl);*/
+
+
+				std::ofstream out_file;
+				out_file.open("kadluby.k08");
+
+				int n = 0;
+
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[0].x << "Y" << drillPoints1[0].z << "Z" << 70.0f << std::endl;
+				n++;
+				for (int i = 0; i < drillPoints1.size(); ++i)
+				{
+					auto pos = drillPoints1[i];
+					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+				}
+				int j = drillPoints1.size() - 1;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[j].x << "Y" << drillPoints1[j].z << "Z" << 70.0f << std::endl;
+				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[0].x << "Y" << drillPoints2[0].z << "Z" << 70.0f << std::endl;
+				n++;
+				for (int i = 0; i < drillPoints2.size(); ++i)
+				{
+					auto pos = drillPoints2[i];
+					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+				}
+				j = drillPoints2.size() - 1;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[j].x << "Y" << drillPoints2[j].z << "Z" << 70.0f << std::endl;
+				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+				n++;
+				out_file.close();
+			}
+			if (torus1 || torus2)
+			{
+				std::vector<glm::vec3> drillPoints1, drillPoints2;
+
+				if (torus1)
+				{
+					std::vector<glm::vec2> pnts;
+					int k = 0;
+					int tmp = 0;
+					bool loop = true;
+					while (loop)
+					{
+						int k_next = k + 1;
+						if (k_next >= pointsT[4].size()) k_next = 0;
+						auto p1 = pointsT[4][k];
+						auto p2 = pointsT[4][k_next];
+						for (int j = 0; j < pointsT[0].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsT[0][j];
+							auto p4 = pointsT[0][j_next];
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								tmp = k_next;
+								k = j;
+								pnts.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						int k_next = k - 1;
+						if (k_next < 0) k_next = pointsT[0].size() - 1;
+						auto p1 = pointsT[0][k];
+						auto p2 = pointsT[0][k_next];
+						pnts.push_back(p1);
+						for (int j = 0; j < pointsT[5].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsT[5][j];
+							auto p4 = pointsT[5][j_next];
+							if (p3.x == 0.0f && p4.x == 1.0f) continue;
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								k = j;
+								pnts.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						int k_next = k - 1;
+						if (k_next < 0) k_next = pointsT[5].size() - 1;
+						auto p1 = pointsT[5][k];
+						auto p2 = pointsT[5][k_next];
+						pnts.push_back(p1);
+						for (int j = 0; j < pointsT[2].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsT[2][j];
+							auto p4 = pointsT[2][j_next];
+							if (p3.y == 1.0f && p4.y == 0.0f) continue;
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								k = j;
+								pnts.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						int k_next = k - 1;
+						if (k_next < 0) k_next = pointsT[2].size() - 1;
+						auto p1 = pointsT[2][k];
+						auto p2 = pointsT[2][k_next];
+						pnts.push_back(p1);
+						for (int j = 0; j < pointsT[4].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsT[4][j];
+							auto p4 = pointsT[4][j_next];
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								k = j;
+								pnts.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					for (int i = k; i >= tmp; i--)
+					{
+						auto p1 = pointsT[4][i];
+						pnts.push_back(p1);
+					}
+
+					Figure* ff = nullptr;
+					for (int i = 0; i < program->figures.size(); ++i) if (strcmp(program->figures[i]->name, "Torus") == 0) ff = program->figures[i];
+
+					/*float minx = 2.0f;
+					float miny = 2.0f;
+					float maxx = -2.0f;
+					float maxy = -2.0f;
+					for (int j = 0; j < pnts.size(); ++j)
+					{
+						Figure* f = new Point();
+						((Point*)f)->special = true;
+						f->Initialize(program);
+						auto params = pnts[j];
+						if (params.x < minx) minx = params.x;
+						if (params.y < miny) miny = params.y;
+						if (params.x > maxx) maxx = params.x;
+						if (params.y > maxy) maxy = params.y;
+						auto pos = GetToolPos(ff, params.x, params.y, -1);
+						f->MoveTo(pos.x, pos.y, pos.z);
+						program->figures.push_back(f);
+					}*/
+
+					float fromU = 0.12f;
+					float toU = 0.39f;
+					float fromV = 0.0f;
+					float toV = 0.5f;
+					int n = 100;
+					float diffU = (toU - fromU) / n;
+					float diffV = (toV - fromV) / n;
+
+					int dir = 1;
+					glm::vec3 last{ 0.0f,0.0f,0.0f };
+					bool any = false;
+					for (int i = 0; i <= n; ++i)
+					{
+						bool drilling_started = false;
+						bool drilling = false;
+						float u = fromU + i * diffU;
+						int start = dir == 1 ? 0 : n;
+						for (int j = start; (dir == 1 && j < n) || (dir == -1 && j > 0); j += dir)
+						{
+							int j_next = j + dir;
+							float v = fromV + j * diffV;
+							float v_next = fromV + j_next * diffV;
+
+							int cuts = 0;
+							for (int k = 0; k < pnts.size(); ++k)
+							{
+								int k_next = k + 1;
+								if (k_next == pnts.size()) k_next = 0;
+								if (LinesIntersect(glm::vec2(u, v), glm::vec2(u, v_next), pnts[k], pnts[k_next])) cuts++;
+							}
+
+							bool shouldChange = cuts % 2 == 1;
+							if (shouldChange)
+							{
+								if (!drilling_started)
+								{
+									auto pos2 = GetToolPos(ff, u, v_next, -1);
+									if (any && glm::distance(pos2, last) > 2.0f)
+									{
+										drillPoints1.push_back(glm::vec3(last.x, 25.0f, last.z));
+										drillPoints1.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
+										drillPoints1.push_back(pos2);
+									}
+									else
+									{
+										drillPoints1.push_back(pos2);
+									}
+									drilling_started = true;
+									drilling = true;
+									any = true;
+									last = pos2;
+								}
+								else
+								{
+									if (!drilling)
+									{
+										auto pos2 = GetToolPos(ff, u, v_next, -1);
+										drillPoints1.push_back(glm::vec3(last.x, 25.0f, last.z));
+										drillPoints1.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
+										drillPoints1.push_back(pos2);
+
+										last = pos2;
+									}
+									drilling = !drilling;
+								}
+							}
+							else if (drilling)
+							{
+								auto pos2 = GetToolPos(ff, u, v_next, -1);
+								drillPoints1.push_back(pos2);
+								last = pos2;
+							}
+						}
+						dir = dir * -1;
+					}
+
+					//Figure* pl = new PointsLine();
+					//pl->Initialize(program);
+					//for (int i = 0; i < drillPoints1.size(); ++i)
+					//{
+					//	Figure* pp = new Point();
+					//	pp->Initialize(program);
+					//	pp->MoveTo(drillPoints1[i].x, drillPoints1[i].y, drillPoints1[i].z);
+					//	((PointsLine*)pl)->AddPoint(((Point*)pp));
+					//	program->figures.push_back(pp);
+					//}
+					//program->figures.push_back(pl);
+				}
+				if (torus2)
+				{
+					std::vector<glm::vec2> pnts;
+					int k = pointsT[4].size() - 1;
+					int tmp = 0;
+					bool loop = true;
+					while (loop)
+					{
+						int k_next = k - 1;
+						if (k_next < 0) k_next = pointsT[4].size() - 1;
+						auto p1 = pointsT[4][k];
+						auto p2 = pointsT[4][k_next];
+						if (p1.x == 0.0f && p2.x == 1.0f)
+						{
+							int a = 0;
+						}
+						else {
+							for (int j = 0; j < pointsT[1].size() - 1 && loop; ++j)
+							{
+								int j_next = j + 1;
+								auto p3 = pointsT[1][j];
+								auto p4 = pointsT[1][j_next];
+								if (LinesIntersect(p1, p2, p3, p4))
+								{
+									loop = false;
+									tmp = k_next;
+									k = j_next;
+									pnts.push_back(pointIntersect(p1, p2, p3, p4));
+								}
+							}
+						}
+
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						int k_next = k + 1;
+						if (k_next >= pointsT[1].size()) k_next = 0;
+						auto p1 = pointsT[1][k];
+						auto p2 = pointsT[1][k_next];
+						pnts.push_back(p1);
+						for (int j = 0; j < pointsT[5].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsT[5][j];
+							auto p4 = pointsT[5][j_next];
+							if (p3.x == 0.0f && p4.x == 1.0f) continue;
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								k = j_next;
+								pnts.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						int k_next = k + 1;
+						if (k_next >= pointsT[5].size()) k_next = 0;
+						auto p1 = pointsT[5][k];
+						auto p2 = pointsT[5][k_next];
+						pnts.push_back(p1);
+						for (int j = 0; j < pointsT[3].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsT[3][j];
+							auto p4 = pointsT[3][j_next];
+							if (p3.y == 0.0f && p4.y == 1.0f) continue;
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								k = j_next;
+								pnts.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					loop = true;
+					while (loop)
+					{
+						int k_next = k + 1;
+						if (k_next >= pointsT[3].size()) k_next = 0;
+						auto p1 = pointsT[3][k];
+						auto p2 = pointsT[3][k_next];
+						pnts.push_back(p1);
+						for (int j = 0; j < pointsT[4].size() - 1 && loop; ++j)
+						{
+							int j_next = j + 1;
+							auto p3 = pointsT[4][j];
+							auto p4 = pointsT[4][j_next];
+							if (LinesIntersect(p1, p2, p3, p4))
+							{
+								loop = false;
+								k = j_next;
+								pnts.push_back(pointIntersect(p1, p2, p3, p4));
+							}
+						}
+						if (loop)
+							k = k_next;
+					}
+
+					for (int i = k; i <= tmp; i++)
+					{
+						auto p1 = pointsT[4][i];
+						pnts.push_back(p1);
+					}
+
+					Figure* ff = nullptr;
+					for (int i = 0; i < program->figures.size(); ++i) if (strcmp(program->figures[i]->name, "Torus") == 0) ff = program->figures[i];
+
+					//float minx = 2.0f;
+					//float miny = 2.0f;
+					//float maxx = -2.0f;
+					//float maxy = -2.0f;
+					//for (int j = 0; j < pnts.size(); ++j)
+					//{
+					//	Figure* f = new Point();
+					//	((Point*)f)->special = true;
+					//	f->Initialize(program);
+					//	auto params = pnts[j];
+					//	if (params.x < minx) minx = params.x;
+					//	if (params.y < miny) miny = params.y;
+					//	if (params.x > maxx) maxx = params.x;
+					//	if (params.y > maxy) maxy = params.y;
+					//	auto pos = GetToolPos(ff, params.x, params.y, -1);
+					//	f->MoveTo(pos.x, pos.y, pos.z);
+					//	program->figures.push_back(f);
+					//}
+
+					float fromU = 0.62;
+					float toU = 0.88f;
+					float fromV = 0.0f;
+					float toV = 0.5f;
+					int n = 100;
+					float diffU = (toU - fromU) / n;
+					float diffV = (toV - fromV) / n;
+
+					int dir = 1;
+					glm::vec3 last{ 0.0f,0.0f,0.0f };
+					bool any = false;
+					for (int i = 0; i <= n; ++i)
+					{
+						bool drilling_started = false;
+						bool drilling = false;
+						float u = fromU + i * diffU;
+						int start = dir == 1 ? 0 : n;
+						for (int j = start; (dir == 1 && j < n) || (dir == -1 && j > 0); j += dir)
+						{
+							int j_next = j + dir;
+							float v = fromV + j * diffV;
+							float v_next = fromV + j_next * diffV;
+
+							int cuts = 0;
+							for (int k = 0; k < pnts.size(); ++k)
+							{
+								int k_next = k + 1;
+								if (k_next == pnts.size()) k_next = 0;
+								if (LinesIntersect(glm::vec2(u, v), glm::vec2(u, v_next), pnts[k], pnts[k_next])) cuts++;
+							}
+
+							bool shouldChange = cuts % 2 == 1;
+							if (shouldChange)
+							{
+								if (!drilling_started)
+								{
+									auto pos2 = GetToolPos(ff, u, v_next, -1);
+									if (any && glm::distance(pos2, last) > 2.0f)
+									{
+										drillPoints2.push_back(glm::vec3(last.x, 25.0f, last.z));
+										drillPoints2.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
+										drillPoints2.push_back(pos2);
+									}
+									else
+									{
+										drillPoints2.push_back(pos2);
+									}
+									drilling_started = true;
+									drilling = true;
+									any = true;
+									last = pos2;
+								}
+								else
+								{
+									if (!drilling)
+									{
+										auto pos2 = GetToolPos(ff, u, v_next, -1);
+										drillPoints2.push_back(glm::vec3(last.x, 25.0f, last.z));
+										drillPoints2.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
+										drillPoints2.push_back(pos2);
+
+										last = pos2;
+									}
+									drilling = !drilling;
+								}
+							}
+							else if (drilling)
+							{
+								auto pos2 = GetToolPos(ff, u, v_next, -1);
+								drillPoints2.push_back(pos2);
+								last = pos2;
+							}
+						}
+						dir = dir * -1;
+					}
+
+					//Figure* pl = new PointsLine();
+					//pl->Initialize(program);
+					//for (int i = 0; i < drillPoints1.size(); ++i)
+					//{
+					//	Figure* pp = new Point();
+					//	pp->Initialize(program);
+					//	pp->MoveTo(drillPoints1[i].x, drillPoints1[i].y, drillPoints1[i].z);
+					//	((PointsLine*)pl)->AddPoint(((Point*)pp));
+					//	program->figures.push_back(pp);
+					//}
+					//program->figures.push_back(pl);
+
+				}
+
+				std::ofstream out_file;
+				out_file.open("torusik.k08");
+
+				int n = 0;
+
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[0].x << "Y" << drillPoints1[0].z << "Z" << 70.0f << std::endl;
+				n++;
+				for (int i = 0; i < drillPoints1.size(); ++i)
+				{
+					auto pos = drillPoints1[i];
+					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+				}
+				int j = drillPoints1.size() - 1;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[j].x << "Y" << drillPoints1[j].z << "Z" << 70.0f << std::endl;
+				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[0].x << "Y" << drillPoints2[0].z << "Z" << 70.0f << std::endl;
+				n++;
+				for (int i = 0; i < drillPoints2.size(); ++i)
+				{
+					auto pos = drillPoints2[i];
+					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+				}
+				j = drillPoints2.size() - 1;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[j].x << "Y" << drillPoints2[j].z << "Z" << 70.0f << std::endl;
+				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+				n++;
+				out_file.close();
+			}
+			if (otwor) {
+				std::vector<glm::vec2> pnts;
+				int k = pointsP[1].size() / 2;
+				int tmp = 0;
+				bool loop = true;
+				while (loop)
+				{
+					int k_next = k - 1;
+					if (k_next < 0) k_next = pointsP[1].size() - 1;
+					auto p1 = pointsP[1][k];
+					auto p2 = pointsP[1][k_next];
+					for (int j = 0; j < pointsP[3].size() - 1 && loop; ++j)
+					{
+						int j_next = j + 1;
+						auto p3 = pointsP[3][j];
+						auto p4 = pointsP[3][j_next];
+						if (LinesIntersect(p1, p2, p3, p4))
+						{
+							loop = false;
+							tmp = k_next;
+							k = j;
+							pnts.push_back(pointIntersect(p1, p2, p3, p4));
+						}
+					}
+					if (loop)
+						k = k_next;
+				}
+
+				loop = true;
+				while (loop)
+				{
+					int k_next = k - 1;
+					if (k_next < 0) k_next = pointsP[3].size() - 1;
+					auto p1 = pointsP[3][k];
+					auto p2 = pointsP[3][k_next];
+					pnts.push_back(p1);
+					for (int j = 0; j < pointsP[0].size() - 1 && loop; ++j)
+					{
+						int j_next = j + 1;
+						auto p3 = pointsP[0][j];
+						auto p4 = pointsP[0][j_next];
+						if (LinesIntersect(p1, p2, p3, p4))
+						{
+							loop = false;
+							k = j_next;
+							pnts.push_back(pointIntersect(p1, p2, p3, p4));
+						}
+					}
+					if (loop)
+						k = k_next;
+				}
+
+				loop = true;
+				while (loop)
+				{
+					int k_next = k + 1;
+					if (k_next >= pointsP[0].size()) k_next = 0;
+					auto p1 = pointsP[0][k];
+					auto p2 = pointsP[0][k_next];
+					pnts.push_back(p1);
+					for (int j = 0; j < pointsP[3].size() - 1 && loop; ++j)
+					{
+						int j_next = j + 1;
+						auto p3 = pointsP[3][j];
+						auto p4 = pointsP[3][j_next];
+						if (LinesIntersect(p1, p2, p3, p4))
+						{
+							loop = false;
+							k = j;
+							pnts.push_back(pointIntersect(p1, p2, p3, p4));
+						}
+					}
+					if (loop)
+						k = k_next;
+				}
+
+				loop = true;
+				while (loop)
+				{
+					int k_next = k - 1;
+					if (k_next < 0) k_next = pointsP[3].size() - 1;
+					auto p1 = pointsP[3][k];
+					auto p2 = pointsP[3][k_next];
+					pnts.push_back(p1);
+					for (int j = 0; j < pointsP[1].size() - 1 && loop; ++j)
+					{
+						int j_next = j + 1;
+						auto p3 = pointsP[1][j];
+						auto p4 = pointsP[1][j_next];
+						if (LinesIntersect(p1, p2, p3, p4))
+						{
+							loop = false;
+							k = j_next;
+							pnts.push_back(pointIntersect(p1, p2, p3, p4));
+						}
+					}
+					if (loop)
+						k = k_next;
+				}
+
+				loop = true;
+				while (loop)
+				{
+					pnts.push_back(pointsP[1][k]);
+					if (k == tmp) loop = false;
+					k++;
+					if (k >= pointsP[1].size()) k = 0;
+				}
+
+				Figure* ff = nullptr;
+				for (int i = 0; i < program->figures.size(); ++i) if (strcmp(program->figures[i]->name, "Plaski") == 0) ff = program->figures[i];
+
+				//float minx = 2.0f;
+				//float miny = 2.0f;
+				//float maxx = -2.0f;
+				//float maxy = -2.0f;
+				//for (int j = 0; j < pnts.size(); ++j)
+				//{
+				//	Figure* f = new Point();
+				//	((Point*)f)->special = true;
+				//	f->Initialize(program);
+				//	auto params = pnts[j];
+				//	if (params.x < minx) minx = params.x;
+				//	if (params.y < miny) miny = params.y;
+				//	if (params.x > maxx) maxx = params.x;
+				//	if (params.y > maxy) maxy = params.y;
+				//	auto pos = GetToolPos(ff, params.x, params.y, -1);
+				//	f->MoveTo(pos.x, pos.y, pos.z);
+				//	program->figures.push_back(f);
+				//}
+
+				float from = 0.38f;
+				float to = 0.62f;
+				int n = 100;
+				float diff = (to - from) / n;
+				std::vector<glm::vec3> drillPoints1;
+				std::vector<glm::vec3> drillPoints2;
+
+				int dir = 1;
+				glm::vec3 last{ 0.0f,0.0f,0.0f };
+				bool any = false;
+				for (int i = 0; i <= n; ++i)
+				{
+					bool drilling_started = false;
+					bool drilling = false;
+					float u = from + i * diff;
+					int start = dir == 1 ? 0 : n;
+					for (int j = start; (dir == 1 && j < n) || (dir == -1 && j > 0); j += dir)
+					{
+						int j_next = j + dir;
+						float v = from + j * diff;
+						float v_next = from + j_next * diff;
+
+						int cuts = 0;
+						for (int k = 0; k < pnts.size(); ++k)
+						{
+							int k_next = k + 1;
+							if (k_next == pnts.size()) k_next = 0;
+							if (LinesIntersect(glm::vec2(u, v), glm::vec2(u, v_next), pnts[k], pnts[k_next])) cuts++;
+						}
+
+						bool shouldChange = cuts % 2 == 1;
+						if (shouldChange)
+						{
+							if (!drilling_started)
+							{
+								auto pos2 = GetToolPos(ff, u, v_next, -1);
+								if (any && glm::distance(pos2, last) > 2.0f)
+								{
+									drillPoints1.push_back(glm::vec3(last.x, 25.0f, last.z));
+									drillPoints1.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
+									drillPoints1.push_back(pos2);
+								}
+								else
+								{
+									drillPoints1.push_back(pos2);
+								}
+								drilling_started = true;
+								drilling = true;
+								any = true;
+								last = pos2;
+							}
+							else
+							{
+								if (!drilling)
+								{
+									auto pos2 = GetToolPos(ff, u, v_next, -1);
+									drillPoints1.push_back(glm::vec3(last.x, 25.0f, last.z));
+									drillPoints1.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
+									drillPoints1.push_back(pos2);
+
+									last = pos2;
+								}
+								drilling = !drilling;
+							}
+						}
+						else if (drilling)
+						{
+							auto pos2 = GetToolPos(ff, u, v_next, -1);
+							drillPoints1.push_back(pos2);
+							last = pos2;
+						}
+					}
+					dir = dir * -1;
+				}
+
+				dir = 1;
+				last = glm::vec3(0.0f, 0.0f, 0.0f);
+				any = false;
+
+				for (int i = 0; i <= n; ++i)
+				{
+					bool drilling_started = false;
+					bool drilling = false;
+					float v = from + i * diff;
+					int start = dir == 1 ? 0 : n;
+					for (int j = start; (dir == 1 && j < n) || (dir == -1 && j > 0); j += dir)
+					{
+						int j_next = j + dir;
+						float u = from + j * diff;
+						float u_next = from + j_next * diff;
+
+						int cuts = 0;
+						for (int k = 0; k < pnts.size(); ++k)
+						{
+							int k_next = k + 1;
+							if (k_next == pnts.size()) k_next = 0;
+							if (LinesIntersect(glm::vec2(u, v), glm::vec2(u_next, v), pnts[k], pnts[k_next])) cuts++;
+						}
+
+						bool shouldChange = cuts % 2 == 1;
+						if (shouldChange)
+						{
+							if (!drilling_started)
+							{
+								auto pos2 = GetToolPos(ff, u_next, v, -1);
+								if (any && glm::distance(pos2, last) > 2.0f)
+								{
+									drillPoints2.push_back(glm::vec3(last.x, 25.0f, last.z));
+									drillPoints2.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
+									drillPoints2.push_back(pos2);
+								}
+								else
+								{
+									drillPoints2.push_back(pos2);
+								}
+								drilling_started = true;
+								drilling = true;
+								any = true;
+								last = pos2;
+							}
+							else
+							{
+								if (!drilling)
+								{
+									auto pos2 = GetToolPos(ff, u_next, v, -1);
+									drillPoints2.push_back(glm::vec3(last.x, 25.0f, last.z));
+									drillPoints2.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
+									drillPoints2.push_back(pos2);
+
+									last = pos2;
+								}
+								drilling = !drilling;
+							}
+						}
+						else if (drilling)
+						{
+							auto pos2 = GetToolPos(ff, u_next, v, -1);
+							drillPoints2.push_back(pos2);
+							last = pos2;
+						}
+					}
+					dir = dir * -1;
+				}
+
+				/*Figure* pl = new PointsLine();
+				pl->Initialize(program);
+				for (int i = 0; i < drillPoints2.size(); ++i)
+				{
+					Figure* pp = new Point();
+					pp->Initialize(program);
+					pp->MoveTo(drillPoints2[i].x, drillPoints2[i].y, drillPoints2[i].z);
+					((PointsLine*)pl)->AddPoint(((Point*)pp));
+					program->figures.push_back(pp);
+				}
+				program->figures.push_back(pl);*/
+
+				std::ofstream out_file;
+				out_file.open("otwor.k08");
+
+				n = 0;
+
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[0].x << "Y" << drillPoints1[0].z << "Z" << 70.0f << std::endl;
+				n++;
+				for (int i = 0; i < drillPoints1.size(); ++i)
+				{
+					auto pos = drillPoints1[i];
+					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+				}
+				int j = drillPoints1.size() - 1;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[j].x << "Y" << drillPoints1[j].z << "Z" << 70.0f << std::endl;
+				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[0].x << "Y" << drillPoints2[0].z << "Z" << 70.0f << std::endl;
+				n++;
+				for (int i = 0; i < drillPoints2.size(); ++i)
+				{
+					auto pos = drillPoints2[i];
+					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+				}
+				j = drillPoints2.size() - 1;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[j].x << "Y" << drillPoints2[j].z << "Z" << 70.0f << std::endl;
+				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+				n++;
+				out_file.close();
+			}
 		}
 		ImGui::TreePop();
 	}
@@ -1615,13 +3696,237 @@ void RenderGui()
 
 		ImGui::TreePop();
 	}
-	if (ImGui::Button("Intersect"))
+	if (ImGui::Button("Intersect Classic"))
 	{
 		Intersect(program);
+	}
+	if (ImGui::Button("Intersect"))
+	{
+		std::vector<glm::vec2> points1, points2;
+		auto pnts = Intersect2Tool(program, -1.0f, 1, -1, 0, 0, points1, points2);
+		for (int i = 0; i < pnts.size(); ++i)
+		{
+			Figure* f = new Point();
+			((Point*)f)->special = true;
+			f->Initialize(program);
+			f->MoveTo(pnts[i].x, pnts[i].y, pnts[i].z);
+			program->figures.push_back(f);
+		}
 	}
 	if (ImGui::Button("Clear"))
 	{
 		Clear(program);
+	}
+
+	ImGui::Checkbox("Show texRP", &program->showTexRP);
+	if (program->showTexRP) {
+		ImGui::Begin("Parametization lineRP##uu", &program->showTexRP);
+		ImGuiIO& io = ImGui::GetIO();
+		ImTextureID my_tex_id = (void*)program->texRP;
+		float my_tex_w = checkImageWidth;
+		float my_tex_h = checkImageHeight;
+		{
+			ImVec2 pos = ImGui::GetCursorScreenPos();
+			ImVec2 uv_min = ImVec2(0.0f, 0.0f);
+			ImVec2 uv_max = ImVec2(1.0f, 1.0f);
+			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+			ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
+			ImGui::Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				float region_sz = 32.0f;
+				float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
+				float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
+				float zoom = 4.0f;
+				if (region_x < 0.0f) { region_x = 0.0f; }
+				else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
+				if (region_y < 0.0f) { region_y = 0.0f; }
+				else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
+				ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+				ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+				ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+				ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+				ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
+				ImGui::EndTooltip();
+			}
+		}
+		ImGui::End();
+	}
+	ImGui::Checkbox("Show texRL", &program->showTexRL);
+	if (program->showTexRL) {
+		ImGui::Begin("Parametization lineRL##uu", &program->showTexRL);
+		ImGuiIO& io = ImGui::GetIO();
+		ImTextureID my_tex_id = (void*)program->texRL;
+		float my_tex_w = checkImageWidth;
+		float my_tex_h = checkImageHeight;
+		{
+			ImVec2 pos = ImGui::GetCursorScreenPos();
+			ImVec2 uv_min = ImVec2(0.0f, 0.0f);
+			ImVec2 uv_max = ImVec2(1.0f, 1.0f);
+			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+			ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
+			ImGui::Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				float region_sz = 32.0f;
+				float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
+				float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
+				float zoom = 4.0f;
+				if (region_x < 0.0f) { region_x = 0.0f; }
+				else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
+				if (region_y < 0.0f) { region_y = 0.0f; }
+				else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
+				ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+				ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+				ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+				ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+				ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
+				ImGui::EndTooltip();
+			}
+		}
+		ImGui::End();
+	}
+	ImGui::Checkbox("Show texSP", &program->showTexSP);
+	if (program->showTexSP) {
+		ImGui::Begin("Parametization lineSP##uu", &program->showTexSP);
+		ImGuiIO& io = ImGui::GetIO();
+		ImTextureID my_tex_id = (void*)program->texSP;
+		float my_tex_w = checkImageWidth;
+		float my_tex_h = checkImageHeight;
+		{
+			ImVec2 pos = ImGui::GetCursorScreenPos();
+			ImVec2 uv_min = ImVec2(0.0f, 0.0f);
+			ImVec2 uv_max = ImVec2(1.0f, 1.0f);
+			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+			ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
+			ImGui::Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				float region_sz = 32.0f;
+				float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
+				float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
+				float zoom = 4.0f;
+				if (region_x < 0.0f) { region_x = 0.0f; }
+				else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
+				if (region_y < 0.0f) { region_y = 0.0f; }
+				else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
+				ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+				ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+				ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+				ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+				ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
+				ImGui::EndTooltip();
+			}
+		}
+		ImGui::End();
+	}
+	ImGui::Checkbox("Show texSL", &program->showTexSL);
+	if (program->showTexSL) {
+		ImGui::Begin("Parametization lineSL##uu", &program->showTexSL);
+		ImGuiIO& io = ImGui::GetIO();
+		ImTextureID my_tex_id = (void*)program->texSL;
+		float my_tex_w = checkImageWidth;
+		float my_tex_h = checkImageHeight;
+		{
+			ImVec2 pos = ImGui::GetCursorScreenPos();
+			ImVec2 uv_min = ImVec2(0.0f, 0.0f);
+			ImVec2 uv_max = ImVec2(1.0f, 1.0f);
+			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+			ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
+			ImGui::Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				float region_sz = 32.0f;
+				float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
+				float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
+				float zoom = 4.0f;
+				if (region_x < 0.0f) { region_x = 0.0f; }
+				else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
+				if (region_y < 0.0f) { region_y = 0.0f; }
+				else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
+				ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+				ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+				ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+				ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+				ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
+				ImGui::EndTooltip();
+			}
+		}
+		ImGui::End();
+	}
+	ImGui::Checkbox("Show texT", &program->showTexT);
+	if (program->showTexT) {
+		ImGui::Begin("Parametization lineT##uu", &program->showTexT);
+		ImGuiIO& io = ImGui::GetIO();
+		ImTextureID my_tex_id = (void*)program->texT;
+		float my_tex_w = checkImageWidth;
+		float my_tex_h = checkImageHeight;
+		{
+			ImVec2 pos = ImGui::GetCursorScreenPos();
+			ImVec2 uv_min = ImVec2(0.0f, 0.0f);
+			ImVec2 uv_max = ImVec2(1.0f, 1.0f);
+			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+			ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
+			ImGui::Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				float region_sz = 32.0f;
+				float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
+				float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
+				float zoom = 4.0f;
+				if (region_x < 0.0f) { region_x = 0.0f; }
+				else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
+				if (region_y < 0.0f) { region_y = 0.0f; }
+				else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
+				ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+				ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+				ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+				ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+				ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
+				ImGui::EndTooltip();
+			}
+		}
+		ImGui::End();
+	}
+	ImGui::Checkbox("Show texP", &program->showTexP);
+	if (program->showTexP) {
+		ImGui::Begin("Parametization lineP##uu", &program->showTexP);
+		ImGuiIO& io = ImGui::GetIO();
+		ImTextureID my_tex_id = (void*)program->texP;
+		float my_tex_w = checkImageWidth;
+		float my_tex_h = checkImageHeight;
+		{
+			ImVec2 pos = ImGui::GetCursorScreenPos();
+			ImVec2 uv_min = ImVec2(0.0f, 0.0f);
+			ImVec2 uv_max = ImVec2(1.0f, 1.0f);
+			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+			ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
+			ImGui::Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				float region_sz = 32.0f;
+				float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
+				float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
+				float zoom = 4.0f;
+				if (region_x < 0.0f) { region_x = 0.0f; }
+				else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
+				if (region_y < 0.0f) { region_y = 0.0f; }
+				else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
+				ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+				ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+				ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+				ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+				ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
+				ImGui::EndTooltip();
+			}
+		}
+		ImGui::End();
 	}
 
 	ImGui::End();
@@ -1833,6 +4138,12 @@ int main()
 	CreateColorbuffer(framebufferBlue, textureColorbufferBlue);
 
 	FillImage(program->testTex, program);
+	FillImage(program->texRL, program);
+	FillImage(program->texRP, program);
+	FillImage(program->texSL, program);
+	FillImage(program->texSP, program);
+	FillImage(program->texT, program);
+	FillImage(program->texP, program);
 
 	while (!glfwWindowShouldClose(window))
 	{
