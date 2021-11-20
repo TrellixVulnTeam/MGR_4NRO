@@ -47,7 +47,7 @@ public:
 	float stopSearchingPointsFarD = 5.0f;
 	float connectLineToWallEps = 0.0f;
 	float pointsDistNewton = 1.0f;
-	int split = 5000;
+	int split = 900;
 	float smallMoveF= 1.0f;
 	unsigned int texRP = 0;
 	unsigned int texRL = 0;

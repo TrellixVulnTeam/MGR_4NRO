@@ -658,9 +658,6 @@ void RenderGui()
 							}
 						});
 				}
-			auto stop = high_resolution_clock::now();
-			auto duration = duration_cast<seconds>(stop - start);
-			start = stop;
 
 			int split2 = 31;
 			int r = ceil(8.0f / cellSize);
@@ -703,10 +700,6 @@ void RenderGui()
 					//	program->figures.push_back(f);
 				}
 			}
-
-			stop = high_resolution_clock::now();
-			auto duration2 = duration_cast<seconds>(stop - start);
-			glfwSetWindowTitle(window, ("Mapa: " + std::to_string(duration.count()) + " Punkty: " + std::to_string(duration2.count())).c_str());
 
 			std::ofstream out_file;
 			out_file.open("paths.k16");
@@ -1291,9 +1284,15 @@ void RenderGui()
 				//	program->figures.push_back(f);
 			}
 			out_file.close();
+
+			auto stop = high_resolution_clock::now();
+			auto duration = duration_cast<seconds>(stop - start);
+			glfwSetWindowTitle(window, ("Czas: " + std::to_string(duration.count())).c_str());
 		}
 		if (ImGui::Button("Obwod"))
 		{
+			auto start = high_resolution_clock::now();
+
 			Figure* f = new BezierPatchC2(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length, program->bezierC0r, false);
 			f->Initialize(program);
 			program->figures.push_back(f);
@@ -1520,10 +1519,16 @@ void RenderGui()
 				f->CleanUp();
 				delete f;
 			}
+
+			auto stop = high_resolution_clock::now();
+			auto duration = duration_cast<seconds>(stop - start);
+			glfwSetWindowTitle(window, ("Czas: " + std::to_string(duration.count())).c_str());
 		}
 
 		if (ImGui::Button("Dokladna"))
 		{
+			auto start = high_resolution_clock::now();
+
 			Figure* f = new BezierPatchC2(program->patches_n, program->patches_m, program->bezierC0width, program->bezierC0length, program->bezierC0r, false);
 			f->Initialize(program);
 			program->figures.push_back(f);
@@ -2066,6 +2071,7 @@ void RenderGui()
 						drillPoints2.push_back(glm::vec3(p2.x, p2.y + 20.0f, p2.z));
 					}
 				}
+				/*
 				Figure* pl = new PointsLine();
 				pl->Initialize(program);
 				for (int i = 0; i < drillPoints1.size(); ++i)
@@ -2089,6 +2095,7 @@ void RenderGui()
 					program->figures.push_back(pp);
 				}
 				program->figures.push_back(pl);
+				*/
 
 				std::ofstream out_file;
 				out_file.open("szczyty.k08");
@@ -3513,6 +3520,28 @@ void RenderGui()
 				n++;
 				out_file.close();
 			}
+
+			int del = -1;
+			for (int i = 0; i < program->figures.size(); ++i)
+			{
+				program->figures[i]->Unselect();
+				if (strcmp(program->figures[i]->name, "Plaski") == 0)
+				{
+					del = i;
+				}
+			}
+
+			if (del >= 0)
+			{
+				Figure* f = program->figures[del];
+				program->figures.erase(program->figures.begin() + del);
+				f->CleanUp();
+				delete f;
+			}
+
+			auto stop = high_resolution_clock::now();
+			auto duration = duration_cast<seconds>(stop - start);
+			glfwSetWindowTitle(window, ("Czas: " + std::to_string(duration.count())).c_str());
 		}
 		ImGui::TreePop();
 	}
