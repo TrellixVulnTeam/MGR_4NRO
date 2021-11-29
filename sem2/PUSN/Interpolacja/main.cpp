@@ -23,6 +23,12 @@ glm::vec2 mousePosOld;
 glm::vec3 lookAt;
 std::shared_ptr<Program> program = {};
 
+void CleanUp()
+{
+	while (program->wind1->figures.size() > 1) program->wind1->figures.erase(program->wind1->figures.begin() + 1);
+	while (program->wind2->figures.size() > 1) program->wind2->figures.erase(program->wind2->figures.begin() + 1);
+}
+
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
 {
 	glm::quat quat = glm::angleAxis(angle, axis);
@@ -64,6 +70,93 @@ glm::quat EulerToQuat(float z1, float x, float z2)
 	zAxis = q * zAxis;
 	finalQuat = q * finalQuat;
 	return finalQuat;
+}
+
+void RecalcParams()
+{
+	if (program->setQuats)
+	{
+		//TODO Quats to euler
+	}
+	else
+	{
+		auto quatStart = EulerToQuat(program->startAngleZ1, program->startAngleX, program->startAngleZ2);
+		auto quatEnd = EulerToQuat(program->endAngleZ1, program->endAngleX, program->endAngleZ2);
+
+		program->startQuatX = quatStart.x;
+		program->startQuatY = quatStart.y;
+		program->startQuatZ = quatStart.z;
+		program->startQuatW = quatStart.w;
+
+		program->endQuatX = quatEnd.x;
+		program->endQuatY = quatEnd.y;
+		program->endQuatZ = quatEnd.z;
+		program->endQuatW = quatEnd.w;
+	}
+
+	{
+		auto start = program->startAngleZ1;
+		auto end = program->endAngleZ1;
+		if (end < start) end += 360.0f;
+
+		auto diff = end - start;
+		if (diff > 180.0f) diff = -(360.0f - diff);
+		program->diffAngleZ1 = diff;
+	}
+	{
+		auto start = program->startAngleX;
+		auto end = program->endAngleX;
+		if (end < start) end += 360.0f;
+
+		auto diff = end - start;
+		if (diff > 180.0f) diff = -(360.0f - diff);
+		program->diffAngleX = diff;
+	}
+	{
+		auto start = program->startAngleZ2;
+		auto end = program->endAngleZ2;
+		if (end < start) end += 360.0f;
+
+		auto diff = end - start;
+		if (diff > 180.0f) diff = -(360.0f - diff);
+		program->diffAngleZ2 = diff;
+	}
+	{
+		auto start = program->startQuatX;
+		auto end = program->endQuatX;
+		if (end < start) end += 2.0f;
+
+		auto diff = end - start;
+		if (diff > 1.0f) diff = -(2.0f - diff);
+		program->diffQuatX = diff;
+	}
+	{
+		auto start = program->startQuatY;
+		auto end = program->endQuatY;
+		if (end < start) end += 2.0f;
+
+		auto diff = end - start;
+		if (diff > 1.0f) diff = -(2.0f - diff);
+		program->diffQuatY = diff;
+	}
+	{
+		auto start = program->startQuatZ;
+		auto end = program->endQuatZ;
+		if (end < start) end += 2.0f;
+
+		auto diff = end - start;
+		if (diff > 1.0f) diff = -(2.0f - diff);
+		program->diffQuatZ = diff;
+	}
+	{
+		auto start = program->startQuatW;
+		auto end = program->endQuatW;
+		if (end < start) end += 2.0f;
+
+		auto diff = end - start;
+		if (diff > 1.0f) diff = -(2.0f - diff);
+		program->diffQuatW = diff;
+	}
 }
 
 void window_focus_callback(GLFWwindow* window, int focused)
@@ -177,7 +270,6 @@ void GenerateCube()
 	f->MoveTo(0.0f, 0.0f, 0.0f);
 	f->Select();
 	program->currentWindow->figures.push_back(f);
-	program->cube = std::dynamic_pointer_cast<Cube>(f);
 }
 void RenderGui()
 {
@@ -247,94 +339,76 @@ void RenderGui()
 			ImGui::TreePop();
 		}
 
+		ImGui::SliderInt("Frames", &program->frames, 2.0f, 50.0f);
+		if (ImGui::Button("Generate frames"))
+		{
+			CleanUp();
+			RecalcParams();
+			float t_diff = 1.0f / (program->frames - 1);
+			for (int i = 0; i < program->frames; ++i)
+			{
+				float t = i * t_diff;
+
+				float xPos = program->startX + t * (program->endX - program->startX);
+				float yPos = program->startY + t * (program->endY - program->startY);
+				float zPos = program->startZ + t * (program->endZ - program->startZ);
+
+#pragma region fig1
+				program->currentWindow = program->wind1;
+				std::shared_ptr<Figure> fig1 = std::make_shared<Cube>();
+				fig1->Initialize(program);
+				fig1->Select();
+				program->wind1->figures.push_back(fig1);
+				fig1->MoveTo(xPos, yPos, zPos);
+
+				float angleZ1 = program->startAngleZ1 + t * (program->endAngleZ1 - program->startAngleZ1);
+				float angleX = program->startAngleX + t * (program->endAngleX - program->startAngleX);
+				float angleZ2 = program->startAngleZ2 + t * (program->endAngleZ2 - program->startAngleZ2);
+
+				fig1->SetRotation(EulerToQuat(angleZ1, angleX, angleZ2));
+#pragma endregion
+#pragma region fig2
+				program->currentWindow = program->wind2;
+				std::shared_ptr<Figure> fig2 = std::make_shared<Cube>();
+				fig2->Initialize(program);
+				fig2->Select();
+				program->wind2->figures.push_back(fig2);
+				fig2->MoveTo(xPos, yPos, zPos);
+				if (program->spherical)
+				{
+					//TODO spherical interpolation
+				}
+				else
+				{
+					glm::quat quatStart;
+					quatStart.x = program->startQuatX;
+					quatStart.y = program->startQuatY;
+					quatStart.z = program->startQuatZ;
+					quatStart.w = program->startQuatW;
+					glm::quat quatEnd;
+					quatEnd.x = program->endQuatX;
+					quatEnd.y = program->endQuatY;
+					quatEnd.z = program->endQuatZ;
+					quatEnd.w = program->endQuatW;
+
+					glm::quat quat = quatStart + t * (quatEnd - quatStart);
+					quat = glm::normalize(quat);
+					fig2->SetRotation(quat);
+				}
+#pragma endregion
+
+			}
+		}
+		if (ImGui::Button("CleanUp"))
+		{
+			CleanUp();
+		}
 		if (ImGui::Button("Simulate"))
 		{
 			program->simulating = true;
 			program->t = 0;
 
-			if (program->setQuats)
-			{
-				//TODO Quats to euler
-			}
-			else
-			{
-				auto quatStart = EulerToQuat(program->startAngleZ1, program->startAngleX, program->startAngleZ2);
-				auto quatEnd = EulerToQuat(program->endAngleZ1, program->endAngleX, program->endAngleZ2);
-
-				program->startQuatX = quatStart.x;
-				program->startQuatY = quatStart.y;
-				program->startQuatZ = quatStart.z;
-				program->startQuatW = quatStart.w;
-
-				program->endQuatX = quatEnd.x;
-				program->endQuatY = quatEnd.y;
-				program->endQuatZ = quatEnd.z;
-				program->endQuatW = quatEnd.w;
-			}
-
-			{
-				auto start = program->startAngleZ1;
-				auto end = program->endAngleZ1;
-				if (end < start) end += 360.0f;
-
-				auto diff = end - start;
-				if (diff > 180.0f) diff = -(360.0f - diff);
-				program->diffAngleZ1 = diff;
-			}
-			{
-				auto start = program->startAngleX;
-				auto end = program->endAngleX;
-				if (end < start) end += 360.0f;
-
-				auto diff = end - start;
-				if (diff > 180.0f) diff = -(360.0f - diff);
-				program->diffAngleX = diff;
-			}
-			{
-				auto start = program->startAngleZ2;
-				auto end = program->endAngleZ2;
-				if (end < start) end += 360.0f;
-
-				auto diff = end - start;
-				if (diff > 180.0f) diff = -(360.0f - diff);
-				program->diffAngleZ2 = diff;
-			}
-			{
-				auto start = program->startQuatX;
-				auto end = program->endQuatX;
-				if (end < start) end += 2.0f;
-
-				auto diff = end - start;
-				if (diff > 1.0f) diff = -(2.0f - diff);
-				program->diffQuatX = diff;
-			}
-			{
-				auto start = program->startQuatY;
-				auto end = program->endQuatY;
-				if (end < start) end += 2.0f;
-
-				auto diff = end - start;
-				if (diff > 1.0f) diff = -(2.0f - diff);
-				program->diffQuatY = diff;
-			}
-			{
-				auto start = program->startQuatZ;
-				auto end = program->endQuatZ;
-				if (end < start) end += 2.0f;
-
-				auto diff = end - start;
-				if (diff > 1.0f) diff = -(2.0f - diff);
-				program->diffQuatZ = diff;
-			}
-			{
-				auto start = program->startQuatW;
-				auto end = program->endQuatW;
-				if (end < start) end += 2.0f;
-
-				auto diff = end - start;
-				if (diff > 1.0f) diff = -(2.0f - diff);
-				program->diffQuatW = diff;
-			}
+			RecalcParams();
 		}
 	}
 	ImGui::SliderFloat("Simulation speed", &program->simSpeed, 0.0f, 10.0f);
@@ -417,42 +491,36 @@ void Simulate()
 	float yPos = program->startY + program->t * (program->endY - program->startY);
 	float zPos = program->startZ + program->t * (program->endZ - program->startZ);
 
-	for (int i = 0; i < program->wind1->figures.size(); ++i)
+	program->wind1->figures[0]->MoveTo(xPos, yPos, zPos);
+
+	float angleZ1 = program->startAngleZ1 + program->t * (program->endAngleZ1 - program->startAngleZ1);
+	float angleX = program->startAngleX + program->t * (program->endAngleX - program->startAngleX);
+	float angleZ2 = program->startAngleZ2 + program->t * (program->endAngleZ2 - program->startAngleZ2);
+
+	program->wind1->figures[0]->SetRotation(EulerToQuat(angleZ1, angleX, angleZ2));
+
+	program->wind2->figures[0]->MoveTo(xPos, yPos, zPos);
+	if (program->spherical)
 	{
-		program->wind1->figures[i]->MoveTo(xPos, yPos, zPos);
-
-		float angleZ1 = program->startAngleZ1 + program->t * (program->endAngleZ1 - program->startAngleZ1);
-		float angleX = program->startAngleX + program->t * (program->endAngleX - program->startAngleX);
-		float angleZ2 = program->startAngleZ2 + program->t * (program->endAngleZ2 - program->startAngleZ2);
-
-		program->wind1->figures[i]->SetRotation(EulerToQuat(angleZ1, angleX, angleZ2));
-
+		//TODO spherical interpolation
 	}
-	for (int i = 0; i < program->wind2->figures.size(); ++i)
+	else
 	{
-		program->wind2->figures[i]->MoveTo(xPos, yPos, zPos);
-		if (program->spherical)
-		{
-			//TODO spherical interpolation
-		}
-		else
-		{
-			glm::quat quatStart;
-			quatStart.x = program->startQuatX;
-			quatStart.y = program->startQuatY;
-			quatStart.z = program->startQuatZ;
-			quatStart.w = program->startQuatW;
-			glm::quat quatEnd;
-			quatEnd.x = program->endQuatX;
-			quatEnd.y = program->endQuatY;
-			quatEnd.z = program->endQuatZ;
-			quatEnd.w = program->endQuatW;
+		glm::quat quatStart;
+		quatStart.x = program->startQuatX;
+		quatStart.y = program->startQuatY;
+		quatStart.z = program->startQuatZ;
+		quatStart.w = program->startQuatW;
+		glm::quat quatEnd;
+		quatEnd.x = program->endQuatX;
+		quatEnd.y = program->endQuatY;
+		quatEnd.z = program->endQuatZ;
+		quatEnd.w = program->endQuatW;
 
 
-			glm::quat quat = quatStart + program->t * (quatEnd - quatStart);
+		glm::quat quat = quatStart + program->t * (quatEnd - quatStart);
 
-			program->wind2->figures[i]->SetRotation(quat);
-		}
+		program->wind2->figures[0]->SetRotation(quat);
 	}
 
 	program->t += program->simSpeed / 1000;
@@ -460,39 +528,33 @@ void Simulate()
 
 void SetPositions()
 {
-	for (int i = 0; i < program->wind1->figures.size(); ++i)
+	program->wind1->figures[0]->MoveTo(program->startX, program->startY, program->startZ);
+	if (program->setQuats)
 	{
-		program->wind1->figures[i]->MoveTo(program->startX, program->startY, program->startZ);
-		if (program->setQuats)
-		{
-			glm::quat quat;
-			quat.x = program->startQuatX;
-			quat.y = program->startQuatY;
-			quat.z = program->startQuatZ;
-			quat.w = program->startQuatW;
-			program->wind1->figures[i]->SetRotation(quat);
-		}
-		else
-		{
-			program->wind1->figures[i]->SetRotation(EulerToQuat(program->startAngleZ1, program->startAngleX, program->startAngleZ2));
-		}
+		glm::quat quat;
+		quat.x = program->startQuatX;
+		quat.y = program->startQuatY;
+		quat.z = program->startQuatZ;
+		quat.w = program->startQuatW;
+		program->wind1->figures[0]->SetRotation(quat);
 	}
-	for (int i = 0; i < program->wind2->figures.size(); ++i)
+	else
 	{
-		program->wind2->figures[i]->MoveTo(program->endX, program->endY, program->endZ);
-		if (program->setQuats)
-		{
-			glm::quat quat;
-			quat.x = program->endQuatX;
-			quat.y = program->endQuatY;
-			quat.z = program->endQuatZ;
-			quat.w = program->endQuatW;
-			program->wind2->figures[i]->SetRotation(quat);
-		}
-		else
-		{
-			program->wind2->figures[i]->SetRotation(EulerToQuat(program->endAngleZ1, program->endAngleX, program->endAngleZ2));
-		}
+		program->wind1->figures[0]->SetRotation(EulerToQuat(program->startAngleZ1, program->startAngleX, program->startAngleZ2));
+	}
+	program->wind2->figures[0]->MoveTo(program->endX, program->endY, program->endZ);
+	if (program->setQuats)
+	{
+		glm::quat quat;
+		quat.x = program->endQuatX;
+		quat.y = program->endQuatY;
+		quat.z = program->endQuatZ;
+		quat.w = program->endQuatW;
+		program->wind2->figures[0]->SetRotation(quat);
+	}
+	else
+	{
+		program->wind2->figures[0]->SetRotation(EulerToQuat(program->endAngleZ1, program->endAngleX, program->endAngleZ2));
 	}
 }
 

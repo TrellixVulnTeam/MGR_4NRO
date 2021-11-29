@@ -71,6 +71,8 @@ public:
 	float diffQuatZ = 0.0f;
 	float diffQuatW = 0.0f;
 
+	int frames = 5;
+
 	bool simulating = false;
 	bool setQuats = false;
 	bool spherical = false;
@@ -78,7 +80,6 @@ public:
 	std::shared_ptr<Window> currentWindow = {};
 	std::shared_ptr<Window> wind1 = {};
 	std::shared_ptr<Window> wind2 = {};
-	std::shared_ptr<Cube> cube = {};
 
 	float t = 0;
 	float simSpeed = 0;

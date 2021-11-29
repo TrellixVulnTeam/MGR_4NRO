@@ -38,7 +38,7 @@ public:
 	void Scale(float change);
 	void Rotate(glm::vec3 axis, float angle);
 	void Rotate(glm::quat new_q);
-	void SetRotation(glm::quat new_q) { rotation_q = new_q; }
+	void SetRotation(glm::quat new_q) { rotation_q = new_q; RecalcModel(); }
 	void RotateAround(glm::vec3 point, glm::vec3 axis, float angle);
 	void ScaleAround(glm::vec3 point, float change);
 	void Move(float x, float y, float z);
