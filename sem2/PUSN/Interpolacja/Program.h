@@ -20,7 +20,7 @@ public:
 	std::shared_ptr<Shader> shader = {};
 	std::shared_ptr<Shader> lightShader = {};
 	std::shared_ptr<Shader> bezierShader = {};
-	GLFWwindow* window;
+	GLFWwindow* window = {};
 	std::vector<std::shared_ptr<Figure>> figures = {};
 	bool focused = false;
 };
@@ -45,15 +45,12 @@ public:
 
 	glm::vec3 startAngle = {};
 	glm::vec3 endAngle = {};
-	glm::vec3 diffAngle{};
+	glm::vec3 diffAngle = {};
 
 	glm::quat startQuat = {};
 	glm::quat endQuat = {};
 
-	float diffQuatX = 0.0f;
-	float diffQuatY = 0.0f;
-	float diffQuatZ = 0.0f;
-	float diffQuatW = 0.0f;
+
 
 	int frames = 5;
 
