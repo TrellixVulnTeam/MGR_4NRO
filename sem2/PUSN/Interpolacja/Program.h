@@ -22,6 +22,7 @@ public:
 	GLFWwindow* window = {};
 	std::vector<std::shared_ptr<Figure>> figures = {};
 	bool focused = false;
+	unsigned int colorTexture = 0;
 };
 
 class Program
@@ -47,8 +48,6 @@ public:
 
 	glm::quat startQuat = {};
 	glm::quat endQuat = {};
-
-
 
 	int frames = 5;
 

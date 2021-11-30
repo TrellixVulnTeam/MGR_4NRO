@@ -2,16 +2,19 @@
 layout(location = 0) 
 out vec4 FragColor;
 
+uniform sampler2D colorTexture;
+
+
 in VS_OUT {
     vec3 FragPos;
     vec3 Normal;
-    vec3 Color;
+    vec2 TexPos;
 } vs_out;
 
 void main()
 {
     vec3 lightColor = vec3(1.0f,1.0f,1.0f);
-    vec3 objectColor = vec3(vs_out.Color);
+    vec3 objectColor = vec3(texture(colorTexture, vs_out.TexPos));
     vec3 lightPos = vec3(10.0f,10.0f,10.0f);
     vec3 viewPos = vec3(0.0f,0.0f,10.0f);
     // ambient

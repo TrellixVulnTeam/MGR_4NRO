@@ -14,7 +14,7 @@
 
 enum class FigureType
 {
-	Cube
+	Cube, Duck
 };
 
 class Program;
@@ -92,7 +92,7 @@ protected:
 			"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 			"abcdefghijklmnopqrstuvwxyz";
 
-		srand((unsigned)time(NULL)+ seedMod);
+		srand((unsigned)time(NULL) + seedMod);
 
 		tmp_s.reserve(len);
 

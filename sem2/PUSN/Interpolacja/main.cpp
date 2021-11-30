@@ -15,6 +15,7 @@
 #include "Camera.h"
 #include "Program.h"
 #include "Cube.h"
+#include "Duck.h"
 #include "ImGuiFileDialog.h"
 
 bool firstCall = true;
@@ -27,10 +28,15 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void window_focus_callback(GLFWwindow* window, int focused);
 void window_size_callback(GLFWwindow* window, int width, int height);
 
-void CleanUp()
+void CleanUp(bool all = false)
 {
 	while (program->wind1->figures.size() > 1) program->wind1->figures.erase(program->wind1->figures.begin() + 1);
 	while (program->wind2->figures.size() > 1) program->wind2->figures.erase(program->wind2->figures.begin() + 1);
+	if (all)
+	{
+		while (program->wind1->figures.size() > 0) program->wind1->figures.erase(program->wind1->figures.begin());
+		while (program->wind2->figures.size() > 0) program->wind2->figures.erase(program->wind2->figures.begin());
+	}
 }
 
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
@@ -102,11 +108,36 @@ void RecalcParams()
 
 void GenerateCube()
 {
-	std::shared_ptr<Figure> f = std::make_shared<Cube>();
+	glfwMakeContextCurrent(program->currentWindow->window);
+	std::shared_ptr<Figure> f = std::make_shared<Duck>();
 	f->Initialize(program);
 	f->MoveTo(0.0f, 0.0f, 0.0f);
 	f->Select();
 	program->currentWindow->figures.push_back(f);
+}
+void GenerateTex()
+{
+	glfwMakeContextCurrent(program->currentWindow->window);
+	program->currentWindow->lightShader->use();
+	glGenTextures(1, &program->currentWindow->colorTexture);
+	glBindTexture(GL_TEXTURE_2D, program->currentWindow->colorTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// load and generate the texture
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load("resources/duck/ducktex.jpg", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
 }
 void RenderGui()
 {
@@ -176,21 +207,20 @@ void RenderGui()
 			ImGui::TreePop();
 		}
 
-		ImGui::SliderInt("Frames", &program->frames, 2.0f, 50.0f);
+		ImGui::SliderInt("Frames", &program->frames, 1.0f, 50.0f);
 		if (ImGui::Button("Generate frames"))
 		{
-			CleanUp();
+			CleanUp(true);
 			RecalcParams();
 			float t_diff = 1.0f / (program->frames - 1);
 			for (int i = 0; i < program->frames; ++i)
 			{
 				float t = i * t_diff;
-
 				auto pos = program->startPos + t * (program->endPos - program->startPos);
 
 #pragma region fig1
 				program->currentWindow = program->wind1;
-				std::shared_ptr<Figure> fig1 = std::make_shared<Cube>();
+				std::shared_ptr<Figure> fig1 = std::make_shared<Duck>();
 				fig1->Initialize(program);
 				fig1->Select();
 				program->wind1->figures.push_back(fig1);
@@ -202,19 +232,19 @@ void RenderGui()
 #pragma endregion
 #pragma region fig2
 				program->currentWindow = program->wind2;
-				std::shared_ptr<Figure> fig2 = std::make_shared<Cube>();
+				std::shared_ptr<Figure> fig2 = std::make_shared<Duck>();
 				fig2->Initialize(program);
 				fig2->Select();
 				program->wind2->figures.push_back(fig2);
 				fig2->MoveTo(pos.x, pos.y, pos.z);
 				if (program->spherical)
 				{
-					glm::quat quat = glm::normalize(glm::slerp(program->startQuat, program->endQuat, program->t));
+					glm::quat quat = glm::normalize(glm::slerp(program->startQuat, program->endQuat, t));
 					fig2->SetRotation(quat);
 				}
 				else
 				{
-					glm::quat quat = glm::normalize(glm::lerp(program->startQuat, program->endQuat, program->t));
+					glm::quat quat = glm::normalize(glm::lerp(program->startQuat, program->endQuat, t));
 					fig2->SetRotation(quat);
 				}
 #pragma endregion
@@ -327,14 +357,15 @@ void SetPositions()
 	{
 		program->wind1->figures[0]->SetRotation(EulerToQuat(program->startAngle));
 	}
-	program->wind2->figures[0]->MoveTo(program->endPos.x, program->endPos.y, program->endPos.z);
+	int ind = program->wind2->figures.size() - 1;
+	program->wind2->figures[ind]->MoveTo(program->endPos.x, program->endPos.y, program->endPos.z);
 	if (program->setQuats)
 	{
-		program->wind2->figures[0]->SetRotation(program->endQuat);
+		program->wind2->figures[ind]->SetRotation(program->endQuat);
 	}
 	else
 	{
-		program->wind2->figures[0]->SetRotation(EulerToQuat(program->endAngle));
+		program->wind2->figures[ind]->SetRotation(EulerToQuat(program->endAngle));
 	}
 }
 
@@ -459,11 +490,15 @@ int main()
 	//	program->cam = new Camera();
 	program->cam->LookAt({ 0,0,10 }, { 0,0,-1 }, { 0,1,0 });
 
+
 	program->currentWindow = program->wind1;
+	GenerateTex();
 	GenerateCube();
 	program->currentWindow = program->wind2;
+	GenerateTex();
 	GenerateCube();
 
+	glfwMakeContextCurrent(window);
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -473,7 +508,6 @@ int main()
 	ImGui_ImplOpenGL3_Init("#version 130");
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
-
 
 	double lastTime = glfwGetTime();
 
@@ -499,6 +533,7 @@ int main()
 		program->currentWindow = program->wind1;
 		proc.processInput(window);
 		RenderGui();
+		program->currentWindow = program->wind1;
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		DrawScene(1.0f);
 		ImGui::Render();

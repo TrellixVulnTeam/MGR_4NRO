@@ -75,6 +75,9 @@
     <ClCompile Include="imgui\imgui_tables.cpp">
       <Filter>Header Files\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="Duck.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="processing.h">
@@ -127,6 +130,9 @@
     </ClInclude>
     <ClInclude Include="Window.h">
       <Filter>Header Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Duck.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
