@@ -111,12 +111,12 @@ bool Duck::Create()
 	int ind;
 	for (auto i = 0; i < vn; ++i)
 	{
-		vertices[8 * i + 0] = verts_tmp[i].x * coeff;
+		vertices[8 * i + 0] = verts_tmp[i].z * coeff;
 		vertices[8 * i + 1] = verts_tmp[i].y * coeff;
-		vertices[8 * i + 2] = verts_tmp[i].z * coeff;
-		vertices[8 * i + 3] = norms_tmp[i].x;
+		vertices[8 * i + 2] = -verts_tmp[i].x * coeff;
+		vertices[8 * i + 3] = norms_tmp[i].z;
 		vertices[8 * i + 4] = norms_tmp[i].y;
-		vertices[8 * i + 5] = norms_tmp[i].z;
+		vertices[8 * i + 5] = -norms_tmp[i].x;
 		vertices[8 * i + 6] = tex_tmp[i].x;
 		vertices[8 * i + 7] = tex_tmp[i].y;
 	}
