@@ -136,12 +136,6 @@
     <None Include="shaders\fragShader.fs">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\bezierGeometryShader.gs">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\bezierVertexShader.vs">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="shaders\lightFragShader.fs">
       <Filter>Shaders</Filter>
     </None>

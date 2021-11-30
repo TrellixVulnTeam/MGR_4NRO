@@ -42,7 +42,7 @@ glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
 glm::quat EulerToQuat(glm::vec3 euler)
 {
 	float c = M_PI / 180.0f;
-	return glm::quat(c * euler);
+	return glm::normalize(glm::quat(c * euler));
 }
 
 glm::vec3 QuatToEuler(glm::quat quat)
@@ -95,8 +95,6 @@ void RecalcParams()
 		program->diffAngle.z = diff;
 	}
 	{
-		//TODO
-		auto q = glm::quat(glm::quat(0.6f, 0.6f, 0.6f, 0.6f) + glm::quat(0.6f, 0.6f, 0.6f, 0.6f));
 		if (glm::length2(program->startQuat - program->endQuat) > glm::length2(program->startQuat + program->endQuat))
 			program->endQuat = -program->endQuat;
 	}
@@ -129,9 +127,9 @@ void RenderGui()
 
 		if (ImGui::TreeNode("Start pos"))
 		{
-			ImGui::SliderFloat("Start X", &program->startPos.x, -3.0f, 3.0f);
-			ImGui::SliderFloat("Start Y", &program->startPos.y, -3.0f, 3.0f);
-			ImGui::SliderFloat("Start Z", &program->startPos.z, -3.0f, 3.0f);
+			ImGui::SliderFloat("Start X", &program->startPos.x, -30.0f, 30.0f);
+			ImGui::SliderFloat("Start Y", &program->startPos.y, -30.0f, 30.0f);
+			ImGui::SliderFloat("Start Z", &program->startPos.z, -30.0f, 30.0f);
 			ImGui::TreePop();
 		}
 
@@ -155,9 +153,9 @@ void RenderGui()
 
 		if (ImGui::TreeNode("End pos"))
 		{
-			ImGui::SliderFloat("End X", &program->endPos.x, -3.0f, 3.0f);
-			ImGui::SliderFloat("End Y", &program->endPos.y, -3.0f, 3.0f);
-			ImGui::SliderFloat("End Z", &program->endPos.z, -3.0f, 3.0f);
+			ImGui::SliderFloat("End X", &program->endPos.x, -30.0f, 30.0f);
+			ImGui::SliderFloat("End Y", &program->endPos.y, -30.0f, 30.0f);
+			ImGui::SliderFloat("End Z", &program->endPos.z, -30.0f, 30.0f);
 			ImGui::TreePop();
 		}
 		if (ImGui::TreeNode("End rot"))
@@ -211,18 +209,12 @@ void RenderGui()
 				fig2->MoveTo(pos.x, pos.y, pos.z);
 				if (program->spherical)
 				{
-					glm::quat quat = glm::slerp(program->startQuat, program->endQuat, program->t);
-					quat = glm::normalize(quat);
+					glm::quat quat = glm::normalize(glm::slerp(program->startQuat, program->endQuat, program->t));
 					fig2->SetRotation(quat);
 				}
 				else
 				{
-					//TODO
-					glm::quat quatStart = program->startQuat;
-					glm::quat quatEnd = program->endQuat;
-
-					glm::quat quat = quatStart + t * (quatEnd - quatStart);
-					quat = glm::normalize(quat);
+					glm::quat quat = glm::normalize(glm::lerp(program->startQuat, program->endQuat, program->t));
 					fig2->SetRotation(quat);
 				}
 #pragma endregion
@@ -244,6 +236,8 @@ void RenderGui()
 	ImGui::SliderFloat("Simulation speed", &program->simSpeed, 0.0f, 10.0f);
 
 	ImGui::End();
+
+#pragma region valuesCheck
 
 	program->startAngle.x = program->startAngle.x < -180.0f ? -180.0f : program->startAngle.x;
 	program->startAngle.y = program->startAngle.y < -180.0f ? -180.0f : program->startAngle.y;
@@ -283,7 +277,7 @@ void RenderGui()
 		program->startQuat.w = 1.0f;
 	if (program->endQuat.x == 0.0f && program->endQuat.y == 0.0f && program->endQuat.z == 0.0f && program->endQuat.w == 0.0f)
 		program->endQuat.w = 1.0f;
-
+#pragma endregion
 
 	program->startQuat = glm::normalize(program->startQuat);
 	program->endQuat = glm::normalize(program->endQuat);
@@ -310,14 +304,12 @@ void Simulate()
 	program->wind2->figures[0]->MoveTo(pos.x, pos.y, pos.z);
 	if (program->spherical)
 	{
-		glm::quat quat = glm::slerp(program->startQuat, program->endQuat, program->t);
-		quat = glm::normalize(quat);
+		glm::quat quat = glm::normalize(glm::slerp(program->startQuat, program->endQuat, program->t));
 		program->wind2->figures[0]->SetRotation(quat);
 	}
 	else
 	{
-		//TODO
-		glm::quat quat = glm::lerp(program->startQuat, program->endQuat, program->t);
+		glm::quat quat = glm::normalize(glm::lerp(program->startQuat, program->endQuat, program->t));
 		program->wind2->figures[0]->SetRotation(quat);
 	}
 
@@ -425,10 +417,6 @@ int main()
 		, "shaders/lightFragShader.fs"
 		, "shaders/lightGeometryShader.gs");
 
-	program->wind1->bezierShader = std::make_shared<Shader>("shaders/bezierVertexShader.vs"
-		, "shaders/fragShader.fs"
-		, "shaders/bezierGeometryShader.gs");
-
 	GLFWwindow* window2 = glfwCreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT, "Quat Sim", NULL, NULL);
 	program->wind2->window = window2;
 
@@ -466,9 +454,6 @@ int main()
 		, "shaders/lightFragShader.fs"
 		, "shaders/lightGeometryShader.gs");
 
-	program->wind2->bezierShader = std::make_shared<Shader>("shaders/bezierVertexShader.vs"
-		, "shaders/fragShader.fs"
-		, "shaders/bezierGeometryShader.gs");
 	glfwMakeContextCurrent(window);
 	program->cam = std::make_shared<Camera>();
 	//	program->cam = new Camera();

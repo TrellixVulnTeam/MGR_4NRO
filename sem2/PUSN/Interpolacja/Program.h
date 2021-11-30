@@ -19,7 +19,6 @@ public:
 	~Window() = default;
 	std::shared_ptr<Shader> shader = {};
 	std::shared_ptr<Shader> lightShader = {};
-	std::shared_ptr<Shader> bezierShader = {};
 	GLFWwindow* window = {};
 	std::vector<std::shared_ptr<Figure>> figures = {};
 	bool focused = false;
