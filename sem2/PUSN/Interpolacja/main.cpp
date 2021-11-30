@@ -415,7 +415,7 @@ int main()
 
 	program->wind1->lightShader = std::make_shared<Shader>("shaders/lightVertexShader.vs"
 		, "shaders/lightFragShader.fs"
-		, "shaders/lightGeometryShader.gs");
+		, nullptr);
 
 	GLFWwindow* window2 = glfwCreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT, "Quat Sim", NULL, NULL);
 	program->wind2->window = window2;
@@ -452,7 +452,7 @@ int main()
 
 	program->wind2->lightShader = std::make_shared<Shader>("shaders/lightVertexShader.vs"
 		, "shaders/lightFragShader.fs"
-		, "shaders/lightGeometryShader.gs");
+		, nullptr);
 
 	glfwMakeContextCurrent(window);
 	program->cam = std::make_shared<Camera>();

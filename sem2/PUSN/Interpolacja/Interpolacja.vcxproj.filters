@@ -142,8 +142,5 @@
     <None Include="shaders\lightVertexShader.vs">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\lightGeometryShader.gs">
-      <Filter>Shaders</Filter>
-    </None>
   </ItemGroup>
 </Project>

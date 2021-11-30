@@ -21,25 +21,10 @@ void Cube::Initialize(std::shared_ptr<Program> _program)
 
 	Figure::Initialize(_program);
 	shader = window->lightShader;
-
-	data.clear();
-	int XDIV = xSplit;
-	int YDIV = zSplit;
-	float d = M_PI / YDIV;
-	for (int i = 0; i < zSplit; ++i)
-		for (int j = 0; j < xSplit; ++j)
-		{
-			data.push_back(height / 2);
-		}
 }
 
 void Cube::RecalcFigure()
 {
-	if (genTexture || true)
-	{
-		GenTexture();
-		genTexture = false;
-	}
 	if (Create()) {
 		shader->use();
 		glBindVertexArray(VAO);
@@ -62,20 +47,14 @@ void Cube::RecalcFigure()
 			GL_STATIC_DRAW
 		);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12 * sizeof(float), (void*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 12 * sizeof(float), (void*)(3 * sizeof(float)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
 		glEnableVertexAttribArray(1);
 
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 12 * sizeof(float), (void*)(6 * sizeof(float)));
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
 		glEnableVertexAttribArray(2);
-
-		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 12 * sizeof(float), (void*)(8 * sizeof(float)));
-		glEnableVertexAttribArray(3);
-
-		glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 12 * sizeof(float), (void*)(10 * sizeof(float)));
-		glEnableVertexAttribArray(4);
 
 		glBindVertexArray(0);
 	}
@@ -92,23 +71,6 @@ void Cube::Draw()
 {
 	Figure::Draw();
 	shader->use();
-
-	if (genTexture) GenTexture();
-	auto texLocation = glGetUniformLocation(shader->ID, "colorTexture");
-	glUniform1i(texLocation, 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, program->colorTexture);
-
-	texLocation = glGetUniformLocation(shader->ID, "heightTexture");
-	glUniform1i(texLocation, 1);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, heightTextureID);
-
-	int xDiffPos = glGetUniformLocation(shader->ID, "xDiff");
-	glUniform1f(xDiffPos, 1.0f / xSplit);
-
-	int yDiffPos = glGetUniformLocation(shader->ID, "yDiff");
-	glUniform1f(yDiffPos, 1.0f / zSplit);
 
 	//glEnable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -140,23 +102,22 @@ bool Cube::Create()
 	cur1 = vertices.size();
 	cur2 = indices.size();
 
-	for (int i = 0; i < 4 * 12; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < 4 * 9; ++i) vertices.push_back(0.0f);
 	for (int i = 0; i < 6; ++i)indices.push_back(0);
 
 	for (int i = 0; i < 2; ++i)
 		for (int j = 0; j < 2; ++j)
 		{
-			int idx1 = (2 * i + j) * 12 + cur1;
+			int idx1 = (2 * i + j) * 9 + cur1;
 			vertices[idx1] = i * width - width / 2;
 			vertices[idx1 + 1] = -height / 2;
 			vertices[idx1 + 2] = -j * length + length / 2;
 			vertices[idx1 + 3] = 0.0f;
 			vertices[idx1 + 4] = -1.0f;
 			vertices[idx1 + 5] = 0.0f;
-			vertices[idx1 + 6] = i * 1.0f;
-			vertices[idx1 + 7] = j * 1.0f;
-			vertices[idx1 + 8] = -2.0f;
-			vertices[idx1 + 9] = -2.0f;
+			vertices[idx1 + 6] = 1.0f;
+			vertices[idx1 + 7] = 0.0f;
+			vertices[idx1 + 8] = 0.0f;
 		}
 
 	int idx2 = cur2;
@@ -174,22 +135,21 @@ bool Cube::Create()
 	cur1 = vertices.size();
 	cur2 = indices.size();
 
-	for (int i = 0; i < nX * nZ * 12; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < nX * nZ * 9; ++i) vertices.push_back(0.0f);
 	for (int i = 0; i < xSplit * zSplit * 2 * 3; ++i)indices.push_back(0);
 
 	for (int i = 0; i < nX; ++i)
 	{
-		int idx1 = i * 12 + cur1;
+		int idx1 = i * 9 + cur1;
 		vertices[idx1] = i * w - width / 2;
 		vertices[idx1 + 1] = height / 2;
 		vertices[idx1 + 2] = length / 2;
-		vertices[idx1 + 3] = -2.0f;
-		vertices[idx1 + 4] = -2.0f;
-		vertices[idx1 + 5] = -2.0f;
-		vertices[idx1 + 6] = i * wTex;
+		vertices[idx1 + 3] = 0.0f;
+		vertices[idx1 + 4] = 1.0f;
+		vertices[idx1 + 5] = 0.0f;
+		vertices[idx1 + 6] = 1.0f;
 		vertices[idx1 + 7] = 0.0f;
-		vertices[idx1 + 8] = i * wTex;
-		vertices[idx1 + 9] = 0.0f;
+		vertices[idx1 + 8] = 0.0f;
 	}
 
 
@@ -203,17 +163,16 @@ bool Cube::Create()
 		for (int i = 0; i < nX; ++i)
 		{
 			int idx = nn + i;
-			int idx1 = 12 * idx;
+			int idx1 = 9 * idx;
 			vertices[idx1] = i * w - width / 2;
 			vertices[idx1 + 1] = height / 2;
 			vertices[idx1 + 2] = z + length / 2;
-			vertices[idx1 + 3] = -2.0f;
-			vertices[idx1 + 4] = -2.0f;
-			vertices[idx1 + 5] = -2.0f;
-			vertices[idx1 + 6] = i * wTex;
-			vertices[idx1 + 7] = j * lTex;
-			vertices[idx1 + 8] = i * wTex;
-			vertices[idx1 + 9] = j * lTex;
+			vertices[idx1 + 3] = 0.0f;
+			vertices[idx1 + 4] = 1.0f;
+			vertices[idx1 + 5] = 0.0f;
+			vertices[idx1 + 6] = 1.0f;
+			vertices[idx1 + 7] = 0.0f;
+			vertices[idx1 + 8] = 0.0f;
 
 			int idx2 = (i - 1) * 2 * 3 + mm;
 			if (i > 0)
@@ -235,22 +194,21 @@ bool Cube::Create()
 	cur1 = vertices.size();
 	cur2 = indices.size();
 
-	for (int i = 0; i < nX * 2 * 12; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < nX * 2 * 9; ++i) vertices.push_back(0.0f);
 	for (int i = 0; i < xSplit * 2 * 3; ++i)indices.push_back(0);
 
 	for (int i = 0; i < nX; ++i)
 	{
-		int idx1 = i * 12 + cur1;
+		int idx1 = i * 9 + cur1;
 		vertices[idx1] = i * w - width / 2;
 		vertices[idx1 + 1] = -height / 2;
 		vertices[idx1 + 2] = -length / 2;
 		vertices[idx1 + 3] = 0.0f;
 		vertices[idx1 + 4] = 0.0f;
 		vertices[idx1 + 5] = -1.0f;
-		vertices[idx1 + 6] = i * wTex;
+		vertices[idx1 + 6] = 1.0f;
 		vertices[idx1 + 7] = 0.0f;
-		vertices[idx1 + 8] = -2.0f;
-		vertices[idx1 + 9] = -2.0f;
+		vertices[idx1 + 8] = 0.0f;
 	}
 
 	nn = nX + a;
@@ -258,17 +216,16 @@ bool Cube::Create()
 	for (int i = 0; i < nX; ++i)
 	{
 		int idx = nn + i;
-		int idx1 = 12 * idx;
+		int idx1 = 9 * idx;
 		vertices[idx1] = i * w - width / 2;
 		vertices[idx1 + 1] = height / 2;
 		vertices[idx1 + 2] = -length / 2;
 		vertices[idx1 + 3] = 0.0f;
 		vertices[idx1 + 4] = 0.0f;
 		vertices[idx1 + 5] = -1.0f;
-		vertices[idx1 + 6] = i * wTex;
-		vertices[idx1 + 7] = 1.0f;
-		vertices[idx1 + 8] = i * wTex;
-		vertices[idx1 + 9] = 1.0f;
+		vertices[idx1 + 6] = 1.0f;
+		vertices[idx1 + 7] = 0.0f;
+		vertices[idx1 + 8] = 0.0f;
 
 		int idx2 = (i - 1) * 2 * 3 + cur2;
 		if (i > 0)
@@ -289,22 +246,21 @@ bool Cube::Create()
 	cur1 = vertices.size();
 	cur2 = indices.size();
 
-	for (int i = 0; i < nX * 2 * 12; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < nX * 2 * 9; ++i) vertices.push_back(0.0f);
 	for (int i = 0; i < xSplit * 2 * 3; ++i)indices.push_back(0);
 
 	for (int i = 0; i < nX; ++i)
 	{
-		int idx1 = i * 12 + cur1;
+		int idx1 = i * 9 + cur1;
 		vertices[idx1] = i * w - width / 2;
 		vertices[idx1 + 1] = -height / 2;
 		vertices[idx1 + 2] = length / 2;
 		vertices[idx1 + 3] = 0.0f;
 		vertices[idx1 + 4] = 0.0f;
 		vertices[idx1 + 5] = 1.0f;
-		vertices[idx1 + 6] = i * wTex;
+		vertices[idx1 + 6] = 1.0f;
 		vertices[idx1 + 7] = 0.0f;
-		vertices[idx1 + 8] = -2.0f;
-		vertices[idx1 + 9] = -2.0f;
+		vertices[idx1 + 8] = 0.0f;
 	}
 
 	nn = nX + a;
@@ -312,17 +268,16 @@ bool Cube::Create()
 	for (int i = 0; i < nX; ++i)
 	{
 		int idx = nn + i;
-		int idx1 = 12 * idx;
+		int idx1 = 9 * idx;
 		vertices[idx1] = i * w - width / 2;
 		vertices[idx1 + 1] = height / 2;
 		vertices[idx1 + 2] = length / 2;
 		vertices[idx1 + 3] = 0.0f;
 		vertices[idx1 + 4] = 0.0f;
 		vertices[idx1 + 5] = 1.0f;
-		vertices[idx1 + 6] = i * wTex;
-		vertices[idx1 + 7] = 1.0f;
-		vertices[idx1 + 8] = i * wTex;
-		vertices[idx1 + 9] = 0.0f;
+		vertices[idx1 + 6] = 1.0f;
+		vertices[idx1 + 7] = 0.0f;
+		vertices[idx1 + 8] = 0.0f;
 
 		int idx2 = (i - 1) * 2 * 3 + cur2;
 		if (i > 0)
@@ -344,22 +299,21 @@ bool Cube::Create()
 	cur1 = vertices.size();
 	cur2 = indices.size();
 
-	for (int i = 0; i < nZ * 2 * 12; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < nZ * 2 * 9; ++i) vertices.push_back(0.0f);
 	for (int i = 0; i < zSplit * 2 * 3; ++i)indices.push_back(0);
 
 	for (int i = 0; i < nZ; ++i)
 	{
-		int idx1 = i * 12 + cur1;
+		int idx1 = i * 9 + cur1;
 		vertices[idx1] = -width / 2;
 		vertices[idx1 + 1] = -height / 2;
 		vertices[idx1 + 2] = -i * l + length / 2;
 		vertices[idx1 + 3] = -1.0f;
 		vertices[idx1 + 4] = 0.0f;
 		vertices[idx1 + 5] = 0.0f;
-		vertices[idx1 + 6] = i * lTex;
+		vertices[idx1 + 6] = 1.0f;
 		vertices[idx1 + 7] = 0.0f;
-		vertices[idx1 + 8] = -2.0f;
-		vertices[idx1 + 9] = -2.0f;
+		vertices[idx1 + 8] = 0.0f;
 	}
 
 	nn = nZ + a;
@@ -367,17 +321,16 @@ bool Cube::Create()
 	for (int i = 0; i < nZ; ++i)
 	{
 		int idx = nn + i;
-		int idx1 = 12 * idx;
+		int idx1 = 9 * idx;
 		vertices[idx1] = -width / 2;
 		vertices[idx1 + 1] = height / 2;
 		vertices[idx1 + 2] = -i * l + length / 2;
 		vertices[idx1 + 3] = -1.0f;
 		vertices[idx1 + 4] = 0.0f;
 		vertices[idx1 + 5] = 0.0f;
-		vertices[idx1 + 6] = i * lTex;
-		vertices[idx1 + 7] = 1.0f;
+		vertices[idx1 + 6] = 1.0f;
+		vertices[idx1 + 7] = 0.0f;
 		vertices[idx1 + 8] = 0.0f;
-		vertices[idx1 + 9] = i * lTex;
 
 		int idx2 = (i - 1) * 2 * 3 + cur2;
 		if (i > 0)
@@ -398,22 +351,21 @@ bool Cube::Create()
 	cur1 = vertices.size();
 	cur2 = indices.size();
 
-	for (int i = 0; i < nZ * 2 * 12; ++i) vertices.push_back(0.0f);
+	for (int i = 0; i < nZ * 2 * 9; ++i) vertices.push_back(0.0f);
 	for (int i = 0; i < zSplit * 2 * 3; ++i)indices.push_back(0);
 
 	for (int i = 0; i < nZ; ++i)
 	{
-		int idx1 = i * 12 + cur1;
+		int idx1 = i * 9 + cur1;
 		vertices[idx1] = width / 2;
 		vertices[idx1 + 1] = -height / 2;
 		vertices[idx1 + 2] = -i * l + length / 2;
 		vertices[idx1 + 3] = 1.0f;
 		vertices[idx1 + 4] = 0.0f;
 		vertices[idx1 + 5] = 0.0f;
-		vertices[idx1 + 6] = i * lTex;
+		vertices[idx1 + 6] = 1.0f;
 		vertices[idx1 + 7] = 0.0f;
-		vertices[idx1 + 8] = -2.0f;
-		vertices[idx1 + 9] = -2.0f;
+		vertices[idx1 + 8] = 0.0f;
 	}
 
 	nn = nZ + a;
@@ -421,17 +373,16 @@ bool Cube::Create()
 	for (int i = 0; i < nZ; ++i)
 	{
 		int idx = nn + i;
-		int idx1 = 12 * idx;
+		int idx1 = 9 * idx;
 		vertices[idx1] = width / 2;
 		vertices[idx1 + 1] = height / 2;
 		vertices[idx1 + 2] = -i * l + length / 2;
 		vertices[idx1 + 3] = 1.0f;
 		vertices[idx1 + 4] = 0.0f;
 		vertices[idx1 + 5] = 0.0f;
-		vertices[idx1 + 6] = i * lTex;
-		vertices[idx1 + 7] = 1.0f;
-		vertices[idx1 + 8] = 1.0f;
-		vertices[idx1 + 9] = i * lTex;
+		vertices[idx1 + 6] = 1.0f;
+		vertices[idx1 + 7] = 0.0f;
+		vertices[idx1 + 8] = 0.0f;
 
 		int idx2 = (i - 1) * 2 * 3 + cur2;
 		if (i > 0)
@@ -448,22 +399,4 @@ bool Cube::Create()
 	a += 2 * nZ;
 #pragma endregion
 	return true;
-}
-
-
-void Cube::GenTexture()
-{
-	shader->use();
-	glDeleteTextures(1, &heightTextureID);
-	glGenTextures(1, &heightTextureID);
-	glBindTexture(GL_TEXTURE_2D, heightTextureID);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, xSplit, zSplit, 0, GL_RED, GL_FLOAT, data.data());
-	glGenerateMipmap(GL_TEXTURE_2D);
-
 }

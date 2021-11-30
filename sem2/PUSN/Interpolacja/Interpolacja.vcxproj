@@ -195,7 +195,6 @@
     <None Include="shaders\lightVertexShader.vs" />
     <None Include="shaders\vertexShader.vs" />
     <None Include="shaders\lightFragShader.fs" />
-    <None Include="shaders\lightGeometryShader.gs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

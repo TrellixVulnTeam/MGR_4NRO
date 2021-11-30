@@ -12,13 +12,9 @@ public:
 	void virtual RecalcFigure() override;
 private:
 	bool virtual Create() override;
-	void GenTexture();
-	std::vector<float> data{};
 
 	float drillRadius;
-	bool genTexture = true;
-	unsigned int heightTextureID;
-	int zSplit, xSplit, xBias, yBias;
+	int zSplit, xSplit;
 	float xDiff, zDiff;
 	float width, length, height;
 };

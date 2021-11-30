@@ -32,7 +32,6 @@ public:
 
 	int current_width = 0;
 	int current_height = 0;
-	unsigned int colorTexture = 0;
 	float width = 5.0f;
 	float length = 3.0f;
 	float height = 1.5f;
