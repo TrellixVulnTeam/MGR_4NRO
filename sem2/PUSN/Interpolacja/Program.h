@@ -2,6 +2,10 @@
 #include <vector>
 #include "Shader.h"
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/transform.hpp>
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
 class Figure;
@@ -35,36 +39,16 @@ public:
 	float height = 1.5f;
 	int xSplit = 120;
 	int ySplit = 120;
-	
-	float startX = 0.0f;
-	float startY = 0.0f;
-	float startZ = 0.0f;
 
-	float startAngleZ1 = 0.0f;
-	float startAngleX = 0.0f;
-	float startAngleZ2 = 0.0f;
+	glm::vec3 startPos = {};
+	glm::vec3 endPos = {};
 
-	float startQuatX = 0.0f;
-	float startQuatY = 0.0f;
-	float startQuatZ = 0.0f;
-	float startQuatW = 0.0f;
+	glm::vec3 startAngle = {};
+	glm::vec3 endAngle = {};
+	glm::vec3 diffAngle{};
 
-	float endX = 0.0f;
-	float endY = 0.0f;
-	float endZ = 0.0f;
-
-	float endAngleZ1 = 0.0f;
-	float endAngleX = 0.0f;
-	float endAngleZ2 = 0.0f;
-
-	float endQuatX = 0.0f;
-	float endQuatY = 0.0f;
-	float endQuatZ = 0.0f;
-	float endQuatW = 0.0f;
-
-	float diffAngleZ1 = 0.0f;
-	float diffAngleX = 0.0f;
-	float diffAngleZ2 = 0.0f;
+	glm::quat startQuat = {};
+	glm::quat endQuat = {};
 
 	float diffQuatX = 0.0f;
 	float diffQuatY = 0.0f;

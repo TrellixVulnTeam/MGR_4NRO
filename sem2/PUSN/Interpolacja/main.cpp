@@ -4,13 +4,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/transform.hpp>
 #include <stb_image.h>
 #include "processing.h"
 #include "Shader.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
-#include <glm/gtx/transform.hpp>
 #include "Figure.h"
 #include "Camera.h"
 #include "Program.h"
@@ -22,6 +22,10 @@ bool rotate = false;
 glm::vec2 mousePosOld;
 glm::vec3 lookAt;
 std::shared_ptr<Program> program = {};
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void window_focus_callback(GLFWwindow* window, int focused);
+void window_size_callback(GLFWwindow* window, int width, int height);
 
 void CleanUp()
 {
@@ -35,232 +39,67 @@ glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
 	return quat * p;
 }
 
-glm::quat EulerToQuat(float z1, float x, float z2)
+glm::quat EulerToQuat(glm::vec3 euler)
 {
-	glm::vec3 xAxis = { 1,0,0 };
-	glm::vec3 yAxis = { 0,1,0 };
-	glm::vec3 zAxis = { 0,0,1 };
+	float c = M_PI / 180.0f;
+	return glm::quat(c * euler);
+}
 
-	z1 = z1 / 180.0f * M_PI;
-	z2 = z2 / 180.0f * M_PI;
-	x = x / 180.0f * M_PI;
-
-	glm::quat finalQuat;
-	finalQuat.x = 0.0f;
-	finalQuat.y = 0.0f;
-	finalQuat.z = 0.0f;
-	finalQuat.w = 1.0f;
-	glm::quat q;
-
-	q = glm::angleAxis(z1, zAxis);
-	xAxis = q * xAxis;
-	yAxis = q * yAxis;
-	zAxis = q * zAxis;
-	finalQuat = q * finalQuat;
-
-	q = glm::angleAxis(x, xAxis);
-	xAxis = q * xAxis;
-	yAxis = q * yAxis;
-	zAxis = q * zAxis;
-	finalQuat = q * finalQuat;
-
-	q = glm::angleAxis(z2, zAxis);
-	xAxis = q * xAxis;
-	yAxis = q * yAxis;
-	zAxis = q * zAxis;
-	finalQuat = q * finalQuat;
-	return finalQuat;
+glm::vec3 QuatToEuler(glm::quat quat)
+{
+	float c = 180.0f / M_PI;
+	return c * glm::eulerAngles(quat);
 }
 
 void RecalcParams()
 {
 	if (program->setQuats)
 	{
-		//TODO Quats to euler
+		program->startAngle = QuatToEuler(program->startQuat);
+		program->endAngle = QuatToEuler(program->endQuat);
 	}
 	else
 	{
-		auto quatStart = EulerToQuat(program->startAngleZ1, program->startAngleX, program->startAngleZ2);
-		auto quatEnd = EulerToQuat(program->endAngleZ1, program->endAngleX, program->endAngleZ2);
+		auto quatStart = EulerToQuat(program->startAngle);
+		auto quatEnd = EulerToQuat(program->endAngle);
 
-		program->startQuatX = quatStart.x;
-		program->startQuatY = quatStart.y;
-		program->startQuatZ = quatStart.z;
-		program->startQuatW = quatStart.w;
-
-		program->endQuatX = quatEnd.x;
-		program->endQuatY = quatEnd.y;
-		program->endQuatZ = quatEnd.z;
-		program->endQuatW = quatEnd.w;
+		program->startQuat = quatStart;
+		program->endQuat = quatEnd;
 	}
 
 	{
-		auto start = program->startAngleZ1;
-		auto end = program->endAngleZ1;
+		auto start = program->startAngle.x;
+		auto end = program->endAngle.x;
 		if (end < start) end += 360.0f;
 
 		auto diff = end - start;
 		if (diff > 180.0f) diff = -(360.0f - diff);
-		program->diffAngleZ1 = diff;
+		program->diffAngle.x = diff;
 	}
 	{
-		auto start = program->startAngleX;
-		auto end = program->endAngleX;
+		auto start = program->startAngle.y;
+		auto end = program->endAngle.y;
 		if (end < start) end += 360.0f;
 
 		auto diff = end - start;
 		if (diff > 180.0f) diff = -(360.0f - diff);
-		program->diffAngleX = diff;
+		program->diffAngle.y = diff;
 	}
 	{
-		auto start = program->startAngleZ2;
-		auto end = program->endAngleZ2;
+		auto start = program->startAngle.z;
+		auto end = program->endAngle.z;
 		if (end < start) end += 360.0f;
 
 		auto diff = end - start;
 		if (diff > 180.0f) diff = -(360.0f - diff);
-		program->diffAngleZ2 = diff;
+		program->diffAngle.z = diff;
 	}
 	{
-		auto start = program->startQuatX;
-		auto end = program->endQuatX;
-		if (end < start) end += 2.0f;
-
-		auto diff = end - start;
-		if (diff > 1.0f) diff = -(2.0f - diff);
-		program->diffQuatX = diff;
+		//TODO
+		auto q = glm::quat(glm::quat(0.6f, 0.6f, 0.6f, 0.6f) + glm::quat(0.6f, 0.6f, 0.6f, 0.6f));
+		if (glm::length2(program->startQuat - program->endQuat) > glm::length2(program->startQuat + program->endQuat))
+			program->endQuat = -program->endQuat;
 	}
-	{
-		auto start = program->startQuatY;
-		auto end = program->endQuatY;
-		if (end < start) end += 2.0f;
-
-		auto diff = end - start;
-		if (diff > 1.0f) diff = -(2.0f - diff);
-		program->diffQuatY = diff;
-	}
-	{
-		auto start = program->startQuatZ;
-		auto end = program->endQuatZ;
-		if (end < start) end += 2.0f;
-
-		auto diff = end - start;
-		if (diff > 1.0f) diff = -(2.0f - diff);
-		program->diffQuatZ = diff;
-	}
-	{
-		auto start = program->startQuatW;
-		auto end = program->endQuatW;
-		if (end < start) end += 2.0f;
-
-		auto diff = end - start;
-		if (diff > 1.0f) diff = -(2.0f - diff);
-		program->diffQuatW = diff;
-	}
-}
-
-void window_focus_callback(GLFWwindow* window, int focused)
-{
-	if (focused)
-	{
-		bool w1 = (window == program->wind1->window);
-		program->wind1->focused = w1;
-		program->wind2->focused = !w1;
-	}
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-	if (ImGui::GetIO().WantCaptureMouse) return;
-	glm::vec2 mousePos = { xpos,ypos };
-	glm::vec2 diff = mousePos - mousePosOld;
-	double xDiff = (double)diff.x / program->current_width;
-	double yDiff = (double)diff.y / program->current_height;
-	int lShiftState = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
-	int lAltState = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
-	int rAltState = glfwGetKey(window, GLFW_KEY_RIGHT_ALT);
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-	{
-		if (lAltState == GLFW_PRESS)
-		{
-			glm::vec4 lRayStart_NDC(
-				((float)mousePosOld.x / (float)program->current_width - 0.5f) * 2.0f,
-				-((float)mousePosOld.y / (float)program->current_height - 0.5f) * 2.0f,
-				-1.0,
-				1.0f
-			);
-			glm::vec4 lRayEnd_NDC(
-				((float)mousePosOld.x / (float)program->current_width - 0.5f) * 2.0f,
-				-((float)mousePosOld.y / (float)program->current_height - 0.5f) * 2.0f,
-				0.0,
-				1.0f
-			);
-
-			glm::vec4 lRayStart_camera = program->cam->GetInvProjectionMatrix() * lRayStart_NDC;    lRayStart_camera /= -lRayStart_camera.w;
-			glm::vec4 lRayStart_world = program->cam->GetInvViewportMatrix() * lRayStart_camera; lRayStart_world /= lRayStart_world.w;
-			glm::vec4 lRayEnd_camera = program->cam->GetInvProjectionMatrix() * lRayEnd_NDC;      lRayEnd_camera /= -lRayEnd_camera.w;
-			glm::vec4 lRayEnd_world = program->cam->GetInvViewportMatrix() * lRayEnd_camera;   lRayEnd_world /= lRayEnd_world.w;
-			glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
-			lRayDir_world = glm::normalize(lRayDir_world);
-
-			float minLength = 9999.0f;
-		}
-		else
-		{
-			for (int i = 0; i < program->currentWindow->figures.size(); ++i)
-			{
-				if (program->currentWindow->figures[i]->CanMove())
-				{
-					program->currentWindow->figures[i]->MoveVec(40 * xDiff, program->cam->right);
-					if (rAltState == GLFW_PRESS)
-						program->currentWindow->figures[i]->MoveVec(-40 * yDiff, program->cam->front);
-					else
-						program->currentWindow->figures[i]->MoveVec(-40 * yDiff, program->cam->up);
-				}
-			}
-		}
-	}
-
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-	{
-		if (lShiftState == GLFW_PRESS)
-		{
-			double xAngle = 2 * yDiff;
-			double yAngle = 2 * xDiff;
-
-			glm::vec3 camVec = program->cam->pos - lookAt;
-			camVec = ArbitraryRotate(camVec, xAngle, program->cam->right);
-			program->cam->LookAt(lookAt + camVec, ArbitraryRotate(program->cam->front, xAngle, program->cam->right), ArbitraryRotate(program->cam->up, xAngle, program->cam->right));
-
-
-			camVec = program->cam->pos - lookAt;
-			camVec = ArbitraryRotate(camVec, yAngle, program->cam->up);
-			program->cam->LookAt(lookAt + camVec, ArbitraryRotate(program->cam->front, yAngle, program->cam->up), program->cam->up);
-		}
-		else
-		{
-			float xAngle = 2 * yDiff;
-			float yAngle = 2 * xDiff;
-
-			for (int i = 0; i < program->currentWindow->figures.size(); ++i)
-			{
-				if (program->currentWindow->figures[i]->CanMove())
-				{
-					if (rotate)
-					{
-						program->currentWindow->figures[i]->RotateAround(glm::vec3(0.0f, 0.0f, 0.0f), program->cam->up, yAngle);
-						program->currentWindow->figures[i]->RotateAround(glm::vec3(0.0f, 0.0f, 0.0f), program->cam->right, xAngle);
-					}
-				}
-			}
-		}
-	}
-	mousePosOld = mousePos;
-}
-
-void window_size_callback(GLFWwindow* window, int width, int height) {
-	program->current_width = width;
-	program->current_height = height;
 }
 
 void GenerateCube()
@@ -290,9 +129,9 @@ void RenderGui()
 
 		if (ImGui::TreeNode("Start pos"))
 		{
-			ImGui::SliderFloat("Start X", &program->startX, -3.0f, 3.0f);
-			ImGui::SliderFloat("Start Y", &program->startY, -3.0f, 3.0f);
-			ImGui::SliderFloat("Start Z", &program->startZ, -3.0f, 3.0f);
+			ImGui::SliderFloat("Start X", &program->startPos.x, -3.0f, 3.0f);
+			ImGui::SliderFloat("Start Y", &program->startPos.y, -3.0f, 3.0f);
+			ImGui::SliderFloat("Start Z", &program->startPos.z, -3.0f, 3.0f);
 			ImGui::TreePop();
 		}
 
@@ -300,41 +139,41 @@ void RenderGui()
 		{
 			if (!program->setQuats)
 			{
-				ImGui::SliderFloat("Start Z1", &program->startAngleZ1, -180.0f, 180.0f);
-				ImGui::SliderFloat("Start X", &program->startAngleX, -180.0f, 180.0f);
-				ImGui::SliderFloat("Start Z2", &program->startAngleZ2, -180.0f, 180.0f);
+				ImGui::SliderFloat("Start X", &program->startAngle.x, -180.0f, 180.0f);
+				ImGui::SliderFloat("Start Y", &program->startAngle.y, -180.0f, 180.0f);
+				ImGui::SliderFloat("Start Z", &program->startAngle.z, -180.0f, 180.0f);
 			}
 			else
 			{
-				ImGui::SliderFloat("Start QuatX", &program->startQuatX, -1.0f, 1.0f);
-				ImGui::SliderFloat("Start QuatY", &program->startQuatY, -1.0f, 1.0f);
-				ImGui::SliderFloat("Start QuatZ", &program->startQuatZ, -1.0f, 1.0f);
-				ImGui::SliderFloat("Start QuatW", &program->startQuatW, -1.0f, 1.0f);
+				ImGui::SliderFloat("Start QuatX", &program->startQuat.x, -1.0f, 1.0f);
+				ImGui::SliderFloat("Start QuatY", &program->startQuat.y, -1.0f, 1.0f);
+				ImGui::SliderFloat("Start QuatZ", &program->startQuat.z, -1.0f, 1.0f);
+				ImGui::SliderFloat("Start QuatW", &program->startQuat.w, -1.0f, 1.0f);
 			}
 			ImGui::TreePop();
 		}
 
 		if (ImGui::TreeNode("End pos"))
 		{
-			ImGui::SliderFloat("End X", &program->endX, -3.0f, 3.0f);
-			ImGui::SliderFloat("End Y", &program->endY, -3.0f, 3.0f);
-			ImGui::SliderFloat("End Z", &program->endZ, -3.0f, 3.0f);
+			ImGui::SliderFloat("End X", &program->endPos.x, -3.0f, 3.0f);
+			ImGui::SliderFloat("End Y", &program->endPos.y, -3.0f, 3.0f);
+			ImGui::SliderFloat("End Z", &program->endPos.z, -3.0f, 3.0f);
 			ImGui::TreePop();
 		}
 		if (ImGui::TreeNode("End rot"))
 		{
 			if (!program->setQuats)
 			{
-				ImGui::SliderFloat("End Z1", &program->endAngleZ1, -180.0f, 180.0f);
-				ImGui::SliderFloat("End X", &program->endAngleX, -180.0f, 180.0f);
-				ImGui::SliderFloat("End Z2", &program->endAngleZ2, -180.0f, 180.0f);
+				ImGui::SliderFloat("End X", &program->endAngle.x, -180.0f, 180.0f);
+				ImGui::SliderFloat("End Y", &program->endAngle.y, -180.0f, 180.0f);
+				ImGui::SliderFloat("End Z", &program->endAngle.z, -180.0f, 180.0f);
 			}
 			else
 			{
-				ImGui::SliderFloat("End QuatX", &program->endQuatX, -1.0f, 1.0f);
-				ImGui::SliderFloat("End QuatY", &program->endQuatY, -1.0f, 1.0f);
-				ImGui::SliderFloat("End QuatZ", &program->endQuatZ, -1.0f, 1.0f);
-				ImGui::SliderFloat("End QuatW", &program->endQuatW, -1.0f, 1.0f);
+				ImGui::SliderFloat("End QuatX", &program->endQuat.x, -1.0f, 1.0f);
+				ImGui::SliderFloat("End QuatY", &program->endQuat.y, -1.0f, 1.0f);
+				ImGui::SliderFloat("End QuatZ", &program->endQuat.z, -1.0f, 1.0f);
+				ImGui::SliderFloat("End QuatW", &program->endQuat.w, -1.0f, 1.0f);
 			}
 			ImGui::TreePop();
 		}
@@ -349,9 +188,7 @@ void RenderGui()
 			{
 				float t = i * t_diff;
 
-				float xPos = program->startX + t * (program->endX - program->startX);
-				float yPos = program->startY + t * (program->endY - program->startY);
-				float zPos = program->startZ + t * (program->endZ - program->startZ);
+				auto pos = program->startPos + t * (program->endPos - program->startPos);
 
 #pragma region fig1
 				program->currentWindow = program->wind1;
@@ -359,13 +196,11 @@ void RenderGui()
 				fig1->Initialize(program);
 				fig1->Select();
 				program->wind1->figures.push_back(fig1);
-				fig1->MoveTo(xPos, yPos, zPos);
+				fig1->MoveTo(pos.x, pos.y, pos.z);
 
-				float angleZ1 = program->startAngleZ1 + t * (program->endAngleZ1 - program->startAngleZ1);
-				float angleX = program->startAngleX + t * (program->endAngleX - program->startAngleX);
-				float angleZ2 = program->startAngleZ2 + t * (program->endAngleZ2 - program->startAngleZ2);
+				glm::vec3 angles = program->startAngle + t * program->diffAngle;
 
-				fig1->SetRotation(EulerToQuat(angleZ1, angleX, angleZ2));
+				fig1->SetRotation(EulerToQuat(angles));
 #pragma endregion
 #pragma region fig2
 				program->currentWindow = program->wind2;
@@ -373,23 +208,18 @@ void RenderGui()
 				fig2->Initialize(program);
 				fig2->Select();
 				program->wind2->figures.push_back(fig2);
-				fig2->MoveTo(xPos, yPos, zPos);
+				fig2->MoveTo(pos.x, pos.y, pos.z);
 				if (program->spherical)
 				{
-					//TODO spherical interpolation
+					glm::quat quat = glm::slerp(program->startQuat, program->endQuat, program->t);
+					quat = glm::normalize(quat);
+					fig2->SetRotation(quat);
 				}
 				else
 				{
-					glm::quat quatStart;
-					quatStart.x = program->startQuatX;
-					quatStart.y = program->startQuatY;
-					quatStart.z = program->startQuatZ;
-					quatStart.w = program->startQuatW;
-					glm::quat quatEnd;
-					quatEnd.x = program->endQuatX;
-					quatEnd.y = program->endQuatY;
-					quatEnd.z = program->endQuatZ;
-					quatEnd.w = program->endQuatW;
+					//TODO
+					glm::quat quatStart = program->startQuat;
+					glm::quat quatEnd = program->endQuat;
 
 					glm::quat quat = quatStart + t * (quatEnd - quatStart);
 					quat = glm::normalize(quat);
@@ -415,66 +245,48 @@ void RenderGui()
 
 	ImGui::End();
 
-	program->startAngleZ1 = program->startAngleZ1 < -180.0f ? -180.0f : program->startAngleZ1;
-	program->startAngleX = program->startAngleX < -180.0f ? -180.0f : program->startAngleX;
-	program->startAngleZ2 = program->startAngleZ2 < -180.0f ? -180.0f : program->startAngleZ2;
-	program->startAngleZ1 = program->startAngleZ1 > 180.0f ? 180.0f : program->startAngleZ1;
-	program->startAngleX = program->startAngleX > 180.0f ? 180.0f : program->startAngleX;
-	program->startAngleZ2 = program->startAngleZ2 > 180.0f ? 180.0f : program->startAngleZ2;
+	program->startAngle.x = program->startAngle.x < -180.0f ? -180.0f : program->startAngle.x;
+	program->startAngle.y = program->startAngle.y < -180.0f ? -180.0f : program->startAngle.y;
+	program->startAngle.z = program->startAngle.z < -180.0f ? -180.0f : program->startAngle.z;
+	program->startAngle.x = program->startAngle.x > 180.0f ? 180.0f : program->startAngle.x;
+	program->startAngle.y = program->startAngle.y > 180.0f ? 180.0f : program->startAngle.y;
+	program->startAngle.z = program->startAngle.z > 180.0f ? 180.0f : program->startAngle.z;
 
-	program->endAngleZ1 = program->endAngleZ1 < -180.0f ? -180.0f : program->endAngleZ1;
-	program->endAngleX = program->endAngleX < -180.0f ? -180.0f : program->endAngleX;
-	program->endAngleZ2 = program->endAngleZ2 < -180.0f ? -180.0f : program->endAngleZ2;
-	program->endAngleZ1 = program->endAngleZ1 > 180.0f ? 180.0f : program->endAngleZ1;
-	program->endAngleX = program->endAngleX > 180.0f ? 180.0f : program->endAngleX;
-	program->endAngleZ2 = program->endAngleZ2 > 180.0f ? 180.0f : program->endAngleZ2;
+	program->endAngle.x = program->endAngle.x < -180.0f ? -180.0f : program->endAngle.x;
+	program->endAngle.y = program->endAngle.y < -180.0f ? -180.0f : program->endAngle.y;
+	program->endAngle.z = program->endAngle.z < -180.0f ? -180.0f : program->endAngle.z;
+	program->endAngle.x = program->endAngle.x > 180.0f ? 180.0f : program->endAngle.x;
+	program->endAngle.y = program->endAngle.y > 180.0f ? 180.0f : program->endAngle.y;
+	program->endAngle.z = program->endAngle.z > 180.0f ? 180.0f : program->endAngle.z;
 
-	program->startQuatX = program->startQuatX < -1.0f ? -1.0f : program->startQuatX;
-	program->startQuatY = program->startQuatY < -1.0f ? -1.0f : program->startQuatY;
-	program->startQuatZ = program->startQuatZ < -1.0f ? -1.0f : program->startQuatZ;
-	program->startQuatW = program->startQuatW < -1.0f ? -1.0f : program->startQuatW;
+	program->startQuat.x = program->startQuat.x < -1.0f ? -1.0f : program->startQuat.x;
+	program->startQuat.y = program->startQuat.y < -1.0f ? -1.0f : program->startQuat.y;
+	program->startQuat.z = program->startQuat.z < -1.0f ? -1.0f : program->startQuat.z;
+	program->startQuat.w = program->startQuat.w < -1.0f ? -1.0f : program->startQuat.w;
 
-	program->startQuatX = program->startQuatX > 1.0f ? 1.0f : program->startQuatX;
-	program->startQuatY = program->startQuatY > 1.0f ? 1.0f : program->startQuatY;
-	program->startQuatZ = program->startQuatZ > 1.0f ? 1.0f : program->startQuatZ;
-	program->startQuatW = program->startQuatW > 1.0f ? 1.0f : program->startQuatW;
+	program->startQuat.x = program->startQuat.x > 1.0f ? 1.0f : program->startQuat.x;
+	program->startQuat.y = program->startQuat.y > 1.0f ? 1.0f : program->startQuat.y;
+	program->startQuat.z = program->startQuat.z > 1.0f ? 1.0f : program->startQuat.z;
+	program->startQuat.w = program->startQuat.w > 1.0f ? 1.0f : program->startQuat.w;
 
-	program->endQuatX = program->endQuatX < -1.0f ? -1.0f : program->endQuatX;
-	program->endQuatY = program->endQuatY < -1.0f ? -1.0f : program->endQuatY;
-	program->endQuatZ = program->endQuatZ < -1.0f ? -1.0f : program->endQuatZ;
-	program->endQuatW = program->endQuatW < -1.0f ? -1.0f : program->endQuatW;
+	program->endQuat.x = program->endQuat.x < -1.0f ? -1.0f : program->endQuat.x;
+	program->endQuat.y = program->endQuat.y < -1.0f ? -1.0f : program->endQuat.y;
+	program->endQuat.z = program->endQuat.z < -1.0f ? -1.0f : program->endQuat.z;
+	program->endQuat.w = program->endQuat.w < -1.0f ? -1.0f : program->endQuat.w;
 
-	program->endQuatX = program->endQuatX > 1.0f ? 1.0f : program->endQuatX;
-	program->endQuatY = program->endQuatY > 1.0f ? 1.0f : program->endQuatY;
-	program->endQuatZ = program->endQuatZ > 1.0f ? 1.0f : program->endQuatZ;
-	program->endQuatW = program->endQuatW > 1.0f ? 1.0f : program->endQuatW;
+	program->endQuat.x = program->endQuat.x > 1.0f ? 1.0f : program->endQuat.x;
+	program->endQuat.y = program->endQuat.y > 1.0f ? 1.0f : program->endQuat.y;
+	program->endQuat.z = program->endQuat.z > 1.0f ? 1.0f : program->endQuat.z;
+	program->endQuat.w = program->endQuat.w > 1.0f ? 1.0f : program->endQuat.w;
 
-	if (program->startQuatX == 0.0f && program->startQuatY == 0.0f && program->startQuatZ == 0.0f && program->startQuatW == 0.0f)
-		program->startQuatW = 1.0f;
-	if (program->endQuatX == 0.0f && program->endQuatY == 0.0f && program->endQuatZ == 0.0f && program->endQuatW == 0.0f)
-		program->endQuatW = 1.0f;
+	if (program->startQuat.x == 0.0f && program->startQuat.y == 0.0f && program->startQuat.z == 0.0f && program->startQuat.w == 0.0f)
+		program->startQuat.w = 1.0f;
+	if (program->endQuat.x == 0.0f && program->endQuat.y == 0.0f && program->endQuat.z == 0.0f && program->endQuat.w == 0.0f)
+		program->endQuat.w = 1.0f;
 
 
-	glm::quat quat;
-	quat.x = program->startQuatX;
-	quat.y = program->startQuatY;
-	quat.z = program->startQuatZ;
-	quat.w = program->startQuatW;
-	quat = glm::normalize(quat);
-	program->startQuatX = quat.x;
-	program->startQuatY = quat.y;
-	program->startQuatZ = quat.z;
-	program->startQuatW = quat.w;
-
-	quat.x = program->endQuatX;
-	quat.y = program->endQuatY;
-	quat.z = program->endQuatZ;
-	quat.w = program->endQuatW;
-	quat = glm::normalize(quat);
-	program->endQuatX = quat.x;
-	program->endQuatY = quat.y;
-	program->endQuatZ = quat.z;
-	program->endQuatW = quat.w;
+	program->startQuat = glm::normalize(program->startQuat);
+	program->endQuat = glm::normalize(program->endQuat);
 }
 
 void Simulate()
@@ -487,39 +299,25 @@ void Simulate()
 		program->simulating = false;
 	}
 
-	float xPos = program->startX + program->t * (program->endX - program->startX);
-	float yPos = program->startY + program->t * (program->endY - program->startY);
-	float zPos = program->startZ + program->t * (program->endZ - program->startZ);
+	auto pos = program->startPos + program->t * (program->endPos - program->startPos);
 
-	program->wind1->figures[0]->MoveTo(xPos, yPos, zPos);
 
-	float angleZ1 = program->startAngleZ1 + program->t * (program->endAngleZ1 - program->startAngleZ1);
-	float angleX = program->startAngleX + program->t * (program->endAngleX - program->startAngleX);
-	float angleZ2 = program->startAngleZ2 + program->t * (program->endAngleZ2 - program->startAngleZ2);
+	program->wind1->figures[0]->MoveTo(pos.x, pos.y, pos.z);
 
-	program->wind1->figures[0]->SetRotation(EulerToQuat(angleZ1, angleX, angleZ2));
+	glm::vec3 angles = program->startAngle + program->t * program->diffAngle;
+	program->wind1->figures[0]->SetRotation(EulerToQuat(angles));
 
-	program->wind2->figures[0]->MoveTo(xPos, yPos, zPos);
+	program->wind2->figures[0]->MoveTo(pos.x, pos.y, pos.z);
 	if (program->spherical)
 	{
-		//TODO spherical interpolation
+		glm::quat quat = glm::slerp(program->startQuat, program->endQuat, program->t);
+		quat = glm::normalize(quat);
+		program->wind2->figures[0]->SetRotation(quat);
 	}
 	else
 	{
-		glm::quat quatStart;
-		quatStart.x = program->startQuatX;
-		quatStart.y = program->startQuatY;
-		quatStart.z = program->startQuatZ;
-		quatStart.w = program->startQuatW;
-		glm::quat quatEnd;
-		quatEnd.x = program->endQuatX;
-		quatEnd.y = program->endQuatY;
-		quatEnd.z = program->endQuatZ;
-		quatEnd.w = program->endQuatW;
-
-
-		glm::quat quat = quatStart + program->t * (quatEnd - quatStart);
-
+		//TODO
+		glm::quat quat = glm::lerp(program->startQuat, program->endQuat, program->t);
 		program->wind2->figures[0]->SetRotation(quat);
 	}
 
@@ -528,33 +326,23 @@ void Simulate()
 
 void SetPositions()
 {
-	program->wind1->figures[0]->MoveTo(program->startX, program->startY, program->startZ);
+	program->wind1->figures[0]->MoveTo(program->startPos.x, program->startPos.y, program->startPos.z);
 	if (program->setQuats)
 	{
-		glm::quat quat;
-		quat.x = program->startQuatX;
-		quat.y = program->startQuatY;
-		quat.z = program->startQuatZ;
-		quat.w = program->startQuatW;
-		program->wind1->figures[0]->SetRotation(quat);
+		program->wind1->figures[0]->SetRotation(program->startQuat);
 	}
 	else
 	{
-		program->wind1->figures[0]->SetRotation(EulerToQuat(program->startAngleZ1, program->startAngleX, program->startAngleZ2));
+		program->wind1->figures[0]->SetRotation(EulerToQuat(program->startAngle));
 	}
-	program->wind2->figures[0]->MoveTo(program->endX, program->endY, program->endZ);
+	program->wind2->figures[0]->MoveTo(program->endPos.x, program->endPos.y, program->endPos.z);
 	if (program->setQuats)
 	{
-		glm::quat quat;
-		quat.x = program->endQuatX;
-		quat.y = program->endQuatY;
-		quat.z = program->endQuatZ;
-		quat.w = program->endQuatW;
-		program->wind2->figures[0]->SetRotation(quat);
+		program->wind2->figures[0]->SetRotation(program->endQuat);
 	}
 	else
 	{
-		program->wind2->figures[0]->SetRotation(EulerToQuat(program->endAngleZ1, program->endAngleX, program->endAngleZ2));
+		program->wind2->figures[0]->SetRotation(EulerToQuat(program->endAngle));
 	}
 }
 
@@ -754,3 +542,108 @@ int main()
 
 
 
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (ImGui::GetIO().WantCaptureMouse) return;
+	glm::vec2 mousePos = { xpos,ypos };
+	glm::vec2 diff = mousePos - mousePosOld;
+	double xDiff = (double)diff.x / program->current_width;
+	double yDiff = (double)diff.y / program->current_height;
+	int lShiftState = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
+	int lAltState = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
+	int rAltState = glfwGetKey(window, GLFW_KEY_RIGHT_ALT);
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+	{
+		if (lAltState == GLFW_PRESS)
+		{
+			glm::vec4 lRayStart_NDC(
+				((float)mousePosOld.x / (float)program->current_width - 0.5f) * 2.0f,
+				-((float)mousePosOld.y / (float)program->current_height - 0.5f) * 2.0f,
+				-1.0,
+				1.0f
+			);
+			glm::vec4 lRayEnd_NDC(
+				((float)mousePosOld.x / (float)program->current_width - 0.5f) * 2.0f,
+				-((float)mousePosOld.y / (float)program->current_height - 0.5f) * 2.0f,
+				0.0,
+				1.0f
+			);
+
+			glm::vec4 lRayStart_camera = program->cam->GetInvProjectionMatrix() * lRayStart_NDC;    lRayStart_camera /= -lRayStart_camera.w;
+			glm::vec4 lRayStart_world = program->cam->GetInvViewportMatrix() * lRayStart_camera; lRayStart_world /= lRayStart_world.w;
+			glm::vec4 lRayEnd_camera = program->cam->GetInvProjectionMatrix() * lRayEnd_NDC;      lRayEnd_camera /= -lRayEnd_camera.w;
+			glm::vec4 lRayEnd_world = program->cam->GetInvViewportMatrix() * lRayEnd_camera;   lRayEnd_world /= lRayEnd_world.w;
+			glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
+			lRayDir_world = glm::normalize(lRayDir_world);
+
+			float minLength = 9999.0f;
+		}
+		else
+		{
+			for (int i = 0; i < program->currentWindow->figures.size(); ++i)
+			{
+				if (program->currentWindow->figures[i]->CanMove())
+				{
+					program->currentWindow->figures[i]->MoveVec(40 * xDiff, program->cam->right);
+					if (rAltState == GLFW_PRESS)
+						program->currentWindow->figures[i]->MoveVec(-40 * yDiff, program->cam->front);
+					else
+						program->currentWindow->figures[i]->MoveVec(-40 * yDiff, program->cam->up);
+				}
+			}
+		}
+	}
+
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	{
+		if (lShiftState == GLFW_PRESS)
+		{
+			double xAngle = 2 * yDiff;
+			double yAngle = 2 * xDiff;
+
+			glm::vec3 camVec = program->cam->pos - lookAt;
+			camVec = ArbitraryRotate(camVec, xAngle, program->cam->right);
+			program->cam->LookAt(lookAt + camVec, ArbitraryRotate(program->cam->front, xAngle, program->cam->right), ArbitraryRotate(program->cam->up, xAngle, program->cam->right));
+
+
+			camVec = program->cam->pos - lookAt;
+			camVec = ArbitraryRotate(camVec, yAngle, program->cam->up);
+			program->cam->LookAt(lookAt + camVec, ArbitraryRotate(program->cam->front, yAngle, program->cam->up), program->cam->up);
+		}
+		else
+		{
+			float xAngle = 2 * yDiff;
+			float yAngle = 2 * xDiff;
+
+			for (int i = 0; i < program->currentWindow->figures.size(); ++i)
+			{
+				if (program->currentWindow->figures[i]->CanMove())
+				{
+					if (rotate)
+					{
+						program->currentWindow->figures[i]->RotateAround(glm::vec3(0.0f, 0.0f, 0.0f), program->cam->up, yAngle);
+						program->currentWindow->figures[i]->RotateAround(glm::vec3(0.0f, 0.0f, 0.0f), program->cam->right, xAngle);
+					}
+				}
+			}
+		}
+	}
+	mousePosOld = mousePos;
+}
+
+void window_focus_callback(GLFWwindow* window, int focused)
+{
+	if (focused)
+	{
+		bool w1 = (window == program->wind1->window);
+		program->wind1->focused = w1;
+		program->wind2->focused = !w1;
+	}
+}
+
+
+
+void window_size_callback(GLFWwindow* window, int width, int height) {
+	program->current_width = width;
+	program->current_height = height;
+}
