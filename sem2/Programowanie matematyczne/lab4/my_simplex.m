@@ -66,7 +66,7 @@ function [] = print_simplex(j,A,b,c,base,z,z_c)
     fprintf("Step: %i\n", j);
 
     fprintf("-------------------------------------------------------------------------------------------------------------------- \n");
-    fprintf("\n           c  ||");
+    fprintf("\n          c  ||");
     for j = 1:length(c)
         if abs(c(j)) < eps
             c(j) = 0;
@@ -101,7 +101,7 @@ function [] = print_simplex(j,A,b,c,base,z,z_c)
         end
         fprintf("| %0.3f \n",b(i))
     end
-    fprintf("           z  ||");
+    fprintf("          z  ||");
     for j = 1:length(c)
         if abs(z(j)) < eps
             z(j) = 0;
@@ -112,7 +112,7 @@ function [] = print_simplex(j,A,b,c,base,z,z_c)
             fprintf("  %0.3f ", z(j))
         end
     end
-    fprintf("\n          z-c ||");
+    fprintf("\n         z-c ||");
     for j = 1:length(c)
         if abs(z_c(j)) < eps
             z_c(j) = 0;

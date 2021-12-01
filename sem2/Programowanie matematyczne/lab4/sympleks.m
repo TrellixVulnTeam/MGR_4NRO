@@ -1,4 +1,6 @@
-function[x,retval,j,exitflag, x_primary] = compute_dual(c,A,b)
+function[ROx, ROy, exitflag] = sympleks(c,A,b,g)
+    [c,A,b]=get_dual(c,A,b,g);
+    c=-c;
     neg = b<0;
     [~,ind] = find(neg,10);
     b(ind)=-b(ind);
@@ -13,7 +15,8 @@ function[x,retval,j,exitflag, x_primary] = compute_dual(c,A,b)
             base(i) = i+5;
         end
     end
-    [x,retval,j,exitflag,A2,retbase] = my_simplex(A,b',c',base,0);
+    [ROy,retval,j,exitflag,A2,retbase] = my_simplex(A,b',c',base,1);
     A2(:,base(ind)) = -A2(:,base(ind));
-    x_primary = c(retbase)' * A2(:,base);
+    ROx = c(retbase)' * A2(:,base);
+    ROy=ROy';
 end
