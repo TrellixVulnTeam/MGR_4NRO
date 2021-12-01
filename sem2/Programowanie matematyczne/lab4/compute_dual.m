@@ -1,4 +1,4 @@
-function[x,retval,j,exitflag] = compute_dual(c,A,b)
+function[x,retval,j,exitflag, x_primary] = compute_dual(c,A,b)
     neg = b<0;
     [~,ind] = find(neg,10);
     b(ind)=-b(ind);
@@ -15,8 +15,6 @@ function[x,retval,j,exitflag] = compute_dual(c,A,b)
     end
     
     [x,retval,j,exitflag,A2,retbase] = my_simplex(A,b',c',base,0);
-
-    A2= A2(:,base);
-    A2(:,ind) = -A2(:,ind);
-    x = -(A2\x(retbase));
+    A2(:,base(ind)) = -A2(:,base(ind));
+    x_primary = c(retbase)' * A2(:,base);
 end
