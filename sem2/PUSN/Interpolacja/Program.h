@@ -60,6 +60,6 @@ public:
 	std::shared_ptr<Window> wind2 = {};
 
 	float t = 0;
-	float simSpeed = 0;
+	float simTime = 1.0f;
 };
 

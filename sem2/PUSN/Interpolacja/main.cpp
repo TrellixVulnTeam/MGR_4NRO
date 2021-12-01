@@ -23,7 +23,7 @@ bool rotate = false;
 glm::vec2 mousePosOld;
 glm::vec3 lookAt;
 std::shared_ptr<Program> program = {};
-
+double lastTime;
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void window_focus_callback(GLFWwindow* window, int focused);
 void window_size_callback(GLFWwindow* window, int width, int height);
@@ -259,15 +259,17 @@ void RenderGui()
 		{
 			program->simulating = true;
 			program->t = 0;
-
+			lastTime = glfwGetTime();
 			RecalcParams();
 		}
 	}
-	ImGui::SliderFloat("Simulation speed", &program->simSpeed, 0.0f, 10.0f);
+	ImGui::SliderFloat("Simulation time", &program->simTime, 1.0f, 10.0f);
 
 	ImGui::End();
 
 #pragma region valuesCheck
+	if (program->simTime < 1.0f)program->simTime = 1.0f;
+	if (program->simTime > 10.0f)program->simTime = 10.0f;
 
 	program->startAngle.x = program->startAngle.x < -180.0f ? -180.0f : program->startAngle.x;
 	program->startAngle.y = program->startAngle.y < -180.0f ? -180.0f : program->startAngle.y;
@@ -315,8 +317,8 @@ void RenderGui()
 
 void Simulate()
 {
-	if (program->simSpeed < 0.0f) program->simSpeed = 0.0f;
-
+	auto time = glfwGetTime();
+	program->t = (time - lastTime) / (program->simTime);
 	if (program->t >= 1.0f)
 	{
 		program->t = 1.0f;
@@ -342,8 +344,6 @@ void Simulate()
 		glm::quat quat = glm::normalize(glm::lerp(program->startQuat, program->endQuat, program->t));
 		program->wind2->figures[0]->SetRotation(quat);
 	}
-
-	program->t += program->simSpeed / 1000;
 }
 
 void SetPositions()
@@ -509,7 +509,7 @@ int main()
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
-	double lastTime = glfwGetTime();
+	
 
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(window2))
 	{
