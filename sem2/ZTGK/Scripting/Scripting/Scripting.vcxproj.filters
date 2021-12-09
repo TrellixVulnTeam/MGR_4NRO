@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Resource Files\Meshes">
+      <UniqueIdentifier>{ee8dc0ab-69ef-4793-8e2d-713fc377cb26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Geometry">
+      <UniqueIdentifier>{eebcb01b-6471-4ca0-9cf2-681da2ccd555}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Geometry">
+      <UniqueIdentifier>{b6157005-be11-4d58-8fe4-c1cd8a112c6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Geometry\Mesh">
+      <UniqueIdentifier>{2f8fef83-ff19-43ee-9b55-69dc7acd190f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Geometry\Mesh">
+      <UniqueIdentifier>{f7e373c7-ba6b-4e85-a3ef-18f4f7794fa3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Shaders">
+      <UniqueIdentifier>{ca41ba60-d507-455a-b521-25628f8bdce2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Gk2BaseClasses">
+      <UniqueIdentifier>{e5ebef53-457a-453e-8adf-6ce50e08455f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Gk2BaseClasses">
+      <UniqueIdentifier>{2a488d0c-49b4-4d44-9e2a-617b82d80d39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Meshes\Duck">
+      <UniqueIdentifier>{439e5e91-199e-4b0d-a3f2-286a4b104152}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Textures">
+      <UniqueIdentifier>{a11a50b0-cffa-42a2-96f4-556d0f9a2253}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Textures\Duck">
+      <UniqueIdentifier>{23b79230-cdfb-4457-ae60-a5dcea7050cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Textures">
+      <UniqueIdentifier>{e0fa263e-4d53-4765-a406-d5090d4a46e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Textures">
+      <UniqueIdentifier>{0be11e57-bb35-4011-a7c5-7495d82a9b62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Scripts">
+      <UniqueIdentifier>{7fe23a6d-0388-47aa-bac3-4587981c8713}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Geometry\Edge.h">
+      <Filter>Header Files\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Triangle.h">
+      <Filter>Header Files\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Vector.h">
+      <Filter>Header Files\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Mesh\MeshLoader.h">
+      <Filter>Header Files\Geometry\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Mesh\MeshRobot.h">
+      <Filter>Header Files\Geometry\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Gk2BaseClasses\Gk2ExampleBase.h">
+      <Filter>Header Files\Gk2BaseClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="Gk2BaseClasses\PhongEffect.h">
+      <Filter>Header Files\Gk2BaseClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="Gk2BaseClasses\TexturedEffect.h">
+      <Filter>Header Files\Gk2BaseClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="DuckApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\UV.h">
+      <Filter>Header Files\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Water.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Textures\AbsorptionTexture.h">
+      <Filter>Header Files\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="Textures\HeightMapTexture.h">
+      <Filter>Header Files\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="Textures\WaveTexture.h">
+      <Filter>Header Files\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="Gk2BaseClasses\MultiTexturedEffect.h">
+      <Filter>Header Files\Gk2BaseClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="Script.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Geometry\Mesh\MeshLoader.cpp">
+      <Filter>Source Files\Geometry\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry\Mesh\MeshRobot.cpp">
+      <Filter>Source Files\Geometry\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry\Edge.cpp">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry\Triangle.cpp">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry\Vector.cpp">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Gk2BaseClasses\Gk2ExampleBase.cpp">
+      <Filter>Source Files\Gk2BaseClasses</Filter>
+    </ClCompile>
+    <ClCompile Include="DuckApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry\UV.cpp">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Water.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Textures\AbsorptionTexture.cpp">
+      <Filter>Source Files\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="Textures\HeightMapTexture.cpp">
+      <Filter>Source Files\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="Textures\WaveTexture.cpp">
+      <Filter>Source Files\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="Script.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptAPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\DuckTexPixelShader.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\DuckTexVertexShader.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\WaterPixelShader.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\WaterVertexShader.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\EnvTexturedPixelShader.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\EnvTexturedVertexShader.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Duck_Mesh\duck.txt">
+      <Filter>Resource Files\Meshes\Duck</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Duck_Mesh\ducktex.jpg">
+      <Filter>Resource Files\Textures\Duck</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Scripts\DuckScript.py">
+      <Filter>Resource Files\Scripts</Filter>
+    </None>
+  </ItemGroup>
+</Project>
