@@ -53,6 +53,10 @@ void Camera::SetPerspective(float w, float ipd, float d, float h, bool left)
 	m_projection_matrix = persp;
 	m_inv_projection_matrix = glm::inverse(m_projection_matrix);
 }
+void Camera::SetOrtographic(float aspect)
+{
+	m_projection_matrix = glm::orthoRH(-1.0f * aspect, 1.0f * aspect, -1.0f, 1.0f, 1.0f, -1.0f);;
+}
 void Camera::LookAt(glm::vec3 pos, glm::vec3 front, glm::vec3 up)
 {
 	this->pos = pos;
@@ -79,5 +83,4 @@ void Camera::LookAt(glm::vec3 pos, glm::vec3 front, glm::vec3 up)
 	Result[3][2] = glm::dot(f, pos);
 	m_viewport_matrix = Result;
 	m_inv_viewport_matrix = glm::inverse(m_viewport_matrix);
-	//m_world_matrix = glm::lookAt(pos, pos + front, up);
 }

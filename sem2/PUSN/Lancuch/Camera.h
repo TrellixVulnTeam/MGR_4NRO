@@ -15,6 +15,8 @@ public:
 	void SetPerspective(float aspect);
 	void SetPerspective(float w, float ipd, float d, float h, bool left);
 
+	void SetOrtographic(float aspect);
+
 	void LookAt(glm::vec3 pos, glm::vec3 front, glm::vec3 up);
 	void ResetPosition();
 

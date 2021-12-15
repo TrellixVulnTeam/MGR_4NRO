@@ -105,6 +105,45 @@ void Simulate()
 	{
 		program->t = 1.0f;
 		program->simulating = false;
+		if (path.size() > 0)
+		{
+			auto cur = path[path.size() - 1];
+			program->currentWindow->tool->alpha = cur.x;
+			program->currentWindow->tool->beta = cur.y;
+		}
+		return;
+	}
+	if (path.size() == 1)
+	{
+		auto cur = path[0];
+		program->currentWindow->tool->alpha = cur.x;
+		program->currentWindow->tool->beta = cur.y;
+	}
+	if (path.size() > 1)
+	{
+		float t = program->t;
+		int j = -1;
+		int split = path.size() - 1;
+		for (int i = 0; i < path.size() && j == -1; ++i)
+		{
+			float from = (float)i / split;
+			float to = (float)(i + 1) / split;
+			if (from <= t && to > t)
+				j = i;
+		}
+
+		float from = (float)j / split;
+		float to = (float)(j + 1) / split;
+		float tNew = (t - from) / (to - from);
+
+		auto p1 = path[j];
+		auto p2 = path[j + 1];
+		if (p1.x==359 && p2.x == 0) p2.x = 360.0f;
+		if (p1.y==359 && p2.y == 0) p2.y = 360.0f;
+		if (p2.x==359 && p1.x == 0) p1.x = 360.0f;
+		if (p2.y==359 && p1.y == 0) p1.y = 360.0f;
+		program->currentWindow->tool->alpha = tNew * p2.x + (1.0f - tNew) * p1.x;
+		program->currentWindow->tool->beta = tNew * p2.y + (1.0f - tNew) * p1.y;
 	}
 }
 
@@ -585,10 +624,10 @@ void RenderGui()
 							if (ImGui::TreeNode((std::string("Obstacle - ") + std::to_string(i)).c_str()))
 							{
 
-								ImGui::SliderFloat("xPos", &obstacle->x, -1.0f, 1.0f);
-								ImGui::SliderFloat("yPos", &obstacle->y, -1.0f, 1.0f);
-								ImGui::SliderFloat("width", &obstacle->width, 0.01f, 1.0f);
-								ImGui::SliderFloat("height", &obstacle->height, 0.01f, 1.0f);
+								ImGui::SliderFloat("xPos", &obstacle->x, -2.0f, 2.0f);
+								ImGui::SliderFloat("yPos", &obstacle->y, -2.0f, 2.0f);
+								ImGui::SliderFloat("width", &obstacle->width, 0.01f, 2.0f);
+								ImGui::SliderFloat("height", &obstacle->height, 0.01f, 2.0f);
 								if (ImGui::Button("Remove"))
 								{
 									i--;
@@ -728,7 +767,7 @@ int main()
 
 	program->cam = std::make_shared<Camera>();
 	//	program->cam = new Camera();
-	program->cam->LookAt({ 0,0,10 }, { 0,0,-1 }, { 0,1,0 });
+	program->cam->LookAt({ 0,0,1 }, { 0,0,-1 }, { 0,1,0 });
 
 	program->currentWindow->tool = std::make_shared<Tool>();
 	program->currentWindow->tool->Initialize(program);
@@ -754,7 +793,7 @@ int main()
 			Simulate();
 		}
 		float aspect = (float)program->current_width / (float)program->current_height;
-		program->cam->SetPerspective(aspect);
+		program->cam->SetOrtographic(aspect);
 
 		glfwMakeContextCurrent(window);
 		ImGui_ImplOpenGL3_NewFrame();
