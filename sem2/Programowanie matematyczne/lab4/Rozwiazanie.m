@@ -3,7 +3,7 @@ clear;
 clc;
 opcje = optimset(@linprog);
 opcje = optimset(opcje,'Display','none');
-N = 10;
+N = 1;
 
 wrong_dual = 0;
 wrong_dual_val = 0;
@@ -19,13 +19,14 @@ for i = 1:N
     [x,fval,exitflag,output,lambda] = linprog(-c,A,b,[],[],-g,g,opcje);
     [c2,A2,b2]=get_dual(c,A,b,g);
     %[ROx,ROy,exitflagg]=sympleks(c,A,b,g)
-
+    x
     lb = zeros(15,1);
     ub = Inf*ones(15,1);
     [x2,fval2,exitflag2,output2,lambda2] = linprog(c2,[],[],-A2,-b2,lb,ub,opcje);
     j = output2.iterations;
     total1 = total1 + j;
     [x_my,retval,j2,exitflag_my, x_primary] = compute_dual(-c2,A2,b2);
+    x_primary
     total2 = total2 + j2;
     myval = c * x_primary';
     if abs(fval2+fval)>1e-6
@@ -53,12 +54,12 @@ for i = 1:N
     %lambda2
 end
 
-wrong_dual
-wrong_dual_val
-wrong_val
-my_better
-diff_vec
-mean1 = total1/N
-mean2 = total2/N
-max1
-max2
+% wrong_dual
+% wrong_dual_val
+% wrong_val
+% my_better
+% diff_vec
+% mean1 = total1/N
+% mean2 = total2/N
+% max1
+% max2

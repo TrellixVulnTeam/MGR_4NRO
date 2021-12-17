@@ -15,5 +15,5 @@ function[x,retval,j,exitflag, x_primary] = compute_dual(c,A,b)
     end
     [x,retval,j,exitflag,A2,retbase] = my_simplex(A,b',c',base,0);
     A2(:,base(ind)) = -A2(:,base(ind));
-    x_primary = c(retbase)' * A2(:,base);
+    x_primary = -c(retbase)' * A2(:,base);
 end
