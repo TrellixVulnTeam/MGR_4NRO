@@ -58,6 +58,16 @@ void Tool::InverseKinematics(glm::vec2 pos)
 		program->error = std::string("Can't set tool in that position");
 		return;
 	}
+	if (len2 > len1+dist)
+	{
+		program->error = std::string("Can't set tool in that position");
+		return;
+	}
+	if (len1 > len2 + dist)
+	{
+		program->error = std::string("Can't set tool in that position");
+		return;
+	}
 
 	double g1 = acos((l1 * l1 + l2 * l2 - dist * dist) / (2 * l1 * l2));
 	double g2 = 2 * M_PI - g1;

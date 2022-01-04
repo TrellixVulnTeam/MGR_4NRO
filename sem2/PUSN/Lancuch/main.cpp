@@ -822,20 +822,18 @@ int main()
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-	double xpos, ypos;
-	glfwGetCursorPos(window, &xpos, &ypos);
+	double x_pos, y_pos;
+	glfwGetCursorPos(window, &x_pos, &y_pos);
 	int lCtrlState = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
 	int lAltState = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && lCtrlState == GLFW_PRESS)
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && lAltState == GLFW_PRESS)
 	{
 		if (program->edition && !program->selection)
 		{
-			glm::vec2 pos(
-				((float)xpos / (float)program->current_width - 0.5f) * 2.0f,
-				-((float)ypos / (float)program->current_height - 0.5f) * 2.0f
-			);
+			float aspect = (float)program->current_width / (float)program->current_height;
+			glm::vec2 mousePos = glm::vec2(((x_pos / program->current_width) * 2.0f - 1.0f) * aspect, -((y_pos / program->current_height) * 2.0f - 1.0f));
 
-			program->currentWindow->tool->InverseKinematics(pos);
+			program->currentWindow->tool->InverseKinematics(mousePos);
 		}
 	}
 
