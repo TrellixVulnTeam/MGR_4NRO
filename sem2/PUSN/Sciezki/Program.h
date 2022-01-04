@@ -61,5 +61,6 @@ public:
 	bool showTexSL = false;
 	bool showTexT  = false;  
 	bool showTexP  = false;  
+	float r = 5.0f;
 };
 

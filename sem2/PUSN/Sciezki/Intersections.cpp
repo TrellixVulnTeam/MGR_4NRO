@@ -39,7 +39,7 @@ glm::vec3 GetPos(Figure* f, float u, float v)
 
 glm::vec3 GetToolPos(Figure* f, float u, float v, int normDir)
 {
-	float r = 5.0f;
+	float r = 4.0f;
 	glm::vec3 pos = GetPos(f, u, v);
 
 	auto der1 = glm::normalize(GetDer(f, u, v, true));

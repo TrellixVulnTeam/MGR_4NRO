@@ -704,11 +704,11 @@ void RenderGui()
 			std::ofstream out_file;
 			out_file.open("paths.k16");
 
-			int n = 0;
+			int n = 1;
 
-			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 0.0f << "Y" << 0.0f << "Z" << 70.0f << std::endl;
+			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 0.0f << "Y" << 0.0f << "Z" << 60.0f << std::endl;
 			n++;
-			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 60.0f << std::endl;
 			n++;
 			for (int i = 0; i < split2; ++i)
 			{
@@ -744,6 +744,8 @@ void RenderGui()
 
 				}
 			}
+			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 75.0f << "Y" << 75.0f << "Z" << 60.0f << std::endl;
+			n++;
 			out_file.close();
 
 			r = ceil(8.0f / cellSize);
@@ -1272,7 +1274,10 @@ void RenderGui()
 				else
 					ii++;
 			}
+			n = 1;
 			out_file.open("paths.f12");
+			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << points1[0].x << "Y" << points1[0].z << "Z" << 75.0f << std::endl;
+			n++;
 			for (int i = 0; i < points1.size(); ++i)
 			{
 				auto pos = points1[i];
@@ -1282,7 +1287,11 @@ void RenderGui()
 				//	f->Initialize(program);
 				//	f->MoveTo(pos.x, pos.y, pos.z);
 				//	program->figures.push_back(f);
+				n++;
 			}
+			j = points1.size() - 1;
+			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << points1[j].x << "Y" << points1[j].z << "Z" << 75.0f << std::endl;
+			n++;
 			out_file.close();
 
 			auto stop = high_resolution_clock::now();
@@ -1358,6 +1367,12 @@ void RenderGui()
 			std::vector<glm::vec3> ppoints2;
 			std::vector<glm::vec3> ppoints3;
 			float r = 5.0f;
+			int t = 1;
+			while (t < points1.size()) { points1.erase(points1.begin() + t); t++; }
+			t = 1;
+			while (t < points2.size()) { points2.erase(points2.begin() + t); t++; }
+			t = 1;
+			while (t < points3.size()) { points3.erase(points3.begin() + t); t++; }
 			for (int i = 1; i < points1.size() - 1; ++i)
 			{
 				glm::vec3 v = points1[i + 1] - points1[i - 1];
@@ -1481,7 +1496,7 @@ void RenderGui()
 			std::ofstream out_file;
 			out_file.open("paths.f10");
 
-			int n = 0;
+			int n = 1;
 
 			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 0.0f << "Y" << 0.0f << "Z" << 70.0f << std::endl;
 			n++;
@@ -1493,6 +1508,7 @@ void RenderGui()
 			{
 				auto pos = points[i];
 				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << 15.0f << std::endl;
+				n++;
 			}
 			out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << 85.0f << "Y" << -85.0f << "Z" << 15.0f << std::endl;
 			n++;
@@ -1541,6 +1557,9 @@ void RenderGui()
 			std::vector<std::vector<glm::vec2>>pointsSL;
 			std::vector<std::vector<glm::vec2>>pointsT;
 			std::vector<std::vector<glm::vec2>>pointsP;
+			std::ofstream out_file;
+			out_file.open("dokladna.k08");
+			int n_file = 1;
 			bool lt = true;
 			bool pt = true;
 			bool ls = true;
@@ -1812,21 +1831,42 @@ void RenderGui()
 					for (int i = 0; i < pointsSL[1].size(); i++)
 						pnts.push_back(pointsSL[1][i]);
 
-
+					int n=60;
 					float fromU = 0.3f;
 					float toU = 0.97;
-					float fromV = 0.0f;
-					float toV = 1.0f;
-					int n = 100;
 					float diffU = (toU - fromU) / n;
+
+					float fromV = 0.001f;
+					float toV = 0.999f;
 					float diffV = (toV - fromV) / n;
+					auto u1 = toU - diffU;
+					auto u2 = toU;
+					for (int i = 0; i <= n; ++i)
+					{
+						float v = fromV + i * diffV;
+						auto p1 = GetToolPos(ff, u1, v, 1);
+						auto p2 = GetToolPos(ff, u2, v, 1);
+						drillPoints1.push_back(glm::vec3(p2.x, p2.y + 6.0f, p2.z));
+						drillPoints1.push_back(glm::vec3(p2.x, p2.y, p2.z));
+						auto dir = p2 - p1;
+						p2 = p2 + 10.0f * dir;
+						drillPoints1.push_back(glm::vec3(p2.x, p2.y, p2.z));
+						drillPoints1.push_back(glm::vec3(p2.x, p2.y + 6.0f, p2.z));
+					}
+
+
+					fromV = 0.0f;
+					toV = 1.0f;
+
+
+					diffV = (toV - fromV) / n;
 
 					int dir = 1;
 					glm::vec3 last{ 0.0f,0.0f,0.0f };
 					glm::vec3 beforeLast{ 0.0f,0.0f,0.0f };
 					bool any = false;
 					bool doSmth = false;
-					for (int i = 0; i <= n; ++i)
+					for (int i = n; i >= 0; --i)
 					{
 						bool drilling_started = false;
 						bool drilling = false;
@@ -1918,23 +1958,20 @@ void RenderGui()
 						dir = dir * -1;
 					}
 					pnts.push_back(glm::vec3(last.x, last.y + 20.0f, last.z));
-					fromV = 0.001f;
-					toV = 0.999f;
-					diffV = (toV - fromV) / n;
-					auto u1 = toU - diffU;
-					auto u2 = toU;
-					for (int i = 0; i <= n; ++i)
-					{
-						float v = fromV + i * diffV;
-						auto p1 = GetToolPos(ff, u1, v, 1);
-						auto p2 = GetToolPos(ff, u2, v, 1);
-						drillPoints1.push_back(glm::vec3(p2.x, p2.y + 20.0f, p2.z));
-						drillPoints1.push_back(glm::vec3(p2.x, p2.y, p2.z));
-						auto dir = p2 - p1;
-						p2 = p2 + 10.0f * dir;
-						drillPoints1.push_back(glm::vec3(p2.x, p2.y, p2.z));
-						drillPoints1.push_back(glm::vec3(p2.x, p2.y + 20.0f, p2.z));
-					}
+
+
+					/*			Figure* pl = new PointsLine();
+								pl->Initialize(program);
+								for (int i = 0; i < drillPoints1.size(); ++i)
+								{
+									Figure* pp = new Point();
+									pp->Initialize(program);
+									pp->MoveTo(drillPoints1[i].x, drillPoints1[i].y, drillPoints1[i].z);
+									((PointsLine*)pl)->AddPoint(((Point*)pp));
+									program->figures.push_back(pp);
+								}
+								program->figures.push_back(pl);*/
+
 				}
 				if (top2)
 				{
@@ -1947,21 +1984,42 @@ void RenderGui()
 					for (int i = 0; i < pointsSP[1].size(); i++)
 						pnts.push_back(pointsSP[1][i]);
 
-
 					float fromU = 0.3f;
 					float toU = 0.97;
-					float fromV = 0.0f;
-					float toV = 1.0f;
-					int n = 100;
+					int n=60;
+
 					float diffU = (toU - fromU) / n;
+
+					float fromV = 0.001f;
+					float toV = 0.999f;
 					float diffV = (toV - fromV) / n;
+					auto u1 = toU - diffU;
+					auto u2 = toU;
+					for (int i = 0; i <= n; ++i)
+					{
+						float v = fromV + i * diffV;
+						auto p1 = GetToolPos(ff, u1, v, 1);
+						auto p2 = GetToolPos(ff, u2, v, 1);
+						drillPoints2.push_back(glm::vec3(p2.x, p2.y + 20.0f, p2.z));
+						drillPoints2.push_back(glm::vec3(p2.x, p2.y, p2.z));
+						auto dir = p2 - p1;
+						p2 = p2 + 10.0f * dir;
+						drillPoints2.push_back(glm::vec3(p2.x, p2.y, p2.z));
+						drillPoints2.push_back(glm::vec3(p2.x, p2.y + 20.0f, p2.z));
+					}
+
+
+					fromV = 0.0f;
+					toV = 1.0f;
+
+					diffV = (toV - fromV) / n;
 
 					int dir = 1;
 					glm::vec3 last{ 0.0f,0.0f,0.0f };
 					glm::vec3 beforeLast{ 0.0f,0.0f,0.0f };
 					bool any = false;
 					bool doSmth = false;
-					for (int i = 0; i <= n; ++i)
+					for (int i = n; i >= 0; --i)
 					{
 						bool drilling_started = false;
 						bool drilling = false;
@@ -2053,23 +2111,7 @@ void RenderGui()
 						dir = dir * -1;
 					}
 					pnts.push_back(glm::vec3(last.x, last.y + 20.0f, last.z));
-					fromV = 0.001f;
-					toV = 0.999f;
-					diffV = (toV - fromV) / n;
-					auto u1 = toU - diffU;
-					auto u2 = toU;
-					for (int i = 0; i <= n; ++i)
-					{
-						float v = fromV + i * diffV;
-						auto p1 = GetToolPos(ff, u1, v, 1);
-						auto p2 = GetToolPos(ff, u2, v, 1);
-						drillPoints2.push_back(glm::vec3(p2.x, p2.y + 20.0f, p2.z));
-						drillPoints2.push_back(glm::vec3(p2.x, p2.y, p2.z));
-						auto dir = p2 - p1;
-						p2 = p2 + 10.0f * dir;
-						drillPoints2.push_back(glm::vec3(p2.x, p2.y, p2.z));
-						drillPoints2.push_back(glm::vec3(p2.x, p2.y + 20.0f, p2.z));
-					}
+
 				}
 				/*
 				Figure* pl = new PointsLine();
@@ -2097,36 +2139,42 @@ void RenderGui()
 				program->figures.push_back(pl);
 				*/
 
-				std::ofstream out_file;
-				out_file.open("szczyty.k08");
+		/*		std::ofstream out_file;
+				out_file.open("szczyty.k08");*/
 
-				int n = 0;
+				//int n = 1;
 				int j;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
-				n++;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[0].x << "Y" << drillPoints1[0].z << "Z" << 70.0f << std::endl;
-				n++;
-				for (int i = 0; i < drillPoints1.size(); ++i)
-				{
-					auto pos = drillPoints1[i];
-					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+				if (top1) {
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+					n_file++;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints1[0].x << "Y" << drillPoints1[0].z << "Z" << 70.0f << std::endl;
+					n_file++;
+					for (int i = 0; i < drillPoints1.size(); ++i)
+					{
+						auto pos = drillPoints1[i];
+						out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+						n_file++;
+					}
+					j = drillPoints1.size() - 1;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints1[j].x << "Y" << drillPoints1[j].z << "Z" << 70.0f << std::endl;
+					n_file++;
 				}
-				j = drillPoints1.size() - 1;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[j].x << "Y" << drillPoints1[j].z << "Z" << 70.0f << std::endl;
-				n++;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[0].x << "Y" << drillPoints2[0].z << "Z" << 70.0f << std::endl;
-				n++;
-				for (int i = 0; i < drillPoints2.size(); ++i)
-				{
-					auto pos = drillPoints2[i];
-					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+				if (top2) {
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints2[0].x << "Y" << drillPoints2[0].z << "Z" << 70.0f << std::endl;
+					n_file++;
+					for (int i = 0; i < drillPoints2.size(); ++i)
+					{
+						auto pos = drillPoints2[i];
+						out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+						n_file++;
+					}
+					j = drillPoints2.size() - 1;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints2[j].x << "Y" << drillPoints2[j].z << "Z" << 70.0f << std::endl;
+					n_file++;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+					n_file++;
 				}
-				j = drillPoints2.size() - 1;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[j].x << "Y" << drillPoints2[j].z << "Z" << 70.0f << std::endl;
-				n++;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
-				n++;
-				out_file.close();
+				//out_file.close();
 
 			}
 			if (tube1 || tube2)
@@ -2262,45 +2310,32 @@ void RenderGui()
 					Figure* ff = nullptr;
 					for (int i = 0; i < program->figures.size(); ++i) if (strcmp(program->figures[i]->name, "Lewa Tuba") == 0) ff = program->figures[i];
 
-					/*
-					float minx = 2.0f;
-					float miny = 2.0f;
-					float maxx = -2.0f;
-					float maxy = -2.0f;
-					for (int j = 0; j < pnts1.size(); ++j)
+
+					//for (int j = 0; j < pnts1.size(); ++j)
+					//{
+					//	Figure* f = new Point();
+					//	((Point*)f)->special = true;
+					//	f->Initialize(program);
+					//	auto params = pnts1[j];
+
+					//	float v = params.y;
+					//	v = v - 0.5f;
+					//	if (v < 0.0f) v = v + 1.0f;
+					//	params.y = v;
+
+
+					//	auto pos = GetToolPos(ff, params.x, params.y, 1);
+					//	f->MoveTo(pos.x, pos.y, pos.z);
+					//	program->figures.push_back(f);
+					//}
+					std::vector<glm::vec3> kadlub1_v;
+					for (int j = 0; j < pnts2.size(); j += 2)
 					{
-						Figure* f = new Point();
-						((Point*)f)->special = true;
-						f->Initialize(program);
-						auto params = pnts1[j];
-
-						if (params.x < minx) minx = params.x;
-						if (params.y < miny) miny = params.y;
-						if (params.x > maxx) maxx = params.x;
-						if (params.y > maxy) maxy = params.y;
-
-						float v = params.y;
-						v = v - 0.5f;
-						if (v < 0.0f) v = v + 1.0f;
-						params.y = v;
-
-
-						auto pos = GetToolPos(ff, params.x, params.y, 1);
-						f->MoveTo(pos.x, pos.y, pos.z);
-						program->figures.push_back(f);
-					}
-					for (int j = 0; j < pnts2.size(); ++j)
-					{
-						Figure* f = new Point();
-						((Point*)f)->special = true;
-						f->Initialize(program);
+						/*		Figure* f = new Point();
+								((Point*)f)->special = true;
+								f->Initialize(program);*/
 						auto params = pnts2[j];
 
-						if (params.x < minx) minx = params.x;
-						if (params.y < miny) miny = params.y;
-						if (params.x > maxx) maxx = params.x;
-						if (params.y > maxy) maxy = params.y;
-
 						float v = params.y;
 						v = v - 0.5f;
 						if (v < 0.0f) v = v + 1.0f;
@@ -2308,17 +2343,41 @@ void RenderGui()
 
 
 						auto pos = GetToolPos(ff, params.x, params.y, 1);
+						if (pos.y < 0.0f) pos.y = 0.0f;
+						kadlub1_v.push_back(pos);
 						f->MoveTo(pos.x, pos.y, pos.z);
 						program->figures.push_back(f);
 					}
-					*/
+
+
+				/*	std::ofstream out_file;
+					out_file.open("kadlub1_obwod.k08");
+
+					int n = 1;*/
+
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+					n_file++;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << kadlub1_v[0].x << "Y" << kadlub1_v[0].z << "Z" << 70.0f << std::endl;
+					n_file++;
+					for (int i = 0; i < kadlub1_v.size(); ++i)
+					{
+						auto pos = kadlub1_v[i];
+						out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+						n_file++;
+					}
+					int j = kadlub1_v.size() - 1;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << kadlub1_v[j].x << "Y" << kadlub1_v[j].z << "Z" << 70.0f << std::endl;
+					n_file++;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+					n_file++;
+					//out_file.close();
 
 
 					float fromU = 0.01f;
 					float toU = 0.95f;
 					float fromV = 0.22f;
 					float toV = 0.66f;
-					int n = 100;
+					int n=60;
 					float diffU = (toU - fromU) / n;
 					float diffV = (toV - fromV) / n;
 
@@ -2360,8 +2419,8 @@ void RenderGui()
 									auto pos2 = GetToolPos(ff, u_next, v2, 1);
 									if (any && glm::distance(pos2, last) > 2.0f)
 									{
-										drillPoints1.push_back(glm::vec3(last.x, 50.0f, last.z));
-										drillPoints1.push_back(glm::vec3(pos2.x, 50.0f, pos2.z));
+										drillPoints1.push_back(glm::vec3(last.x, 20.0f, last.z));
+										drillPoints1.push_back(glm::vec3(pos2.x, 20.0f, pos2.z));
 										drillPoints1.push_back(pos2);
 									}
 									else
@@ -2378,8 +2437,8 @@ void RenderGui()
 									if (!drilling)
 									{
 										auto pos2 = GetToolPos(ff, u_next, v2, 1);
-										drillPoints1.push_back(glm::vec3(last.x, 50.0f, last.z));
-										drillPoints1.push_back(glm::vec3(pos2.x, 50.0f, pos2.z));
+										drillPoints1.push_back(glm::vec3(last.x, 40.0f, last.z));
+										drillPoints1.push_back(glm::vec3(pos2.x, 40.0f, pos2.z));
 										drillPoints1.push_back(pos2);
 
 										last = pos2;
@@ -2579,11 +2638,54 @@ void RenderGui()
 					}
 					*/
 
+					std::vector<glm::vec3> kadlub2_v;
+					for (int j = 0; j < pnts2.size(); j += 2)
+					{
+						/*			Figure* f = new Point();
+									((Point*)f)->special = true;
+									f->Initialize(program);*/
+						auto params = pnts2[j];
+
+						float v = params.y;
+						v = v - 0.5f;
+						if (v < 0.0f) v = v + 1.0f;
+						params.y = v;
+
+
+						auto pos = GetToolPos(ff, params.x, params.y, 1);
+						if (pos.y < 0.0f) pos.y = 0.0f;
+						kadlub2_v.push_back(pos);
+						/*					f->MoveTo(pos.x, pos.y, pos.z);
+											program->figures.push_back(f);*/
+					}
+
+				/*	std::ofstream out_file;
+					out_file.open("kadlub2_obwod.k08");*/
+
+					//int n = 1;
+
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+					n_file++;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << kadlub2_v[0].x << "Y" << kadlub2_v[0].z << "Z" << 70.0f << std::endl;
+					n_file++;
+					for (int i = 0; i < kadlub2_v.size(); ++i)
+					{
+						auto pos = kadlub2_v[i];
+						out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+						n_file++;
+					}
+					int j = kadlub2_v.size() - 1;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << kadlub2_v[j].x << "Y" << kadlub2_v[j].z << "Z" << 70.0f << std::endl;
+					n_file++;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+					n_file++;
+					//out_file.close();
+
 					float fromU = 0.0f;
 					float toU = 0.95f;
 					float fromV = 0.05f;
 					float toV = 0.55f;
-					int n = 100;
+					int n=60;
 					float diffU = (toU - fromU) / n;
 					float diffV = (toV - fromV) / n;
 
@@ -2625,8 +2727,8 @@ void RenderGui()
 									auto pos2 = GetToolPos(ff, u_next, v2, 1);
 									if (any && glm::distance(pos2, last) > 2.0f)
 									{
-										drillPoints2.push_back(glm::vec3(last.x, 50.0f, last.z));
-										drillPoints2.push_back(glm::vec3(pos2.x, 50.0f, pos2.z));
+										drillPoints2.push_back(glm::vec3(last.x, 20.0f, last.z));
+										drillPoints2.push_back(glm::vec3(pos2.x, 20.0f, pos2.z));
 										drillPoints2.push_back(pos2);
 									}
 									else
@@ -2643,8 +2745,8 @@ void RenderGui()
 									if (!drilling)
 									{
 										auto pos2 = GetToolPos(ff, u_next, v2, 1);
-										drillPoints2.push_back(glm::vec3(last.x, 50.0f, last.z));
-										drillPoints2.push_back(glm::vec3(pos2.x, 50.0f, pos2.z));
+										drillPoints2.push_back(glm::vec3(last.x, 40.0f, last.z));
+										drillPoints2.push_back(glm::vec3(pos2.x, 40.0f, pos2.z));
 										drillPoints2.push_back(pos2);
 
 										last = pos2;
@@ -2689,36 +2791,38 @@ void RenderGui()
 				program->figures.push_back(pl);*/
 
 
-				std::ofstream out_file;
-				out_file.open("kadluby.k08");
+				//std::ofstream out_file;
+				//out_file.open("kadluby.k08");
 
-				int n = 0;
+				//int n = 1;
 
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
-				n++;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[0].x << "Y" << drillPoints1[0].z << "Z" << 70.0f << std::endl;
-				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+				n_file++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints1[0].x << "Y" << drillPoints1[0].z << "Z" << 70.0f << std::endl;
+				n_file++;
 				for (int i = 0; i < drillPoints1.size(); ++i)
 				{
 					auto pos = drillPoints1[i];
-					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+					n_file++;
 				}
 				int j = drillPoints1.size() - 1;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[j].x << "Y" << drillPoints1[j].z << "Z" << 70.0f << std::endl;
-				n++;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[0].x << "Y" << drillPoints2[0].z << "Z" << 70.0f << std::endl;
-				n++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints1[j].x << "Y" << drillPoints1[j].z << "Z" << 70.0f << std::endl;
+				n_file++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints2[0].x << "Y" << drillPoints2[0].z << "Z" << 70.0f << std::endl;
+				n_file++;
 				for (int i = 0; i < drillPoints2.size(); ++i)
 				{
 					auto pos = drillPoints2[i];
-					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+					n_file++;
 				}
 				j = drillPoints2.size() - 1;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[j].x << "Y" << drillPoints2[j].z << "Z" << 70.0f << std::endl;
-				n++;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
-				n++;
-				out_file.close();
+				out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints2[j].x << "Y" << drillPoints2[j].z << "Z" << 70.0f << std::endl;
+				n_file++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+				n_file++;
+				//out_file.close();
 			}
 			if (torus1 || torus2)
 			{
@@ -2836,27 +2940,20 @@ void RenderGui()
 					Figure* ff = nullptr;
 					for (int i = 0; i < program->figures.size(); ++i) if (strcmp(program->figures[i]->name, "Torus") == 0) ff = program->figures[i];
 
-					/*float minx = 2.0f;
-					float miny = 2.0f;
-					float maxx = -2.0f;
-					float maxy = -2.0f;
-					for (int j = 0; j < pnts.size(); ++j)
-					{
-						Figure* f = new Point();
-						((Point*)f)->special = true;
-						f->Initialize(program);
-						auto params = pnts[j];
-						if (params.x < minx) minx = params.x;
-						if (params.y < miny) miny = params.y;
-						if (params.x > maxx) maxx = params.x;
-						if (params.y > maxy) maxy = params.y;
-						auto pos = GetToolPos(ff, params.x, params.y, -1);
-						f->MoveTo(pos.x, pos.y, pos.z);
-						program->figures.push_back(f);
-					}*/
 
-					float fromU = 0.12f;
-					float toU = 0.39f;
+					//for (int j = 0; j < pnts.size(); ++j)
+					//{
+					//	Figure* f = new Point();
+					//	((Point*)f)->special = true;
+					//	f->Initialize(program);
+					//	auto params = pnts[j];
+					//	auto pos = GetToolPos(ff, params.x, params.y, -1);
+					//	f->MoveTo(pos.x, pos.y, pos.z);
+					//	program->figures.push_back(f);
+					//}
+
+					float fromU = 0.10f;
+					float toU = 0.385f;
 					float fromV = 0.0f;
 					float toV = 0.5f;
 					int n = 100;
@@ -2870,20 +2967,20 @@ void RenderGui()
 					{
 						bool drilling_started = false;
 						bool drilling = false;
-						float u = fromU + i * diffU;
+						float v = fromV + i * diffV;
 						int start = dir == 1 ? 0 : n;
 						for (int j = start; (dir == 1 && j < n) || (dir == -1 && j > 0); j += dir)
 						{
 							int j_next = j + dir;
-							float v = fromV + j * diffV;
-							float v_next = fromV + j_next * diffV;
+							float u = fromU + j * diffU;
+							float u_next = fromU + j_next * diffU;
 
 							int cuts = 0;
 							for (int k = 0; k < pnts.size(); ++k)
 							{
 								int k_next = k + 1;
 								if (k_next == pnts.size()) k_next = 0;
-								if (LinesIntersect(glm::vec2(u, v), glm::vec2(u, v_next), pnts[k], pnts[k_next])) cuts++;
+								if (LinesIntersect(glm::vec2(u, v), glm::vec2(u_next, v), pnts[k], pnts[k_next])) cuts++;
 							}
 
 							bool shouldChange = cuts % 2 == 1;
@@ -2891,7 +2988,7 @@ void RenderGui()
 							{
 								if (!drilling_started)
 								{
-									auto pos2 = GetToolPos(ff, u, v_next, -1);
+									auto pos2 = GetToolPos(ff, u_next, v, -1);
 									if (any && glm::distance(pos2, last) > 2.0f)
 									{
 										drillPoints1.push_back(glm::vec3(last.x, 25.0f, last.z));
@@ -2911,7 +3008,7 @@ void RenderGui()
 								{
 									if (!drilling)
 									{
-										auto pos2 = GetToolPos(ff, u, v_next, -1);
+										auto pos2 = GetToolPos(ff, u_next, v, -1);
 										drillPoints1.push_back(glm::vec3(last.x, 25.0f, last.z));
 										drillPoints1.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
 										drillPoints1.push_back(pos2);
@@ -2923,7 +3020,7 @@ void RenderGui()
 							}
 							else if (drilling)
 							{
-								auto pos2 = GetToolPos(ff, u, v_next, -1);
+								auto pos2 = GetToolPos(ff, u_next, v, -1);
 								drillPoints1.push_back(pos2);
 								last = pos2;
 							}
@@ -3062,24 +3159,24 @@ void RenderGui()
 					Figure* ff = nullptr;
 					for (int i = 0; i < program->figures.size(); ++i) if (strcmp(program->figures[i]->name, "Torus") == 0) ff = program->figures[i];
 
-					//float minx = 2.0f;
-					//float miny = 2.0f;
-					//float maxx = -2.0f;
-					//float maxy = -2.0f;
-					//for (int j = 0; j < pnts.size(); ++j)
-					//{
-					//	Figure* f = new Point();
-					//	((Point*)f)->special = true;
-					//	f->Initialize(program);
-					//	auto params = pnts[j];
-					//	if (params.x < minx) minx = params.x;
-					//	if (params.y < miny) miny = params.y;
-					//	if (params.x > maxx) maxx = params.x;
-					//	if (params.y > maxy) maxy = params.y;
-					//	auto pos = GetToolPos(ff, params.x, params.y, -1);
-					//	f->MoveTo(pos.x, pos.y, pos.z);
-					//	program->figures.push_back(f);
-					//}
+					//	float minx = 2.0f;
+					//	float miny = 2.0f;
+					//	float maxx = -2.0f;
+					//	float maxy = -2.0f;
+					//	for (int j = 0; j < pnts.size(); ++j)
+					//	{
+					//		Figure* f = new Point();
+					//		((Point*)f)->special = true;
+					//		f->Initialize(program);
+					//		auto params = pnts[j];
+					///*		if (params.x < minx) minx = params.x;
+					//		if (params.y < miny) miny = params.y;
+					//		if (params.x > maxx) maxx = params.x;
+					//		if (params.y > maxy) maxy = params.y;*/
+					//		auto pos = GetToolPos(ff, params.x, params.y, -1);
+					//		f->MoveTo(pos.x, pos.y, pos.z);
+					//		program->figures.push_back(f);
+					//	}
 
 					float fromU = 0.62;
 					float toU = 0.88f;
@@ -3096,20 +3193,20 @@ void RenderGui()
 					{
 						bool drilling_started = false;
 						bool drilling = false;
-						float u = fromU + i * diffU;
+						float v = fromV + i * diffV;
 						int start = dir == 1 ? 0 : n;
 						for (int j = start; (dir == 1 && j < n) || (dir == -1 && j > 0); j += dir)
 						{
 							int j_next = j + dir;
-							float v = fromV + j * diffV;
-							float v_next = fromV + j_next * diffV;
+							float u = fromU + j * diffU;
+							float u_next = fromU + j_next * diffU;
 
 							int cuts = 0;
 							for (int k = 0; k < pnts.size(); ++k)
 							{
 								int k_next = k + 1;
 								if (k_next == pnts.size()) k_next = 0;
-								if (LinesIntersect(glm::vec2(u, v), glm::vec2(u, v_next), pnts[k], pnts[k_next])) cuts++;
+								if (LinesIntersect(glm::vec2(u, v), glm::vec2(u_next, v), pnts[k], pnts[k_next])) cuts++;
 							}
 
 							bool shouldChange = cuts % 2 == 1;
@@ -3117,7 +3214,7 @@ void RenderGui()
 							{
 								if (!drilling_started)
 								{
-									auto pos2 = GetToolPos(ff, u, v_next, -1);
+									auto pos2 = GetToolPos(ff, u_next, v, -1);
 									if (any && glm::distance(pos2, last) > 2.0f)
 									{
 										drillPoints2.push_back(glm::vec3(last.x, 25.0f, last.z));
@@ -3137,7 +3234,7 @@ void RenderGui()
 								{
 									if (!drilling)
 									{
-										auto pos2 = GetToolPos(ff, u, v_next, -1);
+										auto pos2 = GetToolPos(ff, u_next, v, -1);
 										drillPoints2.push_back(glm::vec3(last.x, 25.0f, last.z));
 										drillPoints2.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
 										drillPoints2.push_back(pos2);
@@ -3149,7 +3246,7 @@ void RenderGui()
 							}
 							else if (drilling)
 							{
-								auto pos2 = GetToolPos(ff, u, v_next, -1);
+								auto pos2 = GetToolPos(ff, u_next, v, -1);
 								drillPoints2.push_back(pos2);
 								last = pos2;
 							}
@@ -3159,11 +3256,11 @@ void RenderGui()
 
 					//Figure* pl = new PointsLine();
 					//pl->Initialize(program);
-					//for (int i = 0; i < drillPoints1.size(); ++i)
+					//for (int i = 0; i < drillPoints2.size(); ++i)
 					//{
 					//	Figure* pp = new Point();
 					//	pp->Initialize(program);
-					//	pp->MoveTo(drillPoints1[i].x, drillPoints1[i].y, drillPoints1[i].z);
+					//	pp->MoveTo(drillPoints2[i].x, drillPoints2[i].y, drillPoints2[i].z);
 					//	((PointsLine*)pl)->AddPoint(((Point*)pp));
 					//	program->figures.push_back(pp);
 					//}
@@ -3171,36 +3268,41 @@ void RenderGui()
 
 				}
 
-				std::ofstream out_file;
-				out_file.open("torusik.k08");
+				//std::ofstream out_file;
+				//out_file.open("torusik.k08");
 
-				int n = 0;
-
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
-				n++;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[0].x << "Y" << drillPoints1[0].z << "Z" << 70.0f << std::endl;
-				n++;
-				for (int i = 0; i < drillPoints1.size(); ++i)
-				{
-					auto pos = drillPoints1[i];
-					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+				//int n_file = 1;
+				if (torus1) {
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+					n_file++;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints1[0].x << "Y" << drillPoints1[0].z << "Z" << 70.0f << std::endl;
+					n_file++;
+					for (int i = 0; i < drillPoints1.size(); ++i)
+					{
+						auto pos = drillPoints1[i];
+						out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+						n_file++;
+					}
+					int j = drillPoints1.size() - 1;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints1[j].x << "Y" << drillPoints1[j].z << "Z" << 70.0f << std::endl;
+					n_file++;
 				}
-				int j = drillPoints1.size() - 1;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[j].x << "Y" << drillPoints1[j].z << "Z" << 70.0f << std::endl;
-				n++;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[0].x << "Y" << drillPoints2[0].z << "Z" << 70.0f << std::endl;
-				n++;
-				for (int i = 0; i < drillPoints2.size(); ++i)
-				{
-					auto pos = drillPoints2[i];
-					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+				if (torus2) {
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints2[0].x << "Y" << drillPoints2[0].z << "Z" << 70.0f << std::endl;
+					n_file++;
+					for (int i = 0; i < drillPoints2.size(); ++i)
+					{
+						auto pos = drillPoints2[i];
+						out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+						n_file++;
+					}
+					int j = drillPoints2.size() - 1;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints2[j].x << "Y" << drillPoints2[j].z << "Z" << 70.0f << std::endl;
+					n_file++;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+					n_file++;
+				//	out_file.close();
 				}
-				j = drillPoints2.size() - 1;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[j].x << "Y" << drillPoints2[j].z << "Z" << 70.0f << std::endl;
-				n++;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
-				n++;
-				out_file.close();
 			}
 			if (otwor) {
 				std::vector<glm::vec2> pnts;
@@ -3318,24 +3420,46 @@ void RenderGui()
 				//float miny = 2.0f;
 				//float maxx = -2.0f;
 				//float maxy = -2.0f;
-				//for (int j = 0; j < pnts.size(); ++j)
-				//{
-				//	Figure* f = new Point();
-				//	((Point*)f)->special = true;
-				//	f->Initialize(program);
-				//	auto params = pnts[j];
-				//	if (params.x < minx) minx = params.x;
-				//	if (params.y < miny) miny = params.y;
-				//	if (params.x > maxx) maxx = params.x;
-				//	if (params.y > maxy) maxy = params.y;
-				//	auto pos = GetToolPos(ff, params.x, params.y, -1);
-				//	f->MoveTo(pos.x, pos.y, pos.z);
-				//	program->figures.push_back(f);
-				//}
+				std::vector<glm::vec3> otwor_v;
+				for (int j = 0; j < pnts.size(); j+=3)
+				{
+					/*				Figure* f = new Point();
+									((Point*)f)->special = true;
+									f->Initialize(program);*/
+					auto params = pnts[j];
+
+					auto pos = GetToolPos(ff, params.x, params.y, -1);
+					if (pos.y < 0.0f) pos.y = 0.0f;
+					otwor_v.push_back(pos);
+					//f->MoveTo(pos.x, pos.y, pos.z);
+					//program->figures.push_back(f);
+				}
+
+			/*	std::ofstream out_file;
+				out_file.open("otwor_obwod.k08");
+
+				int n = 1;*/
+
+				out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+				n_file++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << otwor_v[0].x << "Y" << otwor_v[0].z << "Z" << 70.0f << std::endl;
+				n_file++;
+				for (int i = 0; i < otwor_v.size(); ++i)
+				{
+					auto pos = otwor_v[i];
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+					n_file++;
+				}
+				int j = otwor_v.size() - 1;
+				out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << otwor_v[j].x << "Y" << otwor_v[j].z << "Z" << 70.0f << std::endl;
+				n_file++;
+				out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+				n_file++;
+				//out_file.close();
 
 				float from = 0.38f;
 				float to = 0.62f;
-				int n = 100;
+				int n=60;
 				float diff = (to - from) / n;
 				std::vector<glm::vec3> drillPoints1;
 				std::vector<glm::vec3> drillPoints2;
@@ -3371,8 +3495,8 @@ void RenderGui()
 								auto pos2 = GetToolPos(ff, u, v_next, -1);
 								if (any && glm::distance(pos2, last) > 2.0f)
 								{
-									drillPoints1.push_back(glm::vec3(last.x, 25.0f, last.z));
-									drillPoints1.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
+									drillPoints1.push_back(glm::vec3(last.x, 17.0f, last.z));
+									drillPoints1.push_back(glm::vec3(pos2.x, 17.0f, pos2.z));
 									drillPoints1.push_back(pos2);
 								}
 								else
@@ -3389,8 +3513,8 @@ void RenderGui()
 								if (!drilling)
 								{
 									auto pos2 = GetToolPos(ff, u, v_next, -1);
-									drillPoints1.push_back(glm::vec3(last.x, 25.0f, last.z));
-									drillPoints1.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
+									drillPoints1.push_back(glm::vec3(last.x, 17.0f, last.z));
+									drillPoints1.push_back(glm::vec3(pos2.x, 17.0f, pos2.z));
 									drillPoints1.push_back(pos2);
 
 									last = pos2;
@@ -3440,8 +3564,8 @@ void RenderGui()
 								auto pos2 = GetToolPos(ff, u_next, v, -1);
 								if (any && glm::distance(pos2, last) > 2.0f)
 								{
-									drillPoints2.push_back(glm::vec3(last.x, 25.0f, last.z));
-									drillPoints2.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
+									drillPoints2.push_back(glm::vec3(last.x, 17.0f, last.z));
+									drillPoints2.push_back(glm::vec3(pos2.x, 17.0f, pos2.z));
 									drillPoints2.push_back(pos2);
 								}
 								else
@@ -3458,8 +3582,8 @@ void RenderGui()
 								if (!drilling)
 								{
 									auto pos2 = GetToolPos(ff, u_next, v, -1);
-									drillPoints2.push_back(glm::vec3(last.x, 25.0f, last.z));
-									drillPoints2.push_back(glm::vec3(pos2.x, 25.0f, pos2.z));
+									drillPoints2.push_back(glm::vec3(last.x, 17.0f, last.z));
+									drillPoints2.push_back(glm::vec3(pos2.x, 17.0f, pos2.z));
 									drillPoints2.push_back(pos2);
 
 									last = pos2;
@@ -3488,38 +3612,42 @@ void RenderGui()
 					program->figures.push_back(pp);
 				}
 				program->figures.push_back(pl);*/
-
-				std::ofstream out_file;
-				out_file.open("otwor.k08");
-
-				n = 0;
-
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
-				n++;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[0].x << "Y" << drillPoints1[0].z << "Z" << 70.0f << std::endl;
-				n++;
-				for (int i = 0; i < drillPoints1.size(); ++i)
 				{
-					auto pos = drillPoints1[i];
-					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+				/*	std::ofstream out_file;
+					out_file.open("otwor.k08");
+
+					n = 1;*/
+
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+					n_file++;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints1[0].x << "Y" << drillPoints1[0].z << "Z" << 70.0f << std::endl;
+					n_file++;
+					for (int i = 0; i < drillPoints1.size(); ++i)
+					{
+						auto pos = drillPoints1[i];
+						out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+						n_file++;
+					}
+					j = drillPoints1.size() - 1;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints1[j].x << "Y" << drillPoints1[j].z << "Z" << 35.0f << std::endl;
+					n_file++;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints2[0].x << "Y" << drillPoints2[0].z << "Z" << 35.0f << std::endl;
+					n_file++;
+					for (int i = 0; i < drillPoints2.size(); ++i)
+					{
+						auto pos = drillPoints2[i];
+						out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
+						n_file++;
+					}
+					j = drillPoints2.size() - 1;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << drillPoints2[j].x << "Y" << drillPoints2[j].z << "Z" << 70.0f << std::endl;
+					n_file++;
+					out_file << std::fixed << std::setprecision(3) << "N" << n_file << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
+					n_file++;
+					//out_file.close();
 				}
-				int j = drillPoints1.size() - 1;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints1[j].x << "Y" << drillPoints1[j].z << "Z" << 70.0f << std::endl;
-				n++;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[0].x << "Y" << drillPoints2[0].z << "Z" << 70.0f << std::endl;
-				n++;
-				for (int i = 0; i < drillPoints2.size(); ++i)
-				{
-					auto pos = drillPoints2[i];
-					out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << pos.x << "Y" << pos.z << "Z" << pos.y + 15.0f << std::endl;
-				}
-				j = drillPoints2.size() - 1;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << drillPoints2[j].x << "Y" << drillPoints2[j].z << "Z" << 70.0f << std::endl;
-				n++;
-				out_file << std::fixed << std::setprecision(3) << "N" << n << "G01X" << -75.0f << "Y" << -75.0f << "Z" << 70.0f << std::endl;
-				n++;
-				out_file.close();
 			}
+			out_file.close();
 
 			int del = -1;
 			for (int i = 0; i < program->figures.size(); ++i)
