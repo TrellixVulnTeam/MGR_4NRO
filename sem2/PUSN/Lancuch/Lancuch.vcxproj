@@ -128,13 +128,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\studia\MGR\sem2\PUSN\Lancuch\imgui;D:\studia\MGR\sem2\PUSN\Lancuch\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\studia\MGR\sem2\PUSN\Lancuch\imgui;D:\studia\MGR\sem2\PUSN\Lancuch\include;C:\Users\piotr.onyszczuk\Desktop\Piotrek\Projekty\priv\MGR\sem2\PUSN\Lancuch\include;C:\Users\piotr.onyszczuk\Desktop\Piotrek\Projekty\priv\MGR\sem2\PUSN\Lancuch\imgui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <AdditionalDependencies>glfw3_dbg.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\studia\MGR\sem2\PUSN\Lancuch\LIBS</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\studia\MGR\sem2\PUSN\Lancuch\LIBS;C:\Users\piotr.onyszczuk\Desktop\Piotrek\Projekty\priv\MGR\sem2\PUSN\Lancuch\LIBS;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
