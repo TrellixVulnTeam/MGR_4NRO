@@ -11,11 +11,20 @@ Puma::Puma() : Figure()
 	glm::vec3 yellow = { 1.0f,1.0f,0.0f };
 	glm::vec3 red = { 1.0f,0.0f,0.0f };
 	glm::vec3 green = { 0.0f,1.0f,0.0f };
-	cylinders.push_back(std::make_shared<Cylinder>(true, 1.0f, 0.5f, yellow));
-	cylinders.push_back(std::make_shared<Cylinder>(false, 0.5f, l1, yellow));
-	cylinders.push_back(std::make_shared<Cylinder>(true, 0.5f, 0.5f, red));
-	cylinders.push_back(std::make_shared<Cylinder>(false, 0.5f, l2, red));
-	cylinders.push_back(std::make_shared<Cylinder>(true, 0.5f, 0.5f, green));
+	glm::vec3 blue = { 0.0f,0.0f,1.0f };
+	cylinders.push_back(std::make_shared<Cylinder>(true, 1.0f, 0.6f, yellow));
+	cylinders.push_back(std::make_shared<Cylinder>(false, 0.3f, l1, yellow));
+	cylinders.push_back(std::make_shared<Cylinder>(true, 0.5f, 0.6f, red));
+	cylinders.push_back(std::make_shared<Cylinder>(false, 0.3f, q2, red));
+	cylinders.push_back(std::make_shared<Cylinder>(true, 0.5f, 0.6f, green));
+	cylinders.push_back(std::make_shared<Cylinder>(false , 0.3f, -l3, green));
+	cylinders.push_back(std::make_shared<Cylinder>(true, 0.5f, 0.6f, blue));
+	cylinders.push_back(std::make_shared<Cylinder>(false , 0.3f, l4, blue));
+
+	cylinders[2]->onZ = true;
+	cylinders[3]->onX = true;
+	cylinders[4]->onZ = true;
+	cylinders[7]->onX = true;
 }
 
 void Puma::Initialize(std::shared_ptr<Program> _program)
@@ -23,14 +32,19 @@ void Puma::Initialize(std::shared_ptr<Program> _program)
 	for (auto& c : cylinders)
 		c->Initialize(_program);
 
-	cylinders[2]->inner_mat = glm::rotate((float)M_PI / 2, glm::vec3(1, 0, 0));
-	cylinders[4]->inner_mat = glm::rotate((float)M_PI / 2, glm::vec3(1, 0, 0));
 }
 
 void Puma::RecalcFigure()
 {
+	if (q2 != q2_old) q2_old = q2;
+	{ cylinders[3]->h = q2; cylinders[3]->Invalidate(); }
 	for (auto& c : cylinders)
 		c->RecalcFigure();
+}
+
+void Puma::InverseKinematics(glm::vec3 p5, glm::vec3 x, glm::vec3 y, glm::vec3 z)
+{
+	glm::vec3 p0 = { 0.0f,0.0f,0.0f };
 }
 
 
@@ -42,8 +56,6 @@ bool Puma::GetGuiInternal(std::shared_ptr<Figure> par)
 
 void Puma::Draw()
 {
-	float a1 = M_PI / 4;
-	float a2 = 2*M_PI-M_PI / 4;
 	glm::mat4 m01 = glm::rotate(a1, glm::vec3(0, 1, 0));
 	glm::mat4 m11p = glm::translate(glm::vec3(0, l1, 0));
 
@@ -55,9 +67,21 @@ void Puma::Draw()
 	cur = cur * m1p2;
 	cylinders[3]->outer_mat = cur;
 
-	glm::mat4 m22p = glm::translate(glm::vec3(0,l2,0));
+	glm::mat4 m22p = glm::translate(glm::vec3(q2,0,0));
 	cur = cur * m22p;
 	cylinders[4]->outer_mat = cur;
+
+	glm::mat4 m2p3 = glm::rotate(a3, glm::vec3(0, 0, 1));
+	cur = cur * m2p3;
+	cylinders[5]->outer_mat = cur;
+	
+	glm::mat4 m33p = glm::translate(glm::vec3(0, -l3, 0));
+	cur = cur * m33p;
+	cylinders[6]->outer_mat = cur;
+
+	glm::mat4 m3p4 = glm::rotate(a4, glm::vec3(0, 1, 0));
+	cur = cur * m3p4;
+	cylinders[7]->outer_mat = cur;
 
 	for (auto& c : cylinders)
 	{

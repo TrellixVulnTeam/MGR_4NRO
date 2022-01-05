@@ -72,6 +72,7 @@ public:
 	glm::mat4 outer_mat;
 	glm::mat4 inner_mat;
 	void RecalcModel();
+	void Invalidate();
 protected:
 	virtual bool Create();
 	glm::mat4 translation;

@@ -10,9 +10,10 @@ public:
 	virtual void Draw() override;
 	void virtual Initialize(std::shared_ptr<Program> _program) override;
 	void virtual RecalcFigure() override;
+	bool onX = false, onZ = false;
+	float r, h,mid;
 private:
 	bool virtual Create() override;
-	float r, h,mid;
 	glm::vec3 col;
 	int n = 50;
 };

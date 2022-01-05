@@ -17,7 +17,6 @@
 #include "Program.h"
 #include "Cube.h"
 #include "Puma.h"
-#include "Tool.h"
 #include "ImGuiFileDialog.h"
 #include "Obstacle.h"
 #include <queue>
@@ -49,7 +48,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	int lShiftState = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
 	int lAltState = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
 	int rAltState = glfwGetKey(window, GLFW_KEY_RIGHT_ALT);
-	
+
 
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
 	{
@@ -85,7 +84,27 @@ glm::vec3 QuatToEuler(glm::quat quat)
 	return c * glm::eulerAngles(quat);
 }
 
+void Normalize(glm::quat& q)
+{
+	q.x = q.x < -1.0f ? -1.0f : q.x;
+	q.y = q.y < -1.0f ? -1.0f : q.y;
+	q.z = q.z < -1.0f ? -1.0f : q.z;
+	q.w = q.w < -1.0f ? -1.0f : q.w;
+	q.x = q.x > 1.0f ? 1.0f   : q.x;
+	q.y = q.y > 1.0f ? 1.0f   : q.y;
+	q.z = q.z > 1.0f ? 1.0f   : q.z;
+	q.w = q.w > 1.0f ? 1.0f   : q.w;
 
+	if (q.x == 0.0f && q.y == 0.0f && q.z == 0.0f && q.w == 0.0f)
+		q.w = 1.0f;
+
+	q = glm::normalize(q);
+}
+void Normalize()
+{
+	Normalize(program->startQuat);
+	Normalize(program->endQuat);
+}
 
 void RenderGui()
 {
@@ -114,6 +133,50 @@ void RenderGui()
 				ImGui::EndPopup();
 			}
 		}
+
+		ImGui::Checkbox("Normalize quats live", &program->normalize_live);
+
+		if (ImGui::TreeNode("Start pos"))
+		{
+			ImGui::SliderFloat("Start X", &program->startPos.x, -30.0f, 30.0f);
+			ImGui::SliderFloat("Start Y", &program->startPos.y, -30.0f, 30.0f);
+			ImGui::SliderFloat("Start Z", &program->startPos.z, -30.0f, 30.0f);
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("Start rot"))
+		{
+			ImGui::SliderFloat("X", &program->startQuat.x, -1.0f, 1.0f);
+			ImGui::SliderFloat("Y", &program->startQuat.y, -1.0f, 1.0f);
+			ImGui::SliderFloat("Z", &program->startQuat.z, -1.0f, 1.0f);
+			ImGui::SliderFloat("W", &program->startQuat.w, -1.0f, 1.0f);
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("End pos"))
+		{
+			ImGui::SliderFloat("End X", &program->endPos.x, -30.0f, 30.0f);
+			ImGui::SliderFloat("End Y", &program->endPos.y, -30.0f, 30.0f);
+			ImGui::SliderFloat("End Z", &program->endPos.z, -30.0f, 30.0f);
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("End rot"))
+		{
+			ImGui::SliderFloat("X", &program->endQuat.x, -1.0f, 1.0f);
+			ImGui::SliderFloat("Y", &program->endQuat.y, -1.0f, 1.0f);
+			ImGui::SliderFloat("Z", &program->endQuat.z, -1.0f, 1.0f);
+			ImGui::SliderFloat("W", &program->endQuat.w, -1.0f, 1.0f);
+			ImGui::TreePop();
+		}
+
+		if (program->normalize_live)
+			Normalize();
+		else
+		{
+			if (ImGui::Button("Normalize"))
+				Normalize();
+		}
 	}
 
 	ImGui::SliderFloat("Simulation time", &program->simTime, 1.0f, 10.0f);
@@ -124,6 +187,8 @@ void RenderGui()
 
 void DrawScene()
 {
+	auto time = glfwGetTime();
+
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// make sure we clear the framebuffer's content
@@ -147,6 +212,12 @@ void DrawScene()
 	viewLoc = glGetUniformLocation(program->currentWindow->shader2D->ID, "view");
 	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+	program->currentWindow->puma->q2 = 3.0f + sin(time);
+	program->currentWindow->puma->a1 = fmod(time, 2 * M_PI);
+	program->currentWindow->puma->a2 = fmod(time, 2 * M_PI);
+	program->currentWindow->puma->a3 = fmod(time, 2 * M_PI);
+	program->currentWindow->puma->a4 = fmod(time, 2 * M_PI);
 
 	for (int i = 0; i < program->currentWindow->figures.size(); ++i)
 	{
@@ -229,9 +300,9 @@ int main()
 	//	program->cam = new Camera();
 	program->cam->LookAt({ 0,2,4 }, { 0,0,-1 }, { 0,1,0 });
 
-	program->currentWindow->tool = std::make_shared<Puma>();
-	program->currentWindow->tool->Initialize(program);
-	program->currentWindow->figures.push_back(program->currentWindow->tool);
+	program->currentWindow->puma = std::make_shared<Puma>();
+	program->currentWindow->puma->Initialize(program);
+	program->currentWindow->figures.push_back(program->currentWindow->puma);
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();

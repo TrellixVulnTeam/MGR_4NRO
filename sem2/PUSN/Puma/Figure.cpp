@@ -29,6 +29,11 @@ void Figure::RecalcModel()
 	model = translation * rotation * scale * outer_mat * inner_mat;
 }
 
+void Figure::Invalidate()
+{
+	selected = !selected;
+}
+
 bool Figure::GetGui(int i, std::shared_ptr<Figure> par)
 {
 	if (!showInGui) return false;

@@ -26,7 +26,7 @@ public:
 	std::vector<std::shared_ptr<Figure>> figures = {};
 	bool focused = false;
 	unsigned int colorTexture = 0;
-	std::shared_ptr<Puma> tool = {};
+	std::shared_ptr<Puma> puma = {};
 };
 
 class Program
@@ -53,15 +53,19 @@ public:
 	unsigned int distancesTex = 0;
 	std::string error = "";
 
-	glm::vec2 opt1 = {}, opt2 = {};
-
-	glm::vec2 startPos = {}, endPos = {};
-
 	std::shared_ptr<Camera> cam = {};
 	std::shared_ptr<Window> currentWindow = {};
 
 	bool simulating = false;
 	float t = 0;
 	float simTime = 1.0f;
+
+	glm::vec3 startPos = {};
+	glm::vec3 endPos = {};
+
+	glm::quat startQuat = {};
+	glm::quat endQuat = {};
+
+	bool normalize_live = true;
 };
 

@@ -80,6 +80,8 @@ bool Cylinder::Create()
 	bool fCreate = Figure::Create();
 	if (!fCreate) return false;
 
+	vertices.clear();
+	indices.clear();
 	float diff = 2 * M_PI / n;
 	vertices = std::vector<float>(9 * (4 * n + 2));
 	int ind;
@@ -174,6 +176,32 @@ bool Cylinder::Create()
 		indices[12 * i + 11] = t;
 
 	}
+
+	if (onX || onZ)
+		for (int i = 0; i < 4 * n + 2; ++i)
+		{
+			int ind = 9 * i;
+			if (onX)
+			{
+				float t = vertices[ind + 1];
+				vertices[ind + 1] = vertices[ind];
+				vertices[ind] = t;
+
+				t = vertices[ind + 4];
+				vertices[ind + 4] = vertices[ind + 3];
+				vertices[ind + 3] = t;
+			}
+			if (onZ)
+			{
+				float t = vertices[ind + 1];
+				vertices[ind + 1] = vertices[ind + 2];
+				vertices[ind + 2] = t;
+
+				t = vertices[ind + 4];
+				vertices[ind + 4] = vertices[ind + 5];
+				vertices[ind + 5] = t;
+			}
+		}
 
 	return true;
 }
