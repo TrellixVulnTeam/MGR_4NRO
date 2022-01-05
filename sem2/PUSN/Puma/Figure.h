@@ -69,9 +69,11 @@ public:
 	bool isCurve = false;
 	void virtual CleanUp();
 	std::vector<std::shared_ptr<Figure>> parents;
+	glm::mat4 outer_mat;
+	glm::mat4 inner_mat;
+	void RecalcModel();
 protected:
 	virtual bool Create();
-	void RecalcModel();
 	glm::mat4 translation;
 	glm::quat rotation_q;
 	glm::mat4 scale;

@@ -26,7 +26,7 @@ bool Figure::Create()
 void Figure::RecalcModel()
 {
 	glm::mat4 rotation = glm::toMat4(rotation_q);
-	model = translation * rotation * scale;
+	model = translation * rotation * scale * outer_mat * inner_mat;
 }
 
 bool Figure::GetGui(int i, std::shared_ptr<Figure> par)
@@ -202,6 +202,8 @@ void Figure::Initialize(std::shared_ptr<Program> _program)
 	shader->use();
 	translation = glm::mat4(1.0f);
 	scale = glm::mat4(1.0f);
+	outer_mat = glm::mat4(1.0f);
+	inner_mat = glm::mat4(1.0f);
 
 	rotation_q.x = 0.0f;
 	rotation_q.y = 0.0f;

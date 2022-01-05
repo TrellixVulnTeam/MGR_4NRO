@@ -3,7 +3,7 @@
 #include <string>
 #include "Camera.h"
 
-Cylinder::Cylinder(float r_,float h_,glm::vec3 col_) :r(r_),h(h_),col(col_), Figure()
+Cylinder::Cylinder(bool mid_, float r_, float h_, glm::vec3 col_) :mid(mid_), r(r_), h(h_), col(col_), Figure()
 {
 	sprintf_s(name, STRMAX, ("Cylinder - " + std::to_string(idx++) + " " + gen_random(12, idx)).c_str());
 	figureType = FigureType::Cylinder;
@@ -81,15 +81,15 @@ bool Cylinder::Create()
 	if (!fCreate) return false;
 
 	float diff = 2 * M_PI / n;
-	vertices = std::vector<float>(9*(4 * n + 2));
+	vertices = std::vector<float>(9 * (4 * n + 2));
 	int ind;
 	float angle = 0;
 	for (auto i = 0; i < n; ++i)
 	{
 		auto ca = cos(angle);
 		auto sa = sin(angle);
-		vertices[36 * i + 0] = r*ca;
-		vertices[36 * i + 1] = 0.0f;
+		vertices[36 * i + 0] = r * ca;
+		vertices[36 * i + 1] = mid ? -h / 2 : 0.0f;
 		vertices[36 * i + 2] = r * sa;
 		vertices[36 * i + 3] = ca;
 		vertices[36 * i + 4] = 0.0f;
@@ -99,7 +99,7 @@ bool Cylinder::Create()
 		vertices[36 * i + 8] = col.b;
 
 		vertices[36 * i + 9 + 0] = r * ca;
-		vertices[36 * i + 9 + 1] = 0.0f;
+		vertices[36 * i + 9 + 1] = mid ? -h / 2 : 0.0f;
 		vertices[36 * i + 9 + 2] = r * sa;
 		vertices[36 * i + 9 + 3] = 0.0f;
 		vertices[36 * i + 9 + 4] = -1.0f;
@@ -109,7 +109,7 @@ bool Cylinder::Create()
 		vertices[36 * i + 9 + 8] = col.b;
 
 		vertices[36 * i + 18 + 0] = r * ca;
-		vertices[36 * i + 18 + 1] = h;
+		vertices[36 * i + 18 + 1] = mid ? h / 2 : h;
 		vertices[36 * i + 18 + 2] = r * sa;
 		vertices[36 * i + 18 + 3] = ca;
 		vertices[36 * i + 18 + 4] = 0.0f;
@@ -119,7 +119,7 @@ bool Cylinder::Create()
 		vertices[36 * i + 18 + 8] = col.b;
 
 		vertices[36 * i + 27 + 0] = r * ca;
-		vertices[36 * i + 27 + 1] = h;
+		vertices[36 * i + 27 + 1] = mid ? h / 2 : h;
 		vertices[36 * i + 27 + 2] = r * sa;
 		vertices[36 * i + 27 + 3] = 0.0f;
 		vertices[36 * i + 27 + 4] = 1.0f;
@@ -131,7 +131,7 @@ bool Cylinder::Create()
 	}
 
 	vertices[36 * n + 0] = 0.0f;
-	vertices[36 * n + 1] = 0.0f;
+	vertices[36 * n + 1] = mid ? -h / 2 : 0.0f;
 	vertices[36 * n + 2] = 0.0f;
 	vertices[36 * n + 3] = 0.0f;
 	vertices[36 * n + 4] = -1.0f;
@@ -141,7 +141,7 @@ bool Cylinder::Create()
 	vertices[36 * n + 8] = col.b;
 
 	vertices[36 * n + 9 + 0] = 0.0f;
-	vertices[36 * n + 9 + 1] = h;
+	vertices[36 * n + 9 + 1] = mid ? h / 2 : h;
 	vertices[36 * n + 9 + 2] = 0.0f;
 	vertices[36 * n + 9 + 3] = 0.0f;
 	vertices[36 * n + 9 + 4] = 1.0f;
@@ -151,7 +151,7 @@ bool Cylinder::Create()
 	vertices[36 * n + 9 + 8] = col.b;
 
 	int b = 4 * n;
-	int t = 4 * n+1;
+	int t = 4 * n + 1;
 
 	indices = std::vector<unsigned int>(3 * 4 * n);
 

@@ -14,5 +14,6 @@ public:
 private:
 	bool virtual Create() override;
 	std::vector<std::shared_ptr<Cylinder>> cylinders;
+	float l1 = 3.0f, l2 = 3.0f;;
 };
 
