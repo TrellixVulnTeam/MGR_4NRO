@@ -57,14 +57,14 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 			double xAngle = 2 * yDiff;
 			double yAngle = 2 * xDiff;
 
-			glm::vec3 camVec = program->cam->pos - lookAt;
-			camVec = ArbitraryRotate(camVec, xAngle, program->cam->right);
-			program->cam->LookAt(lookAt + camVec, ArbitraryRotate(program->cam->front, xAngle, program->cam->right), ArbitraryRotate(program->cam->up, xAngle, program->cam->right));
+			glm::vec3 camVec = program->currentWindow->cam->pos - lookAt;
+			camVec = ArbitraryRotate(camVec, xAngle, program->currentWindow->cam->right);
+			program->currentWindow->cam->LookAt(lookAt + camVec, ArbitraryRotate(program->currentWindow->cam->front, xAngle, program->currentWindow->cam->right), ArbitraryRotate(program->currentWindow->cam->up, xAngle, program->currentWindow->cam->right));
 
 
-			camVec = program->cam->pos - lookAt;
-			camVec = ArbitraryRotate(camVec, yAngle, program->cam->up);
-			program->cam->LookAt(lookAt + camVec, ArbitraryRotate(program->cam->front, yAngle, program->cam->up), program->cam->up);
+			camVec = program->currentWindow->cam->pos - lookAt;
+			camVec = ArbitraryRotate(camVec, yAngle, program->currentWindow->cam->up);
+			program->currentWindow->cam->LookAt(lookAt + camVec, ArbitraryRotate(program->currentWindow->cam->front, yAngle, program->currentWindow->cam->up), program->currentWindow->cam->up);
 		}
 	}
 	mousePosOld = mousePos;
@@ -90,10 +90,10 @@ void Normalize(glm::quat& q)
 	q.y = q.y < -1.0f ? -1.0f : q.y;
 	q.z = q.z < -1.0f ? -1.0f : q.z;
 	q.w = q.w < -1.0f ? -1.0f : q.w;
-	q.x = q.x > 1.0f ? 1.0f   : q.x;
-	q.y = q.y > 1.0f ? 1.0f   : q.y;
-	q.z = q.z > 1.0f ? 1.0f   : q.z;
-	q.w = q.w > 1.0f ? 1.0f   : q.w;
+	q.x = q.x > 1.0f ? 1.0f : q.x;
+	q.y = q.y > 1.0f ? 1.0f : q.y;
+	q.z = q.z > 1.0f ? 1.0f : q.z;
+	q.w = q.w > 1.0f ? 1.0f : q.w;
 
 	if (q.x == 0.0f && q.y == 0.0f && q.z == 0.0f && q.w == 0.0f)
 		q.w = 1.0f;
@@ -104,6 +104,16 @@ void Normalize()
 {
 	Normalize(program->startQuat);
 	Normalize(program->endQuat);
+}
+
+void window_focus_callback(GLFWwindow* window, int focused)
+{
+	if (focused)
+	{
+		bool w1 = (window == program->wind1->window);
+		program->wind1->focused = w1;
+		program->wind2->focused = !w1;
+	}
 }
 
 void RenderGui()
@@ -185,17 +195,17 @@ void RenderGui()
 }
 
 
-void DrawScene()
+void DrawScene(float c)
 {
 	auto time = glfwGetTime();
 
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// make sure we clear the framebuffer's content
-	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+	glClearColor(c, 0.4f, 0.4f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glm::mat4 persp = program->cam->GetProjectionMatrix();
-	glm::mat4 view = program->cam->GetViewportMatrix();
+	glm::mat4 persp = program->currentWindow->cam->GetProjectionMatrix();
+	glm::mat4 view = program->currentWindow->cam->GetViewportMatrix();
 
 	program->currentWindow->shader->use();
 	unsigned int perspLoc = glGetUniformLocation(program->currentWindow->shader->ID, "persp");
@@ -226,6 +236,13 @@ void DrawScene()
 	}
 }
 
+void GeneratePuma()
+{
+	glfwMakeContextCurrent(program->currentWindow->window);
+	program->currentWindow->puma = std::make_shared<Puma>();
+	program->currentWindow->puma->Initialize(program);
+	program->currentWindow->figures.push_back(program->currentWindow->puma);
+}
 
 int main()
 {
@@ -235,7 +252,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-	GLFWwindow* window = glfwCreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT, "PUSN", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT, "Puma 1", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -252,13 +269,15 @@ int main()
 
 	Processing proc = Processing();
 	program = std::make_shared<Program>();
-	program->currentWindow = std::make_shared<Window>();
-	program->currentWindow->window = window;
+	program->wind1 = std::make_shared<Window>();
+	program->wind2 = std::make_shared<Window>();
+	program->wind1->window = window;
 	program->current_width = DEFAULT_WIDTH;
 	program->current_height = DEFAULT_HEIGHT;
 	//program->shader = new Shader("shaders/vertexShader.vs", "shaders/fragShader.fs",nullptr);
 	glViewport(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 	//	glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
+	glfwSetWindowFocusCallback(window, window_focus_callback);
 	glfwSetFramebufferSizeCallback(window, proc.framebuffer_size_callback);
 	glfwSetWindowSizeCallback(window, window_size_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -268,41 +287,68 @@ int main()
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetKeyCallback(window, key_callback);
 */
-	program->currentWindow->shader = std::make_shared<Shader>("shaders/vertexShader.vs"
+	program->wind1->shader = std::make_shared<Shader>("shaders/vertexShader.vs"
 		, "shaders/fragShader.fs"
 		, nullptr);
 
-	program->currentWindow->shader2D = std::make_shared<Shader>("shaders/vertexShader2d.vs"
+	program->wind1->shader2D = std::make_shared<Shader>("shaders/vertexShader2d.vs"
 		, "shaders/fragShader.fs"
 		, nullptr);
 
-	program->currentWindow->lightShader = std::make_shared<Shader>("shaders/lightVertexShader.vs"
+	program->wind1->lightShader = std::make_shared<Shader>("shaders/lightVertexShader.vs"
 		, "shaders/lightFragShader.fs"
 		, nullptr);
 
-	if (window == NULL)
+	GLFWwindow* window2 = glfwCreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT, "Puma 2", NULL, NULL);
+	program->wind2->window = window2;
+
+	if (window2 == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
 
-	glfwMakeContextCurrent(window);
+	glfwMakeContextCurrent(window2);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
-
+	glViewport(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+	glfwSetWindowFocusCallback(window2, window_focus_callback);
+	glfwSetFramebufferSizeCallback(window2, proc.framebuffer_size_callback);
+	glfwSetWindowSizeCallback(window2, window_size_callback);
+	glfwSetMouseButtonCallback(window2, mouse_button_callback);
+	glfwSetCursorPosCallback(window2, mouse_callback);
 	glEnable(GL_LINE_SMOOTH);
 
-	program->cam = std::make_shared<Camera>();
-	//	program->cam = new Camera();
-	program->cam->LookAt({ 0,2,4 }, { 0,0,-1 }, { 0,1,0 });
+	program->wind2->shader = std::make_shared<Shader>("shaders/vertexShader.vs"
+		, "shaders/fragShader.fs"
+		, nullptr);
 
-	program->currentWindow->puma = std::make_shared<Puma>();
-	program->currentWindow->puma->Initialize(program);
-	program->currentWindow->figures.push_back(program->currentWindow->puma);
+	program->wind2->shader2D = std::make_shared<Shader>("shaders/vertexShader2d.vs"
+		, "shaders/fragShader.fs"
+		, nullptr);
+
+	program->wind2->lightShader = std::make_shared<Shader>("shaders/lightVertexShader.vs"
+		, "shaders/lightFragShader.fs"
+		, nullptr);
+
+
+
+	glfwMakeContextCurrent(window2);
+
+	program->currentWindow = program->wind1;
+	program->currentWindow->cam = std::make_shared<Camera>();
+	program->currentWindow->cam->LookAt({ 0,2,4 }, { 0,0,-1 }, { 0,1,0 });
+	GeneratePuma();
+
+	program->currentWindow = program->wind2;
+	program->currentWindow->cam = std::make_shared<Camera>();
+	program->currentWindow->cam->LookAt({ 0,2,4 }, { 0,0,-1 }, { 0,1,0 });
+	GeneratePuma();
+
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -312,10 +358,9 @@ int main()
 	ImGui_ImplOpenGL3_Init("#version 130");
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(window2))
 	{
 		float aspect = (float)program->current_width / (float)program->current_height;
-		program->cam->SetPerspective(aspect);
 
 		glfwMakeContextCurrent(window);
 		ImGui_ImplOpenGL3_NewFrame();
@@ -323,17 +368,32 @@ int main()
 		ImGui::NewFrame();
 
 		//ImGui::ShowDemoWindow();
+		program->currentWindow = program->wind1;
+		program->currentWindow->cam->SetPerspective(aspect);
 		proc.processInput(window);
 		RenderGui();
+		program->currentWindow = program->wind1;
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		DrawScene();
+		DrawScene(1.0f);
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		if (program->wind1->focused)
+			glfwPollEvents();
 
 		glfwSwapBuffers(window);
 
+		glfwMakeContextCurrent(window2);
+		program->currentWindow = program->wind2;
+		program->currentWindow->cam->SetPerspective(aspect);
+		proc.processInput(window2);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		DrawScene(0.0f);
 
-		glfwPollEvents();
+		glfwSwapBuffers(window2);
+		if (program->wind2->focused)
+			glfwPollEvents();
+		if (!program->wind1->focused && !program->wind2->focused)
+			glfwPollEvents();
 	}
 
 	glfwTerminate();

@@ -66,7 +66,7 @@ void Cylinder::Draw()
 	shader->use();
 
 	int invLoc = glGetUniformLocation(shader->ID, "inversed");
-	auto inversed = glm::transpose(glm::inverse(program->cam->GetViewportMatrix() * GetModel()));
+	auto inversed = glm::transpose(glm::inverse(window->cam->GetViewportMatrix() * GetModel()));
 	glUniformMatrix4fv(invLoc, 1, GL_FALSE, glm::value_ptr(inversed));
 	//glBindVertexArray(VAO);
 	//glEnable(GL_CULL_FACE);

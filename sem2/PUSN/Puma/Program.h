@@ -27,6 +27,7 @@ public:
 	bool focused = false;
 	unsigned int colorTexture = 0;
 	std::shared_ptr<Puma> puma = {};
+	std::shared_ptr<Camera> cam = {};
 };
 
 class Program
@@ -53,8 +54,9 @@ public:
 	unsigned int distancesTex = 0;
 	std::string error = "";
 
-	std::shared_ptr<Camera> cam = {};
 	std::shared_ptr<Window> currentWindow = {};
+	std::shared_ptr<Window> wind1 = {};
+	std::shared_ptr<Window> wind2 = {};
 
 	bool simulating = false;
 	float t = 0;
