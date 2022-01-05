@@ -26,7 +26,6 @@ bool rotate = false;
 glm::vec2 mousePosOld;
 glm::vec3 lookAt;
 std::shared_ptr<Program> program = {};
-std::vector<glm::ivec3> path = {};
 double lastTime;
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -36,6 +35,36 @@ glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
 {
 	glm::quat quat = glm::angleAxis(angle, axis);
 	return quat * p;
+}
+
+void Simulate()
+{
+	auto time = glfwGetTime();
+	program->t = (time - lastTime) / (program->simTime);
+	if (program->t >= 1.0f)
+	{
+		program->t = 1.0f;
+		program->simulating = false;
+		return;
+	}
+
+	program->wind1->puma->q2 = 3.0f + sin(time);
+	program->wind1->puma->a1 = fmod(time, 2 * M_PI);
+	program->wind1->puma->a2 = fmod(time, 2 * M_PI);
+	program->wind1->puma->a3 = fmod(time, 2 * M_PI);
+	program->wind1->puma->a4 = fmod(time, 2 * M_PI);
+	program->wind2->puma->q2 = 3.0f + sin(time);
+	program->wind2->puma->a1 = fmod(time, 2 * M_PI);
+	program->wind2->puma->a2 = fmod(time, 2 * M_PI);
+	program->wind2->puma->a3 = fmod(time, 2 * M_PI);
+	program->wind2->puma->a4 = fmod(time, 2 * M_PI);
+
+
+
+	auto pos = program->startPos + program->t * (program->endPos - program->startPos);
+	auto quat = glm::normalize(glm::slerp(program->startQuat, program->endQuat, program->t));
+	//program->wind2->figures[0]->SetRotation(quat);
+
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -190,7 +219,13 @@ void RenderGui()
 	}
 
 	ImGui::SliderFloat("Simulation time", &program->simTime, 1.0f, 10.0f);
-
+	if (ImGui::Button("Simulate"))
+	{
+		program->simulating = true;
+		program->t = 0;
+		lastTime = glfwGetTime();
+		Normalize();
+	}
 	ImGui::End();
 }
 
@@ -222,12 +257,6 @@ void DrawScene(float c)
 	viewLoc = glGetUniformLocation(program->currentWindow->shader2D->ID, "view");
 	glUniformMatrix4fv(perspLoc, 1, GL_FALSE, glm::value_ptr(persp));
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-	program->currentWindow->puma->q2 = 3.0f + sin(time);
-	program->currentWindow->puma->a1 = fmod(time, 2 * M_PI);
-	program->currentWindow->puma->a2 = fmod(time, 2 * M_PI);
-	program->currentWindow->puma->a3 = fmod(time, 2 * M_PI);
-	program->currentWindow->puma->a4 = fmod(time, 2 * M_PI);
 
 	for (int i = 0; i < program->currentWindow->figures.size(); ++i)
 	{
@@ -360,6 +389,14 @@ int main()
 	ImGui::StyleColorsDark();
 	while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(window2))
 	{
+		if (program->simulating)
+		{
+			Simulate();
+		}
+		else
+		{
+
+		}
 		float aspect = (float)program->current_width / (float)program->current_height;
 
 		glfwMakeContextCurrent(window);
