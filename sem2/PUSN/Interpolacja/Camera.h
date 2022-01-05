@@ -24,7 +24,7 @@ public:
 	glm::vec3 right;
 	float _near = 1.0f;
 	float _far = 5.0f;
-	float fov = 1.0f;
+	float fov = 0.50f;
 private:
 
 	glm::mat4 m_projection_matrix;

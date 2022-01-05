@@ -126,13 +126,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\studia\MGR\sem2\PUSN\Interpolacja\imgui;D:\studia\MGR\sem2\PUSN\Interpolacja\include;D:\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\include;C:\Users\piotr.onyszczuk\Desktop\Projekty\priv\MGR\sem1\Modelowanie geometryczne\Interfejs\include;C:\Piotrek\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\piotr.onyszczuk\Desktop\Piotrek\Projekty\priv\MGR\sem2\PUSN\Interpolacja\imgui;C:\Users\piotr.onyszczuk\Desktop\Piotrek\Projekty\priv\MGR\sem2\PUSN\Interpolacja\include;D:\studia\MGR\sem2\PUSN\Interpolacja\imgui;D:\studia\MGR\sem2\PUSN\Interpolacja\include;D:\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\include;C:\Users\piotr.onyszczuk\Desktop\Projekty\priv\MGR\sem1\Modelowanie geometryczne\Interfejs\include;C:\Piotrek\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <AdditionalDependencies>glfw3_dbg.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\studia\MGR\sem2\PUSN\Interpolacja\LIBS;D:\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\LIBS;C:\Users\piotr.onyszczuk\Desktop\Projekty\priv\MGR\sem1\Modelowanie geometryczne\Interfejs\LIBS;C:\Piotrek\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\LIBS;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\piotr.onyszczuk\Desktop\Piotrek\Projekty\priv\MGR\sem2\PUSN\Interpolacja\LIBS;D:\studia\MGR\sem2\PUSN\Interpolacja\LIBS;D:\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\LIBS;C:\Users\piotr.onyszczuk\Desktop\Projekty\priv\MGR\sem1\Modelowanie geometryczne\Interfejs\LIBS;C:\Piotrek\studia\MGR\sem1\Modelowanie geometryczne\Interfejs\LIBS;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

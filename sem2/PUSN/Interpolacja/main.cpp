@@ -488,7 +488,7 @@ int main()
 	glfwMakeContextCurrent(window);
 	program->cam = std::make_shared<Camera>();
 	//	program->cam = new Camera();
-	program->cam->LookAt({ 0,0,10 }, { 0,0,-1 }, { 0,1,0 });
+	program->cam->LookAt({ 0,0,30 }, { 0,0,-1 }, { 0,1,0 });
 
 
 	program->currentWindow = program->wind1;
