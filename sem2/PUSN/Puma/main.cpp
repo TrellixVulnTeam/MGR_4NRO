@@ -17,6 +17,7 @@
 #include "Program.h"
 #include "Cube.h"
 #include "Puma.h"
+#include "Cursor.h"
 #include "ImGuiFileDialog.h"
 #include "Obstacle.h"
 #include <queue>
@@ -177,9 +178,9 @@ void RenderGui()
 
 		if (ImGui::TreeNode("Start pos"))
 		{
-			ImGui::SliderFloat("Start X", &program->startPos.x, -30.0f, 30.0f);
-			ImGui::SliderFloat("Start Y", &program->startPos.y, -30.0f, 30.0f);
-			ImGui::SliderFloat("Start Z", &program->startPos.z, -30.0f, 30.0f);
+			ImGui::SliderFloat("Start X", &program->startPos.x, -5.0f, 5.0f);
+			ImGui::SliderFloat("Start Y", &program->startPos.y, -5.0f, 5.0f);
+			ImGui::SliderFloat("Start Z", &program->startPos.z, -5.0f, 5.0f);
 			ImGui::TreePop();
 		}
 
@@ -192,11 +193,12 @@ void RenderGui()
 			ImGui::TreePop();
 		}
 
+
 		if (ImGui::TreeNode("End pos"))
 		{
-			ImGui::SliderFloat("End X", &program->endPos.x, -30.0f, 30.0f);
-			ImGui::SliderFloat("End Y", &program->endPos.y, -30.0f, 30.0f);
-			ImGui::SliderFloat("End Z", &program->endPos.z, -30.0f, 30.0f);
+			ImGui::SliderFloat("End X", &program->endPos.x, -5.0f, 5.0f);
+			ImGui::SliderFloat("End Y", &program->endPos.y, -5.0f, 5.0f);
+			ImGui::SliderFloat("End Z", &program->endPos.z, -5.0f, 5.0f);
 			ImGui::TreePop();
 		}
 
@@ -216,6 +218,11 @@ void RenderGui()
 			if (ImGui::Button("Normalize"))
 				Normalize();
 		}
+
+		program->wind1->cursor->MoveToVec(program->startPos);
+		program->wind1->cursor->SetRotation(program->startQuat);
+		program->wind2->cursor->MoveToVec(program->endPos);
+		program->wind2->cursor->SetRotation(program->endQuat);
 	}
 
 	ImGui::SliderFloat("Simulation time", &program->simTime, 1.0f, 10.0f);
@@ -271,6 +278,10 @@ void GeneratePuma()
 	program->currentWindow->puma = std::make_shared<Puma>();
 	program->currentWindow->puma->Initialize(program);
 	program->currentWindow->figures.push_back(program->currentWindow->puma);
+
+	program->currentWindow->cursor = std::make_shared<Cursor>();
+	program->currentWindow->cursor->Initialize(program);
+	program->currentWindow->figures.push_back(program->currentWindow->cursor);
 }
 
 int main()

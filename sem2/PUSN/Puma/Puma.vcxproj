@@ -159,6 +159,7 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Cube.cpp" />
+    <ClCompile Include="Cursor.cpp" />
     <ClCompile Include="Cylinder.cpp" />
     <ClCompile Include="Figure.cpp" />
     <ClCompile Include="glad.c" />
@@ -180,6 +181,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cube.h" />
+    <ClInclude Include="Cursor.h" />
     <ClInclude Include="Cylinder.h" />
     <ClInclude Include="Figure.h" />
     <ClInclude Include="imgui\imconfig.h" />

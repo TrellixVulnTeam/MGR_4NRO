@@ -25,6 +25,8 @@ Puma::Puma() : Figure()
 	cylinders[3]->onX = true;
 	cylinders[4]->onZ = true;
 	cylinders[7]->onX = true;
+
+	cursor=std::make_shared<Cursor>();
 }
 
 void Puma::Initialize(std::shared_ptr<Program> _program)
@@ -32,6 +34,7 @@ void Puma::Initialize(std::shared_ptr<Program> _program)
 	for (auto& c : cylinders)
 		c->Initialize(_program);
 
+	cursor->Initialize(_program);
 }
 
 void Puma::RecalcFigure()
@@ -40,6 +43,8 @@ void Puma::RecalcFigure()
 	{ cylinders[3]->h = q2; cylinders[3]->Invalidate(); }
 	for (auto& c : cylinders)
 		c->RecalcFigure();
+
+	cursor->RecalcFigure();
 }
 
 void Puma::InverseKinematics(glm::vec3 p5, glm::vec3 x, glm::vec3 y, glm::vec3 z)
@@ -88,6 +93,8 @@ void Puma::Draw()
 		c->RecalcModel();
 		c->Draw();
 	}
+
+	cursor->Draw();
 }
 
 bool Puma::Create()

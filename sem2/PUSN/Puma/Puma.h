@@ -1,6 +1,7 @@
 #pragma once
 #include "Figure.h"
 #include "Cylinder.h"
+#include "Cursor.h"
 
 
 class Puma : public Figure
@@ -18,5 +19,6 @@ public:
 private:
 	bool virtual Create() override;
 	std::vector<std::shared_ptr<Cylinder>> cylinders;
+	std::shared_ptr<Cursor> cursor;
 };
 

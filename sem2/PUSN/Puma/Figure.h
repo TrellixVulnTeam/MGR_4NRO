@@ -14,7 +14,7 @@
 
 enum class FigureType
 {
-	Cube, Duck, Tool, Obstacle, Cylinder,Puma
+	Cube, Duck, Tool, Obstacle, Cylinder,Puma,Cursor
 };
 
 class Program;

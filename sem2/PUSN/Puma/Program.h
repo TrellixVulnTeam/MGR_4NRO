@@ -13,6 +13,7 @@ class Cube;
 class Puma;
 class Camera;
 class Obstacle;
+class Cursor;
 
 class Window
 {
@@ -28,6 +29,7 @@ public:
 	unsigned int colorTexture = 0;
 	std::shared_ptr<Puma> puma = {};
 	std::shared_ptr<Camera> cam = {};
+	std::shared_ptr<Cursor> cursor = {};
 };
 
 class Program
