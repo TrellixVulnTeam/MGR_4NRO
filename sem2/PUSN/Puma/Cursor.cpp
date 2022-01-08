@@ -3,7 +3,7 @@
 #include <string>
 #include "Camera.h"
 
-Cursor::Cursor() :Figure()
+Cursor::Cursor(int a_) :a(a_), Figure()
 {
 	sprintf_s(name, STRMAX, ("Cursor - " + std::to_string(idx++) + " " + gen_random(12, idx)).c_str());
 	figureType = FigureType::Cursor;
@@ -83,74 +83,281 @@ bool Cursor::Create()
 	vertices.clear();
 	indices.clear();
 
+	float l = 2.0f;
 	int n = 0;
 	vertices = std::vector<float>(9 * 6);
-	vertices[n + 0] = 0.0f;
-	vertices[n + 1] = 0.0f;
-	vertices[n + 2] = 0.0f;
-	vertices[n + 3] = 0.0f;
-	vertices[n + 4] = 0.0f;
-	vertices[n + 5] = 0.0f;
-	vertices[n + 6] = 1.0f;
-	vertices[n + 7] = 0.0f;
-	vertices[n + 8] = 0.0f;
-	n += 9;
+	if (a == 0)
+	{
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 1.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
 
-	vertices[n + 0] = 1.0f;
-	vertices[n + 1] = 0.0f;
-	vertices[n + 2] = 0.0f;
-	vertices[n + 3] = 0.0f;
-	vertices[n + 4] = 0.0f;
-	vertices[n + 5] = 0.0f;
-	vertices[n + 6] = 1.0f;
-	vertices[n + 7] = 0.0f;
-	vertices[n + 8] = 0.0f;
-	n += 9;
+		vertices[n + 0] = l;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 1.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
 
-	vertices[n + 0] = 0.0f;
-	vertices[n + 1] = 0.0f;
-	vertices[n + 2] = 0.0f;
-	vertices[n + 3] = 0.0f;
-	vertices[n + 4] = 0.0f;
-	vertices[n + 5] = 0.0f;
-	vertices[n + 6] = 0.0f;
-	vertices[n + 7] = 1.0f;
-	vertices[n + 8] = 0.0f;
-	n += 9;
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 1.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
 
-	vertices[n + 0] = 0.0f;
-	vertices[n + 1] = 1.0f;
-	vertices[n + 2] = 0.0f;
-	vertices[n + 3] = 0.0f;
-	vertices[n + 4] = 0.0f;
-	vertices[n + 5] = 0.0f;
-	vertices[n + 6] = 0.0f;
-	vertices[n + 7] = 1.0f;
-	vertices[n + 8] = 0.0f;
-	n += 9;
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = l;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 1.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
 
-	vertices[n + 0] = 0.0f;
-	vertices[n + 1] = 0.0f;
-	vertices[n + 2] = 0.0f;
-	vertices[n + 3] = 0.0f;
-	vertices[n + 4] = 0.0f;
-	vertices[n + 5] = 0.0f;
-	vertices[n + 6] = 0.0f;
-	vertices[n + 7] = 0.0f;
-	vertices[n + 8] = 1.0f;
-	n += 9;
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 1.0f;
+		n += 9;
 
-	vertices[n + 0] = 0.0f;
-	vertices[n + 1] = 0.0f;
-	vertices[n + 2] = 1.0f;
-	vertices[n + 3] = 0.0f;
-	vertices[n + 4] = 0.0f;
-	vertices[n + 5] = 0.0f;
-	vertices[n + 6] = 0.0f;
-	vertices[n + 7] = 0.0f;
-	vertices[n + 8] = 1.0f;
-	n += 9;
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = l;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 1.0f;
+		n += 9;
+	}
+	if (a == 1)
+	{
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 1.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
 
+		vertices[n + 0] = l;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 1.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
+
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 1.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
+
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = l;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 1.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
+
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 1.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
+
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = l;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 1.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
+	}
+	if (a == 2)
+	{
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 1.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
+
+		vertices[n + 0] = l;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 1.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
+
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 1.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
+
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = l;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 1.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
+
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 1.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
+
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = l;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 1.0f;
+		vertices[n + 8] = 0.0f;
+		n += 9;
+	}
+	if (a == 3)
+	{
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 1.0f;
+		n += 9;
+
+		vertices[n + 0] = l;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 1.0f;
+		n += 9;
+
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 1.0f;
+		n += 9;
+
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = l;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 1.0f;
+		n += 9;
+
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = 0.0f;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 1.0f;
+		n += 9;
+
+		vertices[n + 0] = 0.0f;
+		vertices[n + 1] = 0.0f;
+		vertices[n + 2] = l;
+		vertices[n + 3] = 0.0f;
+		vertices[n + 4] = 0.0f;
+		vertices[n + 5] = 0.0f;
+		vertices[n + 6] = 0.0f;
+		vertices[n + 7] = 0.0f;
+		vertices[n + 8] = 1.0f;
+		n += 9;
+	}
 	indices.push_back(0);
 	indices.push_back(1);
 	indices.push_back(2);

@@ -223,6 +223,14 @@ void RenderGui()
 		program->wind1->cursor->SetRotation(program->startQuat);
 		program->wind2->cursor->MoveToVec(program->endPos);
 		program->wind2->cursor->SetRotation(program->endQuat);
+
+		if (ImGui::Button("Inverse start"))
+		{
+			glm::vec3 x = { 1.0f,0.0f,0.0f };
+			glm::vec3 y = { 0.0f,1.0f,0.0f };
+			glm::vec3 z = { 0.0f,0.0f,1.0f };
+			program->wind1->puma->InverseKinematics(program->startPos, glm::rotate(program->startQuat, x), glm::rotate(program->startQuat, y), glm::rotate(program->startQuat, z));
+		}
 	}
 
 	ImGui::SliderFloat("Simulation time", &program->simTime, 1.0f, 10.0f);
@@ -435,7 +443,7 @@ int main()
 		program->currentWindow->cam->SetPerspective(aspect);
 		proc.processInput(window2);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		DrawScene(0.0f);
+	//	DrawScene(0.0f);
 
 		glfwSwapBuffers(window2);
 		if (program->wind2->focused)
