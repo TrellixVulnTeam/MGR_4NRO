@@ -49,19 +49,6 @@ void Simulate()
 		return;
 	}
 
-	program->wind1->puma->q2 = 3.0f + sin(time);
-	program->wind1->puma->a1 = fmod(time, 2 * M_PI);
-	program->wind1->puma->a2 = fmod(time, 2 * M_PI);
-	program->wind1->puma->a3 = fmod(time, 2 * M_PI);
-	program->wind1->puma->a4 = fmod(time, 2 * M_PI);
-	program->wind2->puma->q2 = 3.0f + sin(time);
-	program->wind2->puma->a1 = fmod(time, 2 * M_PI);
-	program->wind2->puma->a2 = fmod(time, 2 * M_PI);
-	program->wind2->puma->a3 = fmod(time, 2 * M_PI);
-	program->wind2->puma->a4 = fmod(time, 2 * M_PI);
-
-
-
 	auto pos = program->startPos + program->t * (program->endPos - program->startPos);
 	auto quat = glm::normalize(glm::slerp(program->startQuat, program->endQuat, program->t));
 	//program->wind2->figures[0]->SetRotation(quat);
@@ -224,13 +211,14 @@ void RenderGui()
 		program->wind2->cursor->MoveToVec(program->endPos);
 		program->wind2->cursor->SetRotation(program->endQuat);
 
-		if (ImGui::Button("Inverse start"))
-		{
-			glm::vec3 x = { 1.0f,0.0f,0.0f };
-			glm::vec3 y = { 0.0f,1.0f,0.0f };
-			glm::vec3 z = { 0.0f,0.0f,1.0f };
-			program->wind1->puma->InverseKinematics(program->startPos, glm::rotate(program->startQuat, x), glm::rotate(program->startQuat, y), glm::rotate(program->startQuat, z));
-		}
+		if (ImGui::Button("Inverse start v1"))
+			program->wind1->puma->ForceConfiguration(program->startPos, program->startQuat, 1);
+		if (ImGui::Button("Inverse start v2"))
+			program->wind1->puma->ForceConfiguration(program->startPos, program->startQuat, 2);
+		if (ImGui::Button("Inverse end v1"))
+			program->wind2->puma->ForceConfiguration(program->endPos, program->endQuat, 1);
+		if (ImGui::Button("Inverse end v2"))
+			program->wind2->puma->ForceConfiguration(program->endPos, program->endQuat, 2);
 	}
 
 	ImGui::SliderFloat("Simulation time", &program->simTime, 1.0f, 10.0f);
@@ -443,7 +431,7 @@ int main()
 		program->currentWindow->cam->SetPerspective(aspect);
 		proc.processInput(window2);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	//	DrawScene(0.0f);
+		DrawScene(0.0f);
 
 		glfwSwapBuffers(window2);
 		if (program->wind2->focused)
