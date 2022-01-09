@@ -20,6 +20,7 @@
 #include "Cursor.h"
 #include "ImGuiFileDialog.h"
 #include "Obstacle.h"
+#include "Parameters.h"
 #include <queue>
 
 bool firstCall = true;
@@ -31,6 +32,25 @@ double lastTime;
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void window_size_callback(GLFWwindow* window, int width, int height);
+
+float GetAngleDiff(float start, float end)
+{
+	if (end < start) end += 2*M_PI;
+
+	auto diff = end - start;
+	if (diff > M_PI) diff = -(2*M_PI - diff);
+	return diff;
+}
+
+void GetDiffs()
+{
+	program->diffParams->a1 = GetAngleDiff(program->startParams->a1, program->endParams->a1);
+	program->diffParams->a2 = GetAngleDiff(program->startParams->a2, program->endParams->a2);
+	program->diffParams->a3 = GetAngleDiff(program->startParams->a3, program->endParams->a3);
+	program->diffParams->a4 = GetAngleDiff(program->startParams->a4, program->endParams->a4);
+	program->diffParams->a5 = GetAngleDiff(program->startParams->a5, program->endParams->a5);
+	program->diffParams->q2 = program->endParams->q2 - program->startParams->q2;
+}
 
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
 {
@@ -48,9 +68,18 @@ void Simulate()
 		program->simulating = false;
 		return;
 	}
+	
+
+	program->wind1->puma->params->Set(program->startParams, program->t, program->diffParams);
 
 	auto pos = program->startPos + program->t * (program->endPos - program->startPos);
 	auto quat = glm::normalize(glm::slerp(program->startQuat, program->endQuat, program->t));
+	auto cur = program->wind2->puma->GetParams();
+	auto res = program->wind2->puma->InverseKinematics(pos, quat);
+	if (cur->Distance(res.first) < cur->Distance(res.second))
+		program->wind2->puma->SetParams(res.first);
+	else
+		program->wind2->puma->SetParams(res.second);
 	//program->wind2->figures[0]->SetRotation(quat);
 
 }
@@ -119,8 +148,8 @@ void Normalize(glm::quat& q)
 }
 void Normalize()
 {
-	Normalize(program->startQuat);
-	Normalize(program->endQuat);
+	Normalize(program->q1);
+	Normalize(program->q2);
 }
 
 void window_focus_callback(GLFWwindow* window, int focused)
@@ -165,36 +194,36 @@ void RenderGui()
 
 		if (ImGui::TreeNode("Start pos"))
 		{
-			ImGui::SliderFloat("Start X", &program->startPos.x, -5.0f, 5.0f);
-			ImGui::SliderFloat("Start Y", &program->startPos.y, -5.0f, 5.0f);
-			ImGui::SliderFloat("Start Z", &program->startPos.z, -5.0f, 5.0f);
+			ImGui::SliderFloat("Start X", &program->p1.x, -5.0f, 5.0f);
+			ImGui::SliderFloat("Start Y", &program->p1.y, -5.0f, 5.0f);
+			ImGui::SliderFloat("Start Z", &program->p1.z, -5.0f, 5.0f);
 			ImGui::TreePop();
 		}
 
 		if (ImGui::TreeNode("Start rot"))
 		{
-			ImGui::SliderFloat("X", &program->startQuat.x, -1.0f, 1.0f);
-			ImGui::SliderFloat("Y", &program->startQuat.y, -1.0f, 1.0f);
-			ImGui::SliderFloat("Z", &program->startQuat.z, -1.0f, 1.0f);
-			ImGui::SliderFloat("W", &program->startQuat.w, -1.0f, 1.0f);
+			ImGui::SliderFloat("X", &program->q1.x, -1.0f, 1.0f);
+			ImGui::SliderFloat("Y", &program->q1.y, -1.0f, 1.0f);
+			ImGui::SliderFloat("Z", &program->q1.z, -1.0f, 1.0f);
+			ImGui::SliderFloat("W", &program->q1.w, -1.0f, 1.0f);
 			ImGui::TreePop();
 		}
 
 
 		if (ImGui::TreeNode("End pos"))
 		{
-			ImGui::SliderFloat("End X", &program->endPos.x, -5.0f, 5.0f);
-			ImGui::SliderFloat("End Y", &program->endPos.y, -5.0f, 5.0f);
-			ImGui::SliderFloat("End Z", &program->endPos.z, -5.0f, 5.0f);
+			ImGui::SliderFloat("End X", &program->p2.x, -5.0f, 5.0f);
+			ImGui::SliderFloat("End Y", &program->p2.y, -5.0f, 5.0f);
+			ImGui::SliderFloat("End Z", &program->p2.z, -5.0f, 5.0f);
 			ImGui::TreePop();
 		}
 
 		if (ImGui::TreeNode("End rot"))
 		{
-			ImGui::SliderFloat("X", &program->endQuat.x, -1.0f, 1.0f);
-			ImGui::SliderFloat("Y", &program->endQuat.y, -1.0f, 1.0f);
-			ImGui::SliderFloat("Z", &program->endQuat.z, -1.0f, 1.0f);
-			ImGui::SliderFloat("W", &program->endQuat.w, -1.0f, 1.0f);
+			ImGui::SliderFloat("X", &program->q2.x, -1.0f, 1.0f);
+			ImGui::SliderFloat("Y", &program->q2.y, -1.0f, 1.0f);
+			ImGui::SliderFloat("Z", &program->q2.z, -1.0f, 1.0f);
+			ImGui::SliderFloat("W", &program->q2.w, -1.0f, 1.0f);
 			ImGui::TreePop();
 		}
 
@@ -206,19 +235,60 @@ void RenderGui()
 				Normalize();
 		}
 
-		program->wind1->cursor->MoveToVec(program->startPos);
-		program->wind1->cursor->SetRotation(program->startQuat);
-		program->wind2->cursor->MoveToVec(program->endPos);
-		program->wind2->cursor->SetRotation(program->endQuat);
+		program->wind1->cursor->MoveToVec(program->p1);
+		program->wind1->cursor->SetRotation(program->q1);
+		program->wind2->cursor->MoveToVec(program->p2);
+		program->wind2->cursor->SetRotation(program->q2);
 
 		if (ImGui::Button("Inverse start v1"))
-			program->wind1->puma->ForceConfiguration(program->startPos, program->startQuat, 1);
+		{
+			Normalize();
+			program->wind1->puma->ForceConfiguration(program->p1, program->q1, 1);
+		}
 		if (ImGui::Button("Inverse start v2"))
-			program->wind1->puma->ForceConfiguration(program->startPos, program->startQuat, 2);
+		{
+			Normalize();
+			program->wind1->puma->ForceConfiguration(program->p1, program->q1, 2);
+		}
 		if (ImGui::Button("Inverse end v1"))
-			program->wind2->puma->ForceConfiguration(program->endPos, program->endQuat, 1);
+		{
+			Normalize();
+			program->wind2->puma->ForceConfiguration(program->p2, program->q2, 1);
+		}
 		if (ImGui::Button("Inverse end v2"))
-			program->wind2->puma->ForceConfiguration(program->endPos, program->endQuat, 2);
+		{
+			Normalize();
+			program->wind2->puma->ForceConfiguration(program->p2, program->q2, 2);
+		}
+
+		if (ImGui::Button("Set start pos"))
+		{
+			Normalize();
+			program->startPos = program->p1;
+			program->startQuat = program->q1;
+			program->startParams = program->wind1->puma->GetParams();
+		}
+		if (ImGui::Button("Set end pos"))
+		{
+			Normalize();
+			program->endPos = program->p2;
+			program->endQuat = program->q2;
+			program->endParams = program->wind2->puma->GetParams();
+		}
+
+		if (ImGui::Button("Show start pos"))
+		{
+			program->p1 = program->startPos;
+			program->q1 = program->startQuat;
+			program->wind1->puma->SetParams(program->startParams);
+		}
+		if (ImGui::Button("Show end pos"))
+		{
+			program->p2 = program->endPos;
+			program->q2 = program->endQuat;
+			program->wind2->puma->SetParams(program->endParams);
+		}
+
 	}
 
 	ImGui::SliderFloat("Simulation time", &program->simTime, 1.0f, 10.0f);
@@ -227,7 +297,7 @@ void RenderGui()
 		program->simulating = true;
 		program->t = 0;
 		lastTime = glfwGetTime();
-		Normalize();
+		GetDiffs();
 	}
 	ImGui::End();
 }
@@ -372,7 +442,9 @@ int main()
 		, nullptr);
 
 
-
+	program->diffParams = std::make_shared<Parameters>();
+	program->startParams = std::make_shared<Parameters>();
+	program->endParams = std::make_shared<Parameters>();
 	glfwMakeContextCurrent(window2);
 
 	program->currentWindow = program->wind1;

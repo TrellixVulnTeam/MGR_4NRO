@@ -6,6 +6,7 @@
 Puma::Puma() : Figure()
 {
 	sprintf_s(name, STRMAX, ("Puma - " + std::to_string(idx++) + " " + gen_random(12, idx)).c_str());
+	params = std::make_shared<Parameters>();
 	figureType = FigureType::Puma;
 
 	glm::vec3 yellow = { 1.0f,1.0f,0.0f };
@@ -15,7 +16,7 @@ Puma::Puma() : Figure()
 	cylinders.push_back(std::make_shared<Cylinder>(true, 1.0f, 0.6f, yellow));
 	cylinders.push_back(std::make_shared<Cylinder>(false, 0.3f, l1, yellow));
 	cylinders.push_back(std::make_shared<Cylinder>(true, 0.5f, 0.6f, red));
-	cylinders.push_back(std::make_shared<Cylinder>(false, 0.3f, params.q2, red));
+	cylinders.push_back(std::make_shared<Cylinder>(false, 0.3f, params->q2, red));
 	cylinders.push_back(std::make_shared<Cylinder>(true, 0.5f, 0.6f, green));
 	cylinders.push_back(std::make_shared<Cylinder>(false, 0.3f, -l3, green));
 	cylinders.push_back(std::make_shared<Cylinder>(true, 0.5f, 0.6f, blue));
@@ -43,8 +44,8 @@ void Puma::Initialize(std::shared_ptr<Program> _program)
 
 void Puma::RecalcFigure()
 {
-	if (params.q2 != q2_old) q2_old = params.q2;
-	{ cylinders[3]->h = params.q2; cylinders[3]->Invalidate(); }
+	if (params->q2 != q2_old) q2_old = params->q2;
+	{ cylinders[3]->h = params->q2; cylinders[3]->Invalidate(); }
 	for (auto& c : cylinders)
 		c->RecalcFigure();
 
@@ -65,7 +66,7 @@ float MyAngle(glm::vec3 v1, glm::vec3 v2, glm::vec3 c)
 	return res;
 }
 
-std::pair<Parameters, Parameters> Puma::InverseKinematics(glm::vec3 p5, glm::quat q)
+std::pair<std::shared_ptr<Parameters>, std::shared_ptr<Parameters>> Puma::InverseKinematics(glm::vec3 p5, glm::quat q)
 {
 	//p5 = { 2.297f,2.095f,-1.959f };
 	//x5 = { 0.7184f,0.13f,-0.6832f };
@@ -92,9 +93,9 @@ std::pair<Parameters, Parameters> Puma::InverseKinematics(glm::vec3 p5, glm::qua
 	auto p4 = p5 - l4 * x5;
 	glm::vec3 y4;
 	glm::vec3 n;
-	Parameters params1;
-	Parameters params2;
-	params2.q2 = -1;
+	std::shared_ptr<Parameters> params1 = std::make_shared<Parameters>();
+	std::shared_ptr<Parameters> params2 = std::make_shared<Parameters>();
+	params2->q2 = -1;
 	if (false)//rownolegle
 	{
 	}
@@ -120,37 +121,37 @@ std::pair<Parameters, Parameters> Puma::InverseKinematics(glm::vec3 p5, glm::qua
 		{
 			auto p3 = p4 + l3 * y4;
 
-			params1.a1 = atan2(-p4.z, p4.x);
+			params1->a1 = atan2(-p4.z, p4.x);
 
 			glm::mat4 cur = glm::mat4(1.0f);
-			glm::mat4 m01 = glm::rotate(params1.a1, glm::vec3(0, 1, 0));
+			glm::mat4 m01 = glm::rotate(params1->a1, glm::vec3(0, 1, 0));
 			cur = cur * m01;
 
 			auto p20 = glm::normalize(p2 - p0);
 			auto p32 = glm::normalize(p3 - p2);
 			auto z = glm::vec3(cur * glm::vec4(z0, 0.0f));
 			auto a2t = MyAngle(p20, p32, z);
-			params1.a2 = -a2t + M_PI / 2;
+			params1->a2 = -a2t + M_PI / 2;
 
-			glm::mat4 m1p2 = glm::rotate(params1.a2, glm::vec3(0, 0, 1));
+			glm::mat4 m1p2 = glm::rotate(params1->a2, glm::vec3(0, 0, 1));
 			cur = cur * m1p2;
 
-			params1.q2 = glm::length(p3 - p2);
+			params1->q2 = glm::length(p3 - p2);
 
 			auto p43 = glm::normalize(p4 - p3);
 			z = glm::vec3(cur * glm::vec4(z0, 0.0f));
 			auto a3t = MyAngle(p32, p43, -z);
-			params1.a3 = a3t + M_PI / 2;
+			params1->a3 = a3t + M_PI / 2;
 
-			glm::mat4 m2p3 = glm::rotate(params1.a3, glm::vec3(0, 0, 1));
+			glm::mat4 m2p3 = glm::rotate(params1->a3, glm::vec3(0, 0, 1));
 			cur = cur * m2p3;
 			auto y = glm::vec3(cur * glm::vec4(y0, 0.0f));
-			params1.a4 = MyAngle(glm::normalize(n), glm::normalize(x5), -y) - M_PI / 2;
+			params1->a4 = MyAngle(glm::normalize(n), glm::normalize(x5), -y) - M_PI / 2;
 
-			glm::mat4 m3p4 = glm::rotate(params1.a4, glm::vec3(0, 1, 0));
+			glm::mat4 m3p4 = glm::rotate(params1->a4, glm::vec3(0, 1, 0));
 			cur = cur * m2p3;
 			auto x = glm::vec3(cur * glm::vec4(x0, 0.0f));
-			params1.a5 = MyAngle(glm::normalize(p3 - p4), glm::normalize(y5), x);
+			params1->a5 = MyAngle(glm::normalize(p3 - p4), glm::normalize(y5), x);
 
 			//cursorp3->outer_mat = glm::translate(p5);
 			//cursorp3->RecalcModel();
@@ -160,37 +161,37 @@ std::pair<Parameters, Parameters> Puma::InverseKinematics(glm::vec3 p5, glm::qua
 		{
 			auto p3 = p4 - l3 * y4;
 
-			params2.a1 = atan2(-p4.z, p4.x);
+			params2->a1 = atan2(-p4.z, p4.x);
 
 			glm::mat4 cur = glm::mat4(1.0f);
-			glm::mat4 m01 = glm::rotate(params2.a1, glm::vec3(0, 1, 0));
+			glm::mat4 m01 = glm::rotate(params2->a1, glm::vec3(0, 1, 0));
 			cur = cur * m01;
 
 			auto p20 = glm::normalize(p2 - p0);
 			auto p32 = glm::normalize(p3 - p2);
 			auto z = glm::vec3(cur * glm::vec4(z0, 0.0f));
 			auto a2t = MyAngle(p20, p32, z);
-			params2.a2 = -a2t + M_PI / 2;
+			params2->a2 = -a2t + M_PI / 2;
 
-			glm::mat4 m1p2 = glm::rotate(params2.a2, glm::vec3(0, 0, 1));
+			glm::mat4 m1p2 = glm::rotate(params2->a2, glm::vec3(0, 0, 1));
 			cur = cur * m1p2;
 
-			params2.q2 = glm::length(p3 - p2);
+			params2->q2 = glm::length(p3 - p2);
 
 			auto p43 = glm::normalize(p4 - p3);
 			z = glm::vec3(cur * glm::vec4(z0, 0.0f));
 			auto a3t = MyAngle(p32, p43, -z);
-			params2.a3 = a3t + M_PI / 2;
+			params2->a3 = a3t + M_PI / 2;
 
-			glm::mat4 m2p3 = glm::rotate(params2.a3, glm::vec3(0, 0, 1));
+			glm::mat4 m2p3 = glm::rotate(params2->a3, glm::vec3(0, 0, 1));
 			cur = cur * m2p3;
 			auto y = glm::vec3(cur * glm::vec4(y0, 0.0f));
-			params2.a4 = MyAngle(glm::normalize(n), glm::normalize(x5), -y) - M_PI / 2;
+			params2->a4 = MyAngle(glm::normalize(n), glm::normalize(x5), -y) - M_PI / 2;
 
-			glm::mat4 m3p4 = glm::rotate(params2.a4, glm::vec3(0, 1, 0));
+			glm::mat4 m3p4 = glm::rotate(params2->a4, glm::vec3(0, 1, 0));
 			cur = cur * m2p3;
 			auto x = glm::vec3(cur * glm::vec4(x0, 0.0f));
-			params2.a5 = MyAngle(glm::normalize(p3 - p4), glm::normalize(y5), x);
+			params2->a5 = MyAngle(glm::normalize(p3 - p4), glm::normalize(y5), x);
 
 			//cursorp3->outer_mat = glm::translate(p5);
 			//cursorp3->RecalcModel();
@@ -198,11 +199,12 @@ std::pair<Parameters, Parameters> Puma::InverseKinematics(glm::vec3 p5, glm::qua
 			//cursorp4->RecalcModel();
 		}
 	}
-
+	params1->Fix();
+	params2->Fix();
 	return std::make_pair(params1, params2);
 }
 
-void Puma::ForceConfiguration(glm::vec3 p5, glm::quat q , int n)
+void Puma::ForceConfiguration(glm::vec3 p5, glm::quat q, int n)
 {
 	auto res = InverseKinematics(p5, q);
 	if (n == 1)
@@ -211,9 +213,16 @@ void Puma::ForceConfiguration(glm::vec3 p5, glm::quat q , int n)
 		SetParams(res.second);
 }
 
-void Puma::SetParams(Parameters params_)
+void Puma::SetParams(std::shared_ptr<Parameters> params_)
 {
-	params = params_;
+	params->Set(params_, 0, params_);
+}
+
+std::shared_ptr<Parameters> Puma::GetParams()
+{
+	auto p = std::make_shared<Parameters>();
+	p->Set(params, 0, params);
+	return p;
 }
 
 bool Puma::GetGuiInternal(std::shared_ptr<Figure> par)
@@ -224,22 +233,22 @@ bool Puma::GetGuiInternal(std::shared_ptr<Figure> par)
 
 void Puma::Draw()
 {
-	glm::mat4 m01 = glm::rotate(params.a1, glm::vec3(0, 1, 0));
+	glm::mat4 m01 = glm::rotate(params->a1, glm::vec3(0, 1, 0));
 	glm::mat4 m11p = glm::translate(glm::vec3(0, l1, 0));
 
 	auto cur = m01 * m11p;
 	cylinders[2]->outer_mat = cur;
 
 
-	glm::mat4 m1p2 = glm::rotate(params.a2, glm::vec3(0, 0, 1));
+	glm::mat4 m1p2 = glm::rotate(params->a2, glm::vec3(0, 0, 1));
 	cur = cur * m1p2;
 	cylinders[3]->outer_mat = cur;
 
-	glm::mat4 m22p = glm::translate(glm::vec3(params.q2, 0, 0));
+	glm::mat4 m22p = glm::translate(glm::vec3(params->q2, 0, 0));
 	cur = cur * m22p;
 	cylinders[4]->outer_mat = cur;
 
-	glm::mat4 m2p3 = glm::rotate(params.a3, glm::vec3(0, 0, 1));
+	glm::mat4 m2p3 = glm::rotate(params->a3, glm::vec3(0, 0, 1));
 	cur = cur * m2p3;
 	cylinders[5]->outer_mat = cur;
 
@@ -247,13 +256,13 @@ void Puma::Draw()
 	cur = cur * m33p;
 	cylinders[6]->outer_mat = cur;
 
-	glm::mat4 m3p4 = glm::rotate(params.a4, glm::vec3(0, 1, 0));
+	glm::mat4 m3p4 = glm::rotate(params->a4, glm::vec3(0, 1, 0));
 	cur = cur * m3p4;
 	cylinders[7]->outer_mat = cur;
 
 	glm::mat4 m44p = glm::translate(glm::vec3(l4, 0, 0));
 	cur = cur * m44p;
-	glm::mat4 m4p5 = glm::rotate(params.a5, glm::vec3(1, 0, 0));
+	glm::mat4 m4p5 = glm::rotate(params->a5, glm::vec3(1, 0, 0));
 	cur = cur * m4p5;
 	cursor->outer_mat = cur;
 
@@ -273,16 +282,4 @@ void Puma::Draw()
 bool Puma::Create()
 {
 	return false;
-}
-
-float Parameters::Distance(Parameters params)
-{
-	float d1 = params.a1 - a1;
-	float d2 = params.a2 - a2;
-	float d3 = params.a3 - a3;
-	float d4 = params.a4 - a4;
-	float d5 = params.a5 - a5;
-	float d6 = params.q2 - q2;
-
-	return d1 * d1 + d2 * d2 + d3 * d3 + d4 * d4 + d5 * d5 + d6 * d6;
 }

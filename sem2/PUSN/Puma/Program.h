@@ -10,6 +10,7 @@
 #define DEFAULT_HEIGHT 720
 class Figure;
 class Cube;
+class Parameters;
 class Puma;
 class Camera;
 class Obstacle;
@@ -64,11 +65,21 @@ public:
 	float t = 0;
 	float simTime = 1.0f;
 
+	glm::vec3 p1 = {};
+	glm::vec3 p2 = {};
+
+	glm::quat q1 = {};
+	glm::quat q2 = {};
+
 	glm::vec3 startPos = {};
 	glm::vec3 endPos = {};
 
 	glm::quat startQuat = {};
 	glm::quat endQuat = {};
+
+	std::shared_ptr<Parameters> startParams = {};
+	std::shared_ptr<Parameters> endParams = {};
+	std::shared_ptr<Parameters> diffParams = {};
 
 	bool normalize_live = true;
 };

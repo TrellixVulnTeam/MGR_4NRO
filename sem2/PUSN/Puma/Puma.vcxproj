@@ -173,6 +173,7 @@
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Obstacle.cpp" />
+    <ClCompile Include="Parameters.cpp" />
     <ClCompile Include="processing.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Puma.cpp" />
@@ -195,6 +196,7 @@
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="Obstacle.h" />
+    <ClInclude Include="Parameters.h" />
     <ClInclude Include="processing.h" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Puma.h" />
