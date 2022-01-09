@@ -34,6 +34,7 @@ Puma::Puma() : Figure()
 
 void Puma::Initialize(std::shared_ptr<Program> _program)
 {
+	program = _program;
 	for (auto& c : cylinders)
 		c->Initialize(_program);
 
@@ -78,9 +79,25 @@ std::pair<std::shared_ptr<Parameters>, std::shared_ptr<Parameters>> Puma::Invers
 	//y5 = { -0.822133899f,0.559336066f,0.106014013f };
 	//z5 = { -0.322171390f,-0.610650599f,0.723402619f };
 
+	//p5 = { 1.89199996f ,0.405000001f,0.0f };
+	//q = { 0.919965267f, 0.0f,0.0f,-0.391999990f };
+
 	glm::vec3 x5 = glm::rotate(q, { 1.0f,0.0f,0.0f });
 	glm::vec3 y5 = glm::rotate(q, { 0.0f,1.0f,0.0f });
 	glm::vec3 z5 = glm::rotate(q, { 0.0f,0.0f,1.0f });
+
+	/*
+	p5 = { 4 / sqrt(2),0,0 };
+	x5 = { sqrt(2) / 2, -sqrt(2) / 2, 0.0f };
+	y5 = { sqrt(2) / 2, sqrt(2) / 2, 0.0f };
+	z5 = { 0.0f, 0.0f, 1.0f };
+	program->p1 = p5;
+	program->q1 = q;
+	*/
+
+	x5 = { 0.0f,1.0f,0.0f };
+	y5 = { 0.0f,0.0f,1.0f };
+	z5 = { 1.0f,0.0f,0.0f };
 
 	glm::vec3 x0 = { 1.0f,0.0f,0.0f };
 	glm::vec3 y0 = { 0.0f,1.0f,0.0f };
@@ -96,12 +113,16 @@ std::pair<std::shared_ptr<Parameters>, std::shared_ptr<Parameters>> Puma::Invers
 	std::shared_ptr<Parameters> params1 = std::make_shared<Parameters>();
 	std::shared_ptr<Parameters> params2 = std::make_shared<Parameters>();
 	params2->q2 = -1;
-	if (false)//rownolegle
+	auto cross = glm::cross(p4 - p0, p2 - p0);
+	if (glm::length(cross) < 1e-4)//rownolegle
 	{
+		y4 = y5;
+		auto p3 = p4 + l3 * y4;
+		n = glm::normalize(glm::cross(p4 - p3, p5 - p4));
 	}
 	else
 	{
-		n = glm::cross(p4 - p0, p2 - p0);
+		n = glm::normalize(cross);
 		auto a = n.x;
 		auto b = n.y;
 		auto c = n.z;
@@ -109,95 +130,182 @@ std::pair<std::shared_ptr<Parameters>, std::shared_ptr<Parameters>> Puma::Invers
 		auto e = x5.y;
 		auto f = x5.z;
 		//a!=0
-
-		//e-bd/a
-		auto k = (-f + c * d / a) / (e - b * d / a);
-		auto l = (-b * k - c) / a;
-
-		y4.z = sqrt(1 / (l * l + k * k + 1));
-		y4.y = y4.z * k;
-		y4.x = y4.z * l;
-
+		if (a == 0)
 		{
-			auto p3 = p4 + l3 * y4;
-
-			params1->a1 = atan2(-p4.z, p4.x);
-
-			glm::mat4 cur = glm::mat4(1.0f);
-			glm::mat4 m01 = glm::rotate(params1->a1, glm::vec3(0, 1, 0));
-			cur = cur * m01;
-
-			auto p20 = glm::normalize(p2 - p0);
-			auto p32 = glm::normalize(p3 - p2);
-			auto z = glm::vec3(cur * glm::vec4(z0, 0.0f));
-			auto a2t = MyAngle(p20, p32, z);
-			params1->a2 = -a2t + M_PI / 2;
-
-			glm::mat4 m1p2 = glm::rotate(params1->a2, glm::vec3(0, 0, 1));
-			cur = cur * m1p2;
-
-			params1->q2 = glm::length(p3 - p2);
-
-			auto p43 = glm::normalize(p4 - p3);
-			z = glm::vec3(cur * glm::vec4(z0, 0.0f));
-			auto a3t = MyAngle(p32, p43, -z);
-			params1->a3 = a3t + M_PI / 2;
-
-			glm::mat4 m2p3 = glm::rotate(params1->a3, glm::vec3(0, 0, 1));
-			cur = cur * m2p3;
-			auto y = glm::vec3(cur * glm::vec4(y0, 0.0f));
-			params1->a4 = MyAngle(glm::normalize(n), glm::normalize(x5), -y) - M_PI / 2;
-
-			glm::mat4 m3p4 = glm::rotate(params1->a4, glm::vec3(0, 1, 0));
-			cur = cur * m2p3;
-			auto x = glm::vec3(cur * glm::vec4(x0, 0.0f));
-			params1->a5 = MyAngle(glm::normalize(p3 - p4), glm::normalize(y5), x);
-
-			//cursorp3->outer_mat = glm::translate(p5);
-			//cursorp3->RecalcModel();
-			//cursorp4->outer_mat = glm::translate(p4);
-			//cursorp4->RecalcModel();
+			if (d == 0)
+			{
+				y4.y = 0;
+				y4.z = 0;
+				y4.x = 1;
+			}
+			else
+			{
+				if (b != 0)
+				{
+					float t1 = c / b;
+					float t2 = (t1 * e - f) / d;
+					y4.z = sqrt(1 / (t1 * t1 + t2 * t2 + 1));
+					y4.y = -y4.z * t1;
+					y4.x = y4.z * t2;
+				}
+				else if (c != 0)
+				{
+					float t1 = b / c;
+					float t2 = (t1 * f - e) / d;
+					y4.y = sqrt(1 / (t1 * t1 + t2 * t2 + 1));
+					y4.z = -y4.y * t1;
+					y4.x = y4.y * t2;
+				}
+				else
+				{
+					program->error = "Smth wrong inverse kinematics - 1";
+				}
+				float c1 = y4.x * a + y4.y * b + y4.z * c;
+				float c2 = y4.x * d + y4.y * e + y4.z * f;
+				float c3 = y4.x * y4.x + y4.y * y4.y + y4.z * y4.z;
+				float a = 0;
+			}
 		}
+		else
 		{
-			auto p3 = p4 - l3 * y4;
-
-			params2->a1 = atan2(-p4.z, p4.x);
-
-			glm::mat4 cur = glm::mat4(1.0f);
-			glm::mat4 m01 = glm::rotate(params2->a1, glm::vec3(0, 1, 0));
-			cur = cur * m01;
-
-			auto p20 = glm::normalize(p2 - p0);
-			auto p32 = glm::normalize(p3 - p2);
-			auto z = glm::vec3(cur * glm::vec4(z0, 0.0f));
-			auto a2t = MyAngle(p20, p32, z);
-			params2->a2 = -a2t + M_PI / 2;
-
-			glm::mat4 m1p2 = glm::rotate(params2->a2, glm::vec3(0, 0, 1));
-			cur = cur * m1p2;
-
-			params2->q2 = glm::length(p3 - p2);
-
-			auto p43 = glm::normalize(p4 - p3);
-			z = glm::vec3(cur * glm::vec4(z0, 0.0f));
-			auto a3t = MyAngle(p32, p43, -z);
-			params2->a3 = a3t + M_PI / 2;
-
-			glm::mat4 m2p3 = glm::rotate(params2->a3, glm::vec3(0, 0, 1));
-			cur = cur * m2p3;
-			auto y = glm::vec3(cur * glm::vec4(y0, 0.0f));
-			params2->a4 = MyAngle(glm::normalize(n), glm::normalize(x5), -y) - M_PI / 2;
-
-			glm::mat4 m3p4 = glm::rotate(params2->a4, glm::vec3(0, 1, 0));
-			cur = cur * m2p3;
-			auto x = glm::vec3(cur * glm::vec4(x0, 0.0f));
-			params2->a5 = MyAngle(glm::normalize(p3 - p4), glm::normalize(y5), x);
-
-			//cursorp3->outer_mat = glm::translate(p5);
-			//cursorp3->RecalcModel();
-			//cursorp4->outer_mat = glm::translate(p4);
-			//cursorp4->RecalcModel();
+			//e-bd/a
+			float k1 = e - b * d / a;
+			float k2 = -f + c * d / a;
+			float k;
+			if (k1 != 0)
+			{
+				k = k2 / k1;
+				auto l = (-b * k - c) / a;
+				y4.z = sqrt(1 / (l * l + k * k + 1));
+				y4.y = y4.z * k;
+				y4.x = y4.z * l;
+			}
+			else if (k1 == 0 && k2 != 0)
+			{
+				y4.z = 0;
+				float l1 = a + d;
+				float l2 = b + e;
+				float j1 = a - d;
+				float j2 = b - e;
+				if (l1 != 0)
+				{
+					float t = l2 / l1;
+					y4.y = sqrt(1 / (t * t + 1));
+					y4.x = -t * y4.y;
+				}
+				else if (j1 != 0)
+				{
+					float t = j2 / j1;
+					y4.y = sqrt(1 / (t * t + 1));
+					y4.x = -t * y4.y;
+				}
+				else if (l2 != 0)
+				{
+					float t = l1 / l2;
+					y4.x = sqrt(1 / (t * t + 1));
+					y4.y = -t * y4.x;
+				}
+				else if (j2 != 0)
+				{
+					float t = j1 / j2;
+					y4.x = sqrt(1 / (t * t + 1));
+					y4.y = -t * y4.x;
+				}
+				else
+				{
+					y4.y = 0;
+					y4.x = 1;
+				}
+			}
+			else //if (k1 == 0 && k2 == 0)
+			{
+				//todo
+				program->error = "Smth wrong inverse kinematics - 2";
+				int a = 0;
+			}
 		}
+	}
+
+	{
+		auto p3 = p4 + l3 * y4;
+
+		params1->a1 = atan2(-p4.z, p4.x);
+
+		glm::mat4 cur = glm::mat4(1.0f);
+		glm::mat4 m01 = glm::rotate(params1->a1, glm::vec3(0, 1, 0));
+		cur = cur * m01;
+
+		auto p20 = glm::normalize(p2 - p0);
+		auto p32 = glm::normalize(p3 - p2);
+		if (isnan(p32.x)) p32 = p20;
+		auto z = glm::vec3(cur * glm::vec4(z0, 0.0f));
+		auto a2t = MyAngle(p20, p32, z);
+		params1->a2 = -a2t + M_PI / 2;
+
+		glm::mat4 m1p2 = glm::rotate(params1->a2, glm::vec3(0, 0, 1));
+		cur = cur * m1p2;
+
+		params1->q2 = glm::length(p3 - p2);
+
+		auto p43 = glm::normalize(p4 - p3);
+		z = glm::vec3(cur * glm::vec4(z0, 0.0f));
+		auto a3t = MyAngle(p32, p43, -z);
+		params1->a3 = a3t + M_PI / 2;
+
+		glm::mat4 m2p3 = glm::rotate(params1->a3, glm::vec3(0, 0, 1));
+		cur = cur * m2p3;
+		auto y = glm::vec3(cur * glm::vec4(y0, 0.0f));
+		params1->a4 = MyAngle(glm::normalize(n), glm::normalize(x5), -y) - M_PI / 2;
+
+		glm::mat4 m3p4 = glm::rotate(params1->a4, glm::vec3(0, 1, 0));
+		cur = cur * m2p3;
+		auto x = glm::vec3(cur * glm::vec4(x0, 0.0f));
+		params1->a5 = MyAngle(glm::normalize(p3 - p4), glm::normalize(y5), x);
+
+		cursorp3->outer_mat = glm::translate(p3);
+		cursorp3->RecalcModel();
+		cursorp4->outer_mat = glm::translate(p4);
+		cursorp4->RecalcModel();
+	}
+	{
+		auto p3 = p4 - l3 * y4;
+
+		params2->a1 = atan2(-p4.z, p4.x);
+
+		glm::mat4 cur = glm::mat4(1.0f);
+		glm::mat4 m01 = glm::rotate(params2->a1, glm::vec3(0, 1, 0));
+		cur = cur * m01;
+
+		auto p20 = glm::normalize(p2 - p0);
+		auto p32 = glm::normalize(p3 - p2);
+		auto z = glm::vec3(cur * glm::vec4(z0, 0.0f));
+		auto a2t = MyAngle(p20, p32, z);
+		params2->a2 = -a2t + M_PI / 2;
+
+		glm::mat4 m1p2 = glm::rotate(params2->a2, glm::vec3(0, 0, 1));
+		cur = cur * m1p2;
+
+		params2->q2 = glm::length(p3 - p2);
+
+		auto p43 = glm::normalize(p4 - p3);
+		z = glm::vec3(cur * glm::vec4(z0, 0.0f));
+		auto a3t = MyAngle(p32, p43, -z);
+		params2->a3 = a3t + M_PI / 2;
+
+		glm::mat4 m2p3 = glm::rotate(params2->a3, glm::vec3(0, 0, 1));
+		cur = cur * m2p3;
+		auto y = glm::vec3(cur * glm::vec4(y0, 0.0f));
+		params2->a4 = MyAngle(glm::normalize(n), glm::normalize(x5), -y) - M_PI / 2;
+
+		glm::mat4 m3p4 = glm::rotate(params2->a4, glm::vec3(0, 1, 0));
+		cur = cur * m2p3;
+		auto x = glm::vec3(cur * glm::vec4(x0, 0.0f));
+		params2->a5 = MyAngle(glm::normalize(p3 - p4), glm::normalize(y5), x);
+
+		//cursorp3->outer_mat = glm::translate(p5);
+		//cursorp3->RecalcModel();
+		//cursorp4->outer_mat = glm::translate(p4);
+		//cursorp4->RecalcModel();
 	}
 	params1->Fix();
 	params2->Fix();
@@ -274,8 +382,8 @@ void Puma::Draw()
 	}
 
 	cursor->RecalcModel();
-	//cursorp3->Draw();
-	//cursorp4->Draw();
+	cursorp3->Draw();
+	cursorp4->Draw();
 	cursor->Draw();
 }
 
