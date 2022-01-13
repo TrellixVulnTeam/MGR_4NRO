@@ -6,7 +6,7 @@ Parameters::Parameters()
 	a3 = M_PI / 8;
 	a4 = -M_PI / 4;
 	a5 = M_PI / 4;
-	q2 = 3.0f;
+	q2 = 2.0f;
 	Fix();
 }
 void Parameters::Set(std::shared_ptr<Parameters> p1, float t, std::shared_ptr<Parameters> p2)

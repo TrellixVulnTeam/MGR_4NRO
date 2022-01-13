@@ -35,10 +35,10 @@ void window_size_callback(GLFWwindow* window, int width, int height);
 
 float GetAngleDiff(float start, float end)
 {
-	if (end < start) end += 2*M_PI;
+	if (end < start) end += 2 * M_PI;
 
 	auto diff = end - start;
-	if (diff > M_PI) diff = -(2*M_PI - diff);
+	if (diff > M_PI) diff = -(2 * M_PI - diff);
 	return diff;
 }
 
@@ -68,7 +68,7 @@ void Simulate()
 		program->simulating = false;
 		return;
 	}
-	
+
 
 	program->wind1->puma->params->Set(program->startParams, program->t, program->diffParams);
 
@@ -86,11 +86,14 @@ void Simulate()
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+	auto wind = program->wind1;
+	if (!wind->focused)
+		wind = program->wind2;
 	if (ImGui::GetIO().WantCaptureMouse) return;
 	glm::vec2 mousePos = { xpos,ypos };
 	glm::vec2 diff = mousePos - mousePosOld;
-	double xDiff = (double)diff.x / program->current_width;
-	double yDiff = (double)diff.y / program->current_height;
+	double xDiff = (double)diff.x / wind->current_width;
+	double yDiff = (double)diff.y / wind->current_height;
 	int lShiftState = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
 	int lAltState = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
 	int rAltState = glfwGetKey(window, GLFW_KEY_RIGHT_ALT);
@@ -194,9 +197,9 @@ void RenderGui()
 
 		if (ImGui::TreeNode("Start pos"))
 		{
-			ImGui::SliderFloat("Start X", &program->p1.x, -5.0f, 5.0f);
-			ImGui::SliderFloat("Start Y", &program->p1.y, -5.0f, 5.0f);
-			ImGui::SliderFloat("Start Z", &program->p1.z, -5.0f, 5.0f);
+			ImGui::SliderFloat("Start X", &program->p1.x, -4.0f, 4.0f);
+			ImGui::SliderFloat("Start Y", &program->p1.y, -4.0f, 4.0f);
+			ImGui::SliderFloat("Start Z", &program->p1.z, -4.0f, 4.0f);
 			ImGui::TreePop();
 		}
 
@@ -212,9 +215,9 @@ void RenderGui()
 
 		if (ImGui::TreeNode("End pos"))
 		{
-			ImGui::SliderFloat("End X", &program->p2.x, -5.0f, 5.0f);
-			ImGui::SliderFloat("End Y", &program->p2.y, -5.0f, 5.0f);
-			ImGui::SliderFloat("End Z", &program->p2.z, -5.0f, 5.0f);
+			ImGui::SliderFloat("End X", &program->p2.x, -4.0f, 4.0f);
+			ImGui::SliderFloat("End Y", &program->p2.y, -4.0f, 4.0f);
+			ImGui::SliderFloat("End Z", &program->p2.z, -4.0f, 4.0f);
 			ImGui::TreePop();
 		}
 
@@ -375,11 +378,13 @@ int main()
 
 	Processing proc = Processing();
 	program = std::make_shared<Program>();
-	program->wind1 = std::make_shared<Window>();
-	program->wind2 = std::make_shared<Window>();
+	program->wind1 = std::make_shared<Window>(1);
+	program->wind2 = std::make_shared<Window>(2);
 	program->wind1->window = window;
-	program->current_width = DEFAULT_WIDTH;
-	program->current_height = DEFAULT_HEIGHT;
+	program->wind1->current_width = DEFAULT_WIDTH;
+	program->wind1->current_height = DEFAULT_HEIGHT;
+	program->wind2->current_width = DEFAULT_WIDTH;
+	program->wind2->current_height = DEFAULT_HEIGHT;
 	//program->shader = new Shader("shaders/vertexShader.vs", "shaders/fragShader.fs",nullptr);
 	glViewport(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 	//	glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
@@ -457,6 +462,17 @@ int main()
 	program->currentWindow->cam->LookAt({ 0,2,4 }, { 0,0,-1 }, { 0,1,0 });
 	GeneratePuma();
 
+	program->p1 = { 2.0f,1.0f,-2.0f };
+	//program->p1 = { 3.0f,0.0f,0.0f };
+	program->p1 = { 2.0f,0.0f,0.0f };
+	program->p2 = { -1.0f,-1.0f,1.0f };
+	program->q1 = { 0.0f,1.0f,0.0f,0.0f };
+	//	program->q1 = { 0.0f,0.0f,0.0f,1.0f };
+	program->q2 = { 0.0f,0.0f,1.0f,0.0f };
+	Normalize();
+	program->wind1->puma->ForceConfiguration(program->p1, program->q1, 1);
+	program->wind2->puma->ForceConfiguration(program->p2, program->q2, 1);
+
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -476,7 +492,6 @@ int main()
 		{
 
 		}
-		float aspect = (float)program->current_width / (float)program->current_height;
 
 		glfwMakeContextCurrent(window);
 		ImGui_ImplOpenGL3_NewFrame();
@@ -485,6 +500,7 @@ int main()
 
 		//ImGui::ShowDemoWindow();
 		program->currentWindow = program->wind1;
+		float aspect = (float)program->currentWindow->current_width / (float)program->currentWindow->current_height;
 		program->currentWindow->cam->SetPerspective(aspect);
 		proc.processInput(window);
 		RenderGui();
@@ -500,6 +516,7 @@ int main()
 
 		glfwMakeContextCurrent(window2);
 		program->currentWindow = program->wind2;
+		aspect = (float)program->currentWindow->current_width / (float)program->currentWindow->current_height;
 		program->currentWindow->cam->SetPerspective(aspect);
 		proc.processInput(window2);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -521,6 +538,9 @@ int main()
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	double x_pos, y_pos;
+	auto wind = program->wind1;
+	if (!wind->focused)
+		wind = program->wind2;
 	glfwGetCursorPos(window, &x_pos, &y_pos);
 	int lCtrlState = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
 	int lAltState = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
@@ -528,8 +548,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	{
 		if (program->edition && !program->selection)
 		{
-			float aspect = (float)program->current_width / (float)program->current_height;
-			glm::vec2 mousePos = glm::vec2(((x_pos / program->current_width) * 2.0f - 1.0f) * aspect, -((y_pos / program->current_height) * 2.0f - 1.0f));
+			float aspect = (float)wind->current_width / (float)wind->current_height;
+			glm::vec2 mousePos = glm::vec2(((x_pos / wind->current_width) * 2.0f - 1.0f) * aspect, -((y_pos / wind->current_height) * 2.0f - 1.0f));
 
 		}
 	}
@@ -537,6 +557,9 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 void window_size_callback(GLFWwindow* window, int width, int height) {
-	program->current_width = width;
-	program->current_height = height;
+	auto wind = program->wind1;
+	if (wind->window != window)
+		wind = program->wind2;
+	wind->current_width = width;
+	wind->current_height = height;
 }

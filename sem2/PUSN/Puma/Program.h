@@ -20,7 +20,9 @@ class Window
 {
 public:
 	Window();
+	Window(int id_);
 	~Window() = default;
+	int id = -1;
 	std::shared_ptr<Shader> shader = {};
 	std::shared_ptr<Shader> shader2D = {};
 	std::shared_ptr<Shader> lightShader = {};
@@ -31,6 +33,8 @@ public:
 	std::shared_ptr<Puma> puma = {};
 	std::shared_ptr<Camera> cam = {};
 	std::shared_ptr<Cursor> cursor = {};
+	int current_width = 0;
+	int current_height = 0;
 };
 
 class Program
@@ -39,8 +43,6 @@ public:
 	Program();
 	~Program() = default;
 
-	int current_width = 0;
-	int current_height = 0;
 	float width = 5.0f;
 	float length = 3.0f;
 	float height = 1.5f;
