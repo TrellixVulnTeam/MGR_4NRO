@@ -23,30 +23,7 @@
 #include <queue>
 #include <implot.h>
 
-struct ScrollingBuffer {
-	int MaxSize;
-	int Offset;
-	ImVector<ImVec2> Data;
-	ScrollingBuffer(int max_size = 2000) {
-		MaxSize = max_size;
-		Offset = 0;
-		Data.reserve(MaxSize);
-	}
-	void AddPoint(float x, float y) {
-		if (Data.size() < MaxSize)
-			Data.push_back(ImVec2(x, y));
-		else {
-			Data[Offset] = ImVec2(x, y);
-			Offset = (Offset + 1) % MaxSize;
-		}
-	}
-	void Erase() {
-		if (Data.size() > 0) {
-			Data.shrink(0);
-			Offset = 0;
-		}
-	}
-};
+
 
 bool firstCall = true;
 bool rotate = false;
@@ -60,9 +37,6 @@ int obstaclesBitmap[BITMAP_SIZE][BITMAP_SIZE];
 static GLubyte checkImage[BITMAP_SIZE][BITMAP_SIZE][4];
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void window_size_callback(GLFWwindow* window, int width, int height);
-double points_x[1000];
-double points_y[1000];
-int n = 0;
 double x = 0.0;
 
 bool linesIntersect(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
@@ -479,21 +453,32 @@ void RenderGui()
 	int to_delete = -1;
 	ImGui::Begin("Menu");
 
-	if (ImPlot::BeginPlot("My Plot")) {
-		n++; 
-		static ScrollingBuffer sdata1;
+	if (ImPlot::BeginPlot("Wykresy 1")) {
 		static float history = 10.0f;
 		static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
-		
-		double r = fmod(x, 1.0);
-		sdata1.AddPoint(r*cos(x), r*sin(x));
+
+		double r = 1.0f;
+		program->AddValues(x, r * cos(x), -r * sin(x), -r * cos(x));
 		ImPlot::SetupAxes(NULL, NULL, flags, flags);
-		ImPlot::SetupAxisLimits(ImAxis_X1, -1.2, 1.2, ImGuiCond_Always);
+		ImPlot::SetupAxisLimits(ImAxis_X1, x - history, x, ImGuiCond_Always);
 		ImPlot::SetupAxisLimits(ImAxis_Y1, -1.2, 1.2);
 		ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
-		ImPlot::PlotLine("Testy", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), sdata1.Offset, 2 * sizeof(float));
+		ImPlot::PlotLine("x(t)", &program->_y.Data[0].x, &program->_y.Data[0].y, program->_y.Data.size(), program->_y.Offset, 2 * sizeof(float));
+		ImPlot::PlotLine("x'(t)", &program->_dy.Data[0].x, &program->_dy.Data[0].y, program->_dy.Data.size(), program->_dy.Offset, 2 * sizeof(float));
+		ImPlot::PlotLine("x''(t)", &program->_ddy.Data[0].x, &program->_ddy.Data[0].y, program->_ddy.Data.size(), program->_ddy.Offset, 2 * sizeof(float));
 		ImPlot::EndPlot();
 		x += 0.01;
+	}
+	if (ImPlot::BeginPlot("Wykresy 2")) {
+		static float history = 10.0f;
+		static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
+
+		ImPlot::SetupAxes(NULL, NULL, flags, flags);
+		ImPlot::SetupAxisLimits(ImAxis_X1, -1.2, 1.2);
+		ImPlot::SetupAxisLimits(ImAxis_Y1, -1.2, 1.2);
+		ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
+		ImPlot::PlotLine("x'(x)", &program->_state.Data[0].x, &program->_state.Data[0].y, program->_state.Data.size(), program->_state.Offset, 2 * sizeof(float));
+		ImPlot::EndPlot();
 	}
 
 	if (!program->simulating) {
