@@ -3,6 +3,7 @@
 *.user
 *.cso
 *.fxo
+*.pyc
 _ReSharper.*
 bin/
 obj/
