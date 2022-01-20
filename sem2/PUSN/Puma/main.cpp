@@ -42,6 +42,7 @@ float GetAngleDiff(float start, float end)
 	return diff;
 }
 
+
 void GetDiffs()
 {
 	program->diffParams->a1 = GetAngleDiff(program->startParams->a1, program->endParams->a1);
@@ -194,6 +195,7 @@ void RenderGui()
 		}
 
 		ImGui::Checkbox("Normalize quats live", &program->normalize_live);
+		ImGui::Checkbox("Set quat", &program->setQuat);
 
 		if (ImGui::TreeNode("Start pos"))
 		{
@@ -205,10 +207,27 @@ void RenderGui()
 
 		if (ImGui::TreeNode("Start rot"))
 		{
-			ImGui::SliderFloat("X", &program->q1.x, -1.0f, 1.0f);
-			ImGui::SliderFloat("Y", &program->q1.y, -1.0f, 1.0f);
-			ImGui::SliderFloat("Z", &program->q1.z, -1.0f, 1.0f);
-			ImGui::SliderFloat("W", &program->q1.w, -1.0f, 1.0f);
+			if (program->setQuat)
+			{
+				ImGui::SliderFloat("X", &program->q1.x, -1.0f, 1.0f);
+				ImGui::SliderFloat("Y", &program->q1.y, -1.0f, 1.0f);
+				ImGui::SliderFloat("Z", &program->q1.z, -1.0f, 1.0f);
+				ImGui::SliderFloat("W", &program->q1.w, -1.0f, 1.0f);
+			}
+			else
+			{
+				ImGui::SliderFloat("Start X", &program->startAngle.x, -180.0f, 180.0f);
+				ImGui::SliderFloat("Start Y", &program->startAngle.y, -180.0f, 180.0f);
+				ImGui::SliderFloat("Start Z", &program->startAngle.z, -180.0f, 180.0f);
+				program->startAngle.x = program->startAngle.x < -180.0f ? -180.0f : program->startAngle.x;
+				program->startAngle.y = program->startAngle.y < -180.0f ? -180.0f : program->startAngle.y;
+				program->startAngle.z = program->startAngle.z < -180.0f ? -180.0f : program->startAngle.z;
+				program->startAngle.x = program->startAngle.x > 180.0f ? 180.0f : program->startAngle.x;
+				program->startAngle.y = program->startAngle.y > 180.0f ? 180.0f : program->startAngle.y;
+				program->startAngle.z = program->startAngle.z > 180.0f ? 180.0f : program->startAngle.z;
+				program->q1 = EulerToQuat(program->startAngle);
+
+			}
 			ImGui::TreePop();
 		}
 
@@ -223,10 +242,26 @@ void RenderGui()
 
 		if (ImGui::TreeNode("End rot"))
 		{
-			ImGui::SliderFloat("X", &program->q2.x, -1.0f, 1.0f);
-			ImGui::SliderFloat("Y", &program->q2.y, -1.0f, 1.0f);
-			ImGui::SliderFloat("Z", &program->q2.z, -1.0f, 1.0f);
-			ImGui::SliderFloat("W", &program->q2.w, -1.0f, 1.0f);
+			if (program->setQuat)
+			{
+				ImGui::SliderFloat("X", &program->q2.x, -1.0f, 1.0f);
+				ImGui::SliderFloat("Y", &program->q2.y, -1.0f, 1.0f);
+				ImGui::SliderFloat("Z", &program->q2.z, -1.0f, 1.0f);
+				ImGui::SliderFloat("W", &program->q2.w, -1.0f, 1.0f);
+			}
+			else
+			{
+				ImGui::SliderFloat("End X", &program->endAngle.x, -180.0f, 180.0f);
+				ImGui::SliderFloat("End Y", &program->endAngle.y, -180.0f, 180.0f);
+				ImGui::SliderFloat("End Z", &program->endAngle.z, -180.0f, 180.0f);
+				program->endAngle.x = program->endAngle.x < -180.0f ? -180.0f : program->endAngle.x;
+				program->endAngle.y = program->endAngle.y < -180.0f ? -180.0f : program->endAngle.y;
+				program->endAngle.z = program->endAngle.z < -180.0f ? -180.0f : program->endAngle.z;
+				program->endAngle.x = program->endAngle.x > 180.0f ? 180.0f : program->endAngle.x;
+				program->endAngle.y = program->endAngle.y > 180.0f ? 180.0f : program->endAngle.y;
+				program->endAngle.z = program->endAngle.z > 180.0f ? 180.0f : program->endAngle.z;
+				program->q2 = EulerToQuat(program->endAngle);
+			}
 			ImGui::TreePop();
 		}
 

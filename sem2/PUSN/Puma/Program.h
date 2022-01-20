@@ -83,6 +83,10 @@ public:
 	std::shared_ptr<Parameters> endParams = {};
 	std::shared_ptr<Parameters> diffParams = {};
 
+	glm::vec3 startAngle = {};
+	glm::vec3 endAngle = {};
+	bool setQuat = false;
+
 	bool normalize_live = true;
 };
 

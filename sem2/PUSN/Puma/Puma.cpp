@@ -119,7 +119,15 @@ std::pair<std::shared_ptr<Parameters>, std::shared_ptr<Parameters>> Puma::Invers
 	{
 		y4 = y5;
 		auto p3 = p4 + l3 * y4;
-		n = glm::normalize(glm::cross(-y0, p5 - p4));
+		auto c2 = glm::cross(-y0, p5 - p4);
+		n = glm::normalize(c2);
+
+		if (glm::length(c2) < 1e-4)
+			if (z5.z < 0)
+				n = glm::normalize(-z5);
+			else
+				n = glm::normalize(z5);
+
 	}
 	else
 	{
