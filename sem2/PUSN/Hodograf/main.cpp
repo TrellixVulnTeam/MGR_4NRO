@@ -15,11 +15,8 @@
 #include "Figure.h"
 #include "Camera.h"
 #include "Program.h"
-#include "Cube.h"
-#include "Duck.h"
 #include "Tool.h"
 #include "ImGuiFileDialog.h"
-#include "Obstacle.h"
 #include <queue>
 #include <implot.h>
 
@@ -33,122 +30,48 @@ std::shared_ptr<Program> program = {};
 std::vector<glm::ivec3> path = {};
 double lastTime;
 
-int obstaclesBitmap[BITMAP_SIZE][BITMAP_SIZE];
-static GLubyte checkImage[BITMAP_SIZE][BITMAP_SIZE][4];
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void window_size_callback(GLFWwindow* window, int width, int height);
 double x = 0.0;
 
-bool linesIntersect(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
-	// Return false if either of the lines have zero length
-	if (x1 == x2 && y1 == y2 ||
-		x3 == x4 && y3 == y4) {
-		return false;
-	}
-	// Fastest method, based on Franklin Antonio's "Faster Line Segment Intersection" topic "in Graphics Gems III" book (http://www.graphicsgems.org/)
-	double ax = x2 - x1;
-	double ay = y2 - y1;
-	double bx = x3 - x4;
-	double by = y3 - y4;
-	double cx = x1 - x3;
-	double cy = y1 - y3;
 
-	double alphaNumerator = by * cx - bx * cy;
-	double commonDenominator = ay * bx - ax * by;
-	if (commonDenominator > 0) {
-		if (alphaNumerator < 0 || alphaNumerator > commonDenominator) {
-			return false;
-		}
-	}
-	else if (commonDenominator < 0) {
-		if (alphaNumerator > 0 || alphaNumerator < commonDenominator) {
-			return false;
-		}
-	}
-	double betaNumerator = ax * cy - ay * cx;
-	if (commonDenominator > 0) {
-		if (betaNumerator < 0 || betaNumerator > commonDenominator) {
-			return false;
-		}
-	}
-	else if (commonDenominator < 0) {
-		if (betaNumerator > 0 || betaNumerator < commonDenominator) {
-			return false;
-		}
-	}
-	if (commonDenominator == 0) {
-		// This code wasn't in Franklin Antonio's method. It was added by Keith Woodward.
-		// The lines are parallel.
-		// Check if they're collinear.
-		double y3LessY1 = y3 - y1;
-		double collinearityTestForP3 = x1 * (y2 - y3) + x2 * (y3LessY1)+x3 * (y1 - y2);	// see http://mathworld.wolfram.com/Collinear.html
-		// If p3 is collinear with p1 and p2 then p4 will also be collinear, since p1-p2 is parallel with p3-p4
-		if (collinearityTestForP3 == 0) {
-			// The lines are collinear. Now check if they overlap.
-			if (x1 >= x3 && x1 <= x4 || x1 <= x3 && x1 >= x4 ||
-				x2 >= x3 && x2 <= x4 || x2 <= x3 && x2 >= x4 ||
-				x3 >= x1 && x3 <= x2 || x3 <= x1 && x3 >= x2) {
-				if (y1 >= y3 && y1 <= y4 || y1 <= y3 && y1 >= y4 ||
-					y2 >= y3 && y2 <= y4 || y2 <= y3 && y2 >= y4 ||
-					y3 >= y1 && y3 <= y2 || y3 <= y1 && y3 >= y2) {
-					return true;
-				}
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	if (ImGui::GetIO().WantCaptureMouse) return;
+	auto& figures = program->currentWindow->figures;
+	for (int i = 0; i < figures.size(); ++i)
+	{
+		if (figures[i]->GetSelected() && figures[i]->CanMove())
+		{
+			if (yoffset >= 1)
+			{
+				figures[i]->ScaleAround({ 0.0f,0.0f, 0.0f }, 1.1f);
+			}
+			if (yoffset <= -1)
+			{
+				figures[i]->ScaleAround({ 0.0f,0.0f, 0.0f }, 0.9f);
 			}
 		}
-		return false;
 	}
-	return true;
 }
-bool LinesIntersect(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, glm::vec2 p4) { return linesIntersect(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y); }
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	float camMove = 0.04f;
+	auto pos =program->cam->pos;
+	if (key == GLFW_KEY_A) pos.x -= camMove;
+	if (key == GLFW_KEY_D) pos.x += camMove;
+	if (key == GLFW_KEY_S) pos.y -= camMove;
+	if (key == GLFW_KEY_W) pos.y += camMove;
+
+	program->cam->LookAt(pos, program->cam->front, program->cam->up);
+}
+
+
 
 void Simulate()
 {
-	auto time = glfwGetTime();
-	program->t = (time - lastTime) / (program->simTime);
-	if (program->t >= 1.0f)
-	{
-		program->t = 1.0f;
-		program->simulating = false;
-		if (path.size() > 0)
-		{
-			auto cur = path[path.size() - 1];
-			program->currentWindow->tool->alpha = cur.x;
-			program->currentWindow->tool->beta = cur.y;
-		}
-		return;
-	}
-	if (path.size() == 1)
-	{
-		auto cur = path[0];
-		program->currentWindow->tool->alpha = cur.x;
-		program->currentWindow->tool->beta = cur.y;
-	}
-	if (path.size() > 1)
-	{
-		float t = program->t;
-		int j = -1;
-		int split = path.size() - 1;
-		for (int i = 0; i < path.size() && j == -1; ++i)
-		{
-			float from = (float)i / split;
-			float to = (float)(i + 1) / split;
-			if (from <= t && to > t)
-				j = i;
-		}
-
-		float from = (float)j / split;
-		float to = (float)(j + 1) / split;
-		float tNew = (t - from) / (to - from);
-
-		auto p1 = path[j];
-		auto p2 = path[j + 1];
-		if (p1.x == 359 && p2.x == 0) p2.x = 360.0f;
-		if (p1.y == 359 && p2.y == 0) p2.y = 360.0f;
-		if (p2.x == 359 && p1.x == 0) p1.x = 360.0f;
-		if (p2.y == 359 && p1.y == 0) p1.y = 360.0f;
-		program->currentWindow->tool->alpha = tNew * p2.x + (1.0f - tNew) * p1.x;
-		program->currentWindow->tool->beta = tNew * p2.y + (1.0f - tNew) * p1.y;
-	}
+	program->currentWindow->tool->angle += program->omega;
 }
 
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
@@ -169,279 +92,6 @@ glm::vec3 QuatToEuler(glm::quat quat)
 	return c * glm::eulerAngles(quat);
 }
 
-void SetImage(unsigned int& texName, std::shared_ptr<Program> program, glm::ivec2 from = { -1,-1 }, glm::ivec2 to = { -1,-1 })
-{
-	glBindTexture(GL_TEXTURE_2D, texName);
-	int inf = BITMAP_SIZE * BITMAP_SIZE;
-	int max = -1;
-	int i, j, c;
-
-	for (i = 0; i < BITMAP_SIZE; i++)
-		for (j = 0; j < BITMAP_SIZE; j++)
-			if (obstaclesBitmap[i][j] > max && obstaclesBitmap[i][j] != inf) max = obstaclesBitmap[i][j];
-
-	for (i = 0; i < BITMAP_SIZE; i++) {
-		for (j = 0; j < BITMAP_SIZE; j++) {
-			int w = 255;
-			if (texName == program->distancesTex)
-			{
-				int dist = obstaclesBitmap[j][i];
-				if (dist == -1)
-				{
-					checkImage[i][j][0] = (GLubyte)255;
-					checkImage[i][j][1] = (GLubyte)0;
-					checkImage[i][j][2] = (GLubyte)0;
-					checkImage[i][j][3] = (GLubyte)255;
-				}
-				else if (dist == inf)
-				{
-					checkImage[i][j][0] = (GLubyte)0;
-					checkImage[i][j][1] = (GLubyte)0;
-					checkImage[i][j][2] = (GLubyte)255;
-					checkImage[i][j][3] = (GLubyte)255;
-				}
-				else
-				{
-					int color;
-					if (max == 0)color = 0;
-					else color = (int)round(255.0f * ((float)dist / max));
-
-					checkImage[i][j][0] = (GLubyte)color;
-					checkImage[i][j][1] = (GLubyte)color;
-					checkImage[i][j][2] = (GLubyte)color;
-					checkImage[i][j][3] = (GLubyte)255;
-				}
-			}
-			else
-			{
-				int dist = obstaclesBitmap[j][i];
-				if (dist == -1)
-				{
-					checkImage[i][j][0] = (GLubyte)255;
-					checkImage[i][j][1] = (GLubyte)0;
-					checkImage[i][j][2] = (GLubyte)0;
-					checkImage[i][j][3] = (GLubyte)255;
-				}
-				else
-				{
-					checkImage[i][j][0] = (GLubyte)255;
-					checkImage[i][j][1] = (GLubyte)255;
-					checkImage[i][j][2] = (GLubyte)255;
-					checkImage[i][j][3] = (GLubyte)255;
-				}
-
-			}
-		}
-	}
-	if (texName == program->tex)
-	{
-		for (int k = 0; k < path.size(); ++k)
-		{
-			int maxPath = path[0].z;
-			int color;
-			auto elem = path[k];
-			if (maxPath > 0) color = (int)round(255.0f * ((float)elem.z / maxPath));
-			else color = 0;
-
-			checkImage[elem.y][elem.x][0] = (GLubyte)color;
-			checkImage[elem.y][elem.x][1] = (GLubyte)color;
-			checkImage[elem.y][elem.x][2] = (GLubyte)color;
-			checkImage[elem.y][elem.x][3] = (GLubyte)255;
-		}
-	}
-	if (from.x != -1)
-	{
-		checkImage[from.y][from.x][0] = (GLubyte)0;
-		checkImage[from.y][from.x][1] = (GLubyte)255;
-		checkImage[from.y][from.x][2] = (GLubyte)0;
-		checkImage[from.y][from.x][3] = (GLubyte)255;
-
-		checkImage[to.y][to.x][0] = (GLubyte)255;
-		checkImage[to.y][to.x][1] = (GLubyte)0;
-		checkImage[to.y][to.x][2] = (GLubyte)255;
-		checkImage[to.y][to.x][3] = (GLubyte)255;
-	}
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, BITMAP_SIZE,
-		BITMAP_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-		checkImage);
-}
-
-void FillImage(unsigned int& texName, std::shared_ptr<Program> program)
-{
-	int inf = BITMAP_SIZE * BITMAP_SIZE;
-	int max = -1;
-	int i, j, c;
-
-	for (i = 0; i < BITMAP_SIZE; i++)
-		for (j = 0; j < BITMAP_SIZE; j++)
-			if (obstaclesBitmap[i][j] > max && obstaclesBitmap[i][j] != inf) max = obstaclesBitmap[i][j];
-
-	for (i = 0; i < BITMAP_SIZE; i++) {
-		for (j = 0; j < BITMAP_SIZE; j++) {
-			int w = 255;
-			checkImage[i][j][0] = (GLubyte)255;
-			checkImage[i][j][1] = (GLubyte)255;
-			checkImage[i][j][2] = (GLubyte)255;
-			checkImage[i][j][3] = (GLubyte)255;
-		}
-	}
-
-	glGenTextures(1, &texName);
-	glBindTexture(GL_TEXTURE_2D, texName);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-		GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-		GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, BITMAP_SIZE,
-		BITMAP_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-		checkImage);
-}
-
-void RecalcObstaclesBitmap()
-{
-	int inf = BITMAP_SIZE * BITMAP_SIZE;
-	for (int i = 0; i < BITMAP_SIZE; ++i)
-		for (int j = 0; j < BITMAP_SIZE; ++j)
-		{
-			float a = (float)i / BITMAP_SIZE * 360.0f;
-			float b = (float)j / BITMAP_SIZE * 360.0f;
-			glm::vec2 tool_p0 = program->currentWindow->tool->GetPoint(1, a, b);
-			glm::vec2 tool_p1 = program->currentWindow->tool->GetPoint(2, a, b);
-			glm::vec2 tool_p2 = program->currentWindow->tool->GetPoint(3, a, b);
-
-			bool wrong = false;
-			for (int k = 0; k < program->currentWindow->obstacles.size() && !wrong; ++k)
-			{
-				auto& obstacle = program->currentWindow->obstacles[k];
-				glm::vec2 p0 = obstacle->GetPoint(1);
-				glm::vec2 p1 = obstacle->GetPoint(2);
-				glm::vec2 p2 = obstacle->GetPoint(3);
-				glm::vec2 p3 = obstacle->GetPoint(4);
-
-				if (LinesIntersect(tool_p0, tool_p1, p0, p1)) wrong = true;
-				if (LinesIntersect(tool_p0, tool_p1, p1, p2)) wrong = true;
-				if (LinesIntersect(tool_p0, tool_p1, p2, p3)) wrong = true;
-				if (LinesIntersect(tool_p0, tool_p1, p3, p0)) wrong = true;
-
-				if (LinesIntersect(tool_p1, tool_p2, p0, p1)) wrong = true;
-				if (LinesIntersect(tool_p1, tool_p2, p1, p2)) wrong = true;
-				if (LinesIntersect(tool_p1, tool_p2, p2, p3)) wrong = true;
-				if (LinesIntersect(tool_p1, tool_p2, p3, p0)) wrong = true;
-
-			}
-			obstaclesBitmap[i][j] = wrong ? -1 : inf;
-		}
-	path.clear();
-	SetImage(program->tex, program);
-	SetImage(program->distancesTex, program);
-}
-
-void MakeFloodFill(glm::ivec2 from, glm::ivec2 to)
-{
-	RecalcObstaclesBitmap();
-	int inf = BITMAP_SIZE * BITMAP_SIZE;
-	path.clear();
-	std::queue<glm::ivec2> stack;
-	if (obstaclesBitmap[to.x][to.y] == inf) {
-		stack.push(to);
-		obstaclesBitmap[to.x][to.y] = 0;
-	}
-	while (stack.size() > 0)
-	{
-		auto top = stack.front(); stack.pop();
-
-		auto dist = obstaclesBitmap[top.x][top.y];
-
-		auto l = glm::ivec2(top.x - 1, top.y);
-		if (l.x < 0) l.x = BITMAP_SIZE - 1;
-
-		auto r = glm::ivec2(top.x + 1, top.y);
-		if (r.x == BITMAP_SIZE) r.x = 0;
-
-		auto u = glm::ivec2(top.x, top.y + 1);
-		if (u.y == BITMAP_SIZE) u.y = 0;
-
-		auto d = glm::ivec2(top.x, top.y - 1);
-		if (d.y < 0) d.y = BITMAP_SIZE - 1;
-
-		{
-			auto cur = l;
-			if (obstaclesBitmap[cur.x][cur.y] > dist + 1)
-			{
-				obstaclesBitmap[cur.x][cur.y] = dist + 1;
-				stack.push(cur);
-			}
-		}
-
-		{
-			auto cur = r;
-			if (obstaclesBitmap[cur.x][cur.y] > dist + 1)
-			{
-				obstaclesBitmap[cur.x][cur.y] = dist + 1;
-				stack.push(cur);
-			}
-		}
-
-		{
-			auto cur = u;
-			if (obstaclesBitmap[cur.x][cur.y] > dist + 1)
-			{
-				obstaclesBitmap[cur.x][cur.y] = dist + 1;
-				stack.push(cur);
-			}
-		}
-
-		{
-			auto cur = d;
-			if (obstaclesBitmap[cur.x][cur.y] > dist + 1)
-			{
-				obstaclesBitmap[cur.x][cur.y] = dist + 1;
-				stack.push(cur);
-			}
-		}
-
-	}
-
-	if (obstaclesBitmap[from.x][from.y] == -1) program->error = "Start position is in invalid configuration";
-	if (obstaclesBitmap[to.x][to.y] == -1) program->error = "End position is in invalid configuration";
-	if (obstaclesBitmap[from.x][from.y] == inf) program->error = "End is unreachable from Start";
-	if (obstaclesBitmap[from.x][from.y] >= 0 && obstaclesBitmap[from.x][from.y] != inf)
-	{
-		auto cur = from;
-		while (obstaclesBitmap[cur.x][cur.y] > 0)
-		{
-			auto dist = obstaclesBitmap[cur.x][cur.y];
-			path.push_back(glm::ivec3(cur, dist));
-
-
-			auto l = glm::ivec2(cur.x - 1, cur.y);
-			if (l.x < 0) l.x = BITMAP_SIZE - 1;
-
-			auto r = glm::ivec2(cur.x + 1, cur.y);
-			if (r.x == BITMAP_SIZE) r.x = 0;
-
-			auto u = glm::ivec2(cur.x, cur.y + 1);
-			if (u.y == BITMAP_SIZE) u.y = 0;
-
-			auto d = glm::ivec2(cur.x, cur.y - 1);
-			if (d.y < 0) d.y = BITMAP_SIZE - 1;
-
-
-			if (obstaclesBitmap[l.x][l.y] == dist - 1) cur = l;
-			else if (obstaclesBitmap[r.x][r.y] == dist - 1) cur = r;
-			else if (obstaclesBitmap[d.x][d.y] == dist - 1) cur = d;
-			else if (obstaclesBitmap[u.x][u.y] == dist - 1) cur = u;
-		}
-		path.push_back(glm::ivec3(cur, 0));
-	}
-	SetImage(program->tex, program, from, to);
-	SetImage(program->distancesTex, program, from, to);
-}
-
 void RenderGui()
 {
 	if (firstCall)
@@ -452,7 +102,11 @@ void RenderGui()
 
 	int to_delete = -1;
 	ImGui::Begin("Menu");
-
+	ImGui::Checkbox("simulate", &program->simulating);
+	ImGui::SliderFloat("R", &program->currentWindow->tool->r, 0.01f, 10.0f);
+	ImGui::SliderFloat("L", &program->currentWindow->tool->l, 0.01f, 10.0f);
+	ImGui::SliderFloat("omega", &program->omega, 0.01f, 10.0f);
+	ImGui::SliderFloat("block_size", &program->currentWindow->tool->block_size, 0.01f, 10.0f);
 	if (ImPlot::BeginPlot("Wykresy 1")) {
 		static float history = 10.0f;
 		static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
@@ -498,196 +152,6 @@ void RenderGui()
 			}
 		}
 
-		if (program->selection)
-		{
-			if (ImGui::Button("Show 1"))
-			{
-				program->currentWindow->tool->alpha = program->opt1.x * 180.0f / M_PI;
-				program->currentWindow->tool->beta = program->opt1.y * 180.0f / M_PI;
-			}
-			if (ImGui::Button("Show 2"))
-			{
-				program->currentWindow->tool->alpha = program->opt2.x * 180.0f / M_PI;
-				program->currentWindow->tool->beta = program->opt2.y * 180.0f / M_PI;
-			}
-			if (ImGui::Button("Select 1"))
-			{
-				program->currentWindow->tool->alpha = program->opt1.x * 180.0f / M_PI;
-				program->currentWindow->tool->beta = program->opt1.y * 180.0f / M_PI;
-				program->selection = false;
-			}
-			if (ImGui::Button("Select 2"))
-			{
-				program->currentWindow->tool->alpha = program->opt2.x * 180.0f / M_PI;
-				program->currentWindow->tool->beta = program->opt2.y * 180.0f / M_PI;
-				program->selection = false;
-			}
-		}
-		else
-		{
-			ImGui::Checkbox("Edition", &program->edition);
-
-			if (program->edition) {
-				if (ImGui::TreeNode("Tool"))
-				{
-					ImGui::SliderFloat("L1", &program->currentWindow->tool->l1, 0.01f, 1.0f);
-					ImGui::SliderFloat("L2", &program->currentWindow->tool->l2, 0.01f, 1.0f);
-
-
-					if (ImGui::Button("Set angles as start pos"))
-						program->startPos = glm::vec2(program->currentWindow->tool->alpha, program->currentWindow->tool->beta);
-					if (ImGui::Button("Set angles as end pos"))
-						program->endPos = glm::vec2(program->currentWindow->tool->alpha, program->currentWindow->tool->beta);
-
-					if (ImGui::Button("Show start pos"))
-					{
-						program->currentWindow->tool->alpha = program->startPos.x;
-						program->currentWindow->tool->beta = program->startPos.y;
-					}
-					if (ImGui::Button("Show end pos"))
-					{
-						program->currentWindow->tool->alpha = program->endPos.x;
-						program->currentWindow->tool->beta = program->endPos.y;
-					}
-					ImGui::TreePop();
-				}
-
-				if (ImGui::Button("Find path"))
-				{
-					int xFrom = (int)round(BITMAP_SIZE * (program->startPos.x / 360.0f));
-					int yFrom = (int)round(BITMAP_SIZE * (program->startPos.y / 360.0f));
-					int xTo = (int)round(BITMAP_SIZE * (program->endPos.x / 360.0f));
-					int yTo = (int)round(BITMAP_SIZE * (program->endPos.y / 360.0f));
-
-					MakeFloodFill(glm::ivec2(xFrom, yFrom), glm::ivec2(xTo, yTo));
-				}
-
-				if (ImGui::TreeNode("Obstacles"))
-				{
-					if (ImGui::Button("Recalc obstacles map"))
-					{
-						RecalcObstaclesBitmap();
-					}
-
-					ImGui::Checkbox("Show obstacles map with path", &program->showMap);
-					if (program->showMap) {
-						ImGui::Begin("Obstacles map with path##uu", &program->showMap);
-						ImGuiIO& io = ImGui::GetIO();
-						ImTextureID my_tex_id = (void*)program->tex;
-						float my_tex_w = BITMAP_SIZE;
-						float my_tex_h = BITMAP_SIZE;
-						{
-							ImVec2 pos = ImGui::GetCursorScreenPos();
-							ImVec2 uv_min = ImVec2(0.0f, 0.0f);
-							ImVec2 uv_max = ImVec2(1.0f, 1.0f);
-							ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-							ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
-							ImGui::Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
-							if (ImGui::IsItemHovered())
-							{
-								ImGui::BeginTooltip();
-								float region_sz = 32.0f;
-								float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
-								float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
-								float zoom = 4.0f;
-								if (region_x < 0.0f) { region_x = 0.0f; }
-								else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
-								if (region_y < 0.0f) { region_y = 0.0f; }
-								else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
-								ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
-								ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
-								ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
-								ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
-								ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
-								ImGui::EndTooltip();
-							}
-						}
-						ImGui::End();
-					}
-
-					ImGui::Checkbox("Show obstacles map with distances", &program->showMap2);
-					if (program->showMap2) {
-						ImGui::Begin("Obstacles map with distances##uu", &program->showMap2);
-						ImGuiIO& io = ImGui::GetIO();
-						ImTextureID my_tex_id = (void*)program->distancesTex;
-						float my_tex_w = BITMAP_SIZE;
-						float my_tex_h = BITMAP_SIZE;
-						{
-							ImVec2 pos = ImGui::GetCursorScreenPos();
-							ImVec2 uv_min = ImVec2(0.0f, 0.0f);
-							ImVec2 uv_max = ImVec2(1.0f, 1.0f);
-							ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-							ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
-							ImGui::Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
-							if (ImGui::IsItemHovered())
-							{
-								ImGui::BeginTooltip();
-								float region_sz = 32.0f;
-								float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
-								float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
-								float zoom = 4.0f;
-								if (region_x < 0.0f) { region_x = 0.0f; }
-								else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
-								if (region_y < 0.0f) { region_y = 0.0f; }
-								else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
-								ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
-								ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
-								ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
-								ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
-								ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
-								ImGui::EndTooltip();
-							}
-						}
-						ImGui::End();
-					}
-					if (ImGui::Button("Add obstacle"))
-					{
-						auto obstacle = std::make_shared<Obstacle>();
-						obstacle->Initialize(program);
-						program->currentWindow->figures.push_back(obstacle);
-						program->currentWindow->obstacles.push_back(obstacle);
-					}
-
-					if (ImGui::TreeNode("Obstacles list"))
-					{
-						for (int i = 0; i < program->currentWindow->obstacles.size(); ++i)
-						{
-							auto& obstacle = program->currentWindow->obstacles[i];
-							if (ImGui::TreeNode((std::string("Obstacle - ") + std::to_string(i)).c_str()))
-							{
-
-								ImGui::SliderFloat("xPos", &obstacle->x, -2.0f, 2.0f);
-								ImGui::SliderFloat("yPos", &obstacle->y, -2.0f, 2.0f);
-								ImGui::SliderFloat("width", &obstacle->width, 0.01f, 2.0f);
-								ImGui::SliderFloat("height", &obstacle->height, 0.01f, 2.0f);
-								if (ImGui::Button("Remove"))
-								{
-									i--;
-									auto figure = std::find(program->currentWindow->figures.begin(), program->currentWindow->figures.end(), obstacle);
-									program->currentWindow->figures.erase(figure);
-									auto obs = std::find(program->currentWindow->obstacles.begin(), program->currentWindow->obstacles.end(), obstacle);
-									program->currentWindow->obstacles.erase(obs);
-								}
-								ImGui::TreePop();
-							}
-						}
-						ImGui::TreePop();
-					}
-					ImGui::TreePop();
-				}
-			}
-			if (program->currentWindow->tool->l1 < 0.01f)program->currentWindow->tool->l1 = 0.01f;
-			if (program->currentWindow->tool->l1 > 1.0f)program->currentWindow->tool->l1 = 1.0f;
-			if (program->currentWindow->tool->l2 < 0.01f)program->currentWindow->tool->l2 = 0.01f;
-			if (program->currentWindow->tool->l2 > 1.0f)program->currentWindow->tool->l2 = 1.0f;
-
-			if (ImGui::Button("Simulate"))
-			{
-				program->simulating = true;
-				program->t = 0;
-				lastTime = glfwGetTime();
-			}
-		}
 	}
 	ImGui::SliderFloat("Simulation time", &program->simTime, 1.0f, 10.0f);
 
@@ -764,6 +228,8 @@ int main()
 	glfwSetFramebufferSizeCallback(window, proc.framebuffer_size_callback);
 	glfwSetWindowSizeCallback(window, window_size_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetKeyCallback(window, key_callback);
 	/*
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -804,8 +270,6 @@ int main()
 	program->currentWindow->tool = std::make_shared<Tool>();
 	program->currentWindow->tool->Initialize(program);
 	program->currentWindow->figures.push_back(program->currentWindow->tool);
-	program->startPos = glm::vec2(program->currentWindow->tool->alpha, program->currentWindow->tool->beta);
-	program->endPos = glm::vec2(program->currentWindow->tool->alpha, program->currentWindow->tool->beta);
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -816,9 +280,6 @@ int main()
 	ImGui_ImplOpenGL3_Init("#version 130");
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
-	FillImage(program->tex, program);
-	FillImage(program->distancesTex, program);
-	RecalcObstaclesBitmap();
 	while (!glfwWindowShouldClose(window))
 	{
 		if (program->simulating)
@@ -834,7 +295,7 @@ int main()
 		ImGui::NewFrame();
 
 		//ImGui::ShowDemoWindow();
-		ImPlot::ShowDemoWindow();
+		//ImPlot::ShowDemoWindow();
 		proc.processInput(window);
 		RenderGui();
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -843,7 +304,6 @@ int main()
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwSwapBuffers(window);
-
 
 		glfwPollEvents();
 	}
@@ -855,23 +315,12 @@ int main()
 }
 
 
-
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	double x_pos, y_pos;
 	glfwGetCursorPos(window, &x_pos, &y_pos);
 	int lCtrlState = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
 	int lAltState = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && lAltState == GLFW_PRESS)
-	{
-		if (program->edition && !program->selection)
-		{
-			float aspect = (float)program->current_width / (float)program->current_height;
-			glm::vec2 mousePos = glm::vec2(((x_pos / program->current_width) * 2.0f - 1.0f) * aspect, -((y_pos / program->current_height) * 2.0f - 1.0f));
-
-			program->currentWindow->tool->InverseKinematics(mousePos);
-		}
-	}
 
 }
 

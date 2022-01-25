@@ -7,7 +7,8 @@ Tool::Tool() : Figure()
 {
 	sprintf_s(name, STRMAX, ("Tool - " + std::to_string(idx++) + " " + gen_random(12, idx)).c_str());
 	figureType = FigureType::Tool;
-
+	selected = true;
+	canMove = true;
 }
 
 void Tool::Initialize(std::shared_ptr<Program> _program)
@@ -50,57 +51,7 @@ void Tool::RecalcFigure()
 	}
 }
 
-void Tool::InverseKinematics(glm::vec2 pos)
-{
-	double dist = sqrt(pos.x * pos.x + pos.y * pos.y);
-	if (dist > len1 + len2)
-	{
-		program->error = std::string("Can't set tool in that position");
-		return;
-	}
-	if (len2 > len1+dist)
-	{
-		program->error = std::string("Can't set tool in that position");
-		return;
-	}
-	if (len1 > len2 + dist)
-	{
-		program->error = std::string("Can't set tool in that position");
-		return;
-	}
 
-	double g1 = acos((l1 * l1 + l2 * l2 - dist * dist) / (2 * l1 * l2));
-	double g2 = 2 * M_PI - g1;
-
-	double h1 = acos((l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist));
-	double h2 = 2 * M_PI - h1;
-
-	double b1 = M_PI - g1;
-	double b2 = M_PI - g2;
-
-
-	double angle = atan(pos.y / pos.x);
-	if (pos.x < 0) angle += M_PI;
-	double a1 = angle - h1, a2 = angle - h2;
-
-	program->selection = true;
-	program->opt1 = glm::vec2(a1, b1);
-	program->opt2 = glm::vec2(a2, b2);
-}
-
-glm::vec2 Tool::GetPoint(int n, float alpha, float beta)
-{
-	float al = alpha / 180.0f * M_PI;
-	float bt = beta / 180.0f * M_PI;
-	if (n == 1)
-		return glm::vec2(0.0f, 0.0f);
-	if (n == 2)
-		return glm::vec2(len1 * cos(al), len1 * sin(al));
-	if (n == 3)
-		return glm::vec2(len1 * cos(al) + len2 * cos(al + bt)
-			, len1 * sin(al) + len2 * sin(al + bt));
-	return glm::vec2(0.0f, 0.0f);
-}
 
 
 bool Tool::GetGuiInternal(std::shared_ptr<Figure> par)
@@ -123,45 +74,103 @@ bool Tool::Create()
 {
 	bool fCreate = Figure::Create();
 
-	while (alpha < 0.0f) alpha += 360.0f;
-	while (alpha > 360.0f) alpha -= 360.0f;
-	while (beta < 0.0f) beta += 360.0f;
-	while (beta > 360.0f) beta -= 360.0f;
+	if (l_old == l && r_old == r && angle_old == angle) return false;
 
-	if (l1 == len1 && l2 == len2 && a == alpha && b == beta) return false;
-	len1 = l1; len2 = l2; a = alpha; b = beta;
-	vertices = std::vector<float>(18);
-	indices = std::vector<unsigned int>(4);
+	l_old = l; r_old = r; angle_old = angle;
 
-	glm::vec2 p0 = GetPoint(1, a, b);
-	glm::vec2 p1 = GetPoint(2, a, b);
-	glm::vec2 p2 = GetPoint(3, a, b);
+	int wheel_positions = 100;
+	int vertices_count = wheel_positions + 2 + 4;
+	vertices = std::vector<float>(6 * vertices_count);
+	indices = std::vector<unsigned int>();
 
-	vertices[0] = p0.x;
-	vertices[1] = p0.y;
-	vertices[2] = 0.0f;
-	vertices[3] = 1.0f;
-	vertices[4] = 0.0f;
-	vertices[5] = 0.0f;
+	for (int i = 0; i < wheel_positions; ++i)
+	{
+		float alpha = ((float)i / wheel_positions) * 2 * M_PI;
 
-	vertices[6 + 0] = p1.x;
-	vertices[6 + 1] = p1.y;
-	vertices[6 + 2] = 0.0f;
-	vertices[6 + 3] = 1.0f;
-	vertices[6 + 4] = 0.0f;
-	vertices[6 + 5] = 0.0f;
+		vertices[6 * i + 0] = r * cos(alpha);
+		vertices[6 * i + 1] = r * sin(alpha);
+		vertices[6 * i + 2] = 0.0f;
+		vertices[6 * i + 3] = 1.0f;
+		vertices[6 * i + 4] = 0.0f;
+		vertices[6 * i + 5] = 0.0f;
+		if (i == wheel_positions - 1)
+		{
+			indices.push_back(i);
+			indices.push_back(0);
+		}
+		else
+		{
+			indices.push_back(i);
+			indices.push_back(i + 1);
+		}
+	}
 
-	vertices[12 + 0] = p2.x;
-	vertices[12 + 1] = p2.y;
-	vertices[12 + 2] = 0.0f;
-	vertices[12 + 3] = 1.0f;
-	vertices[12 + 4] = 0.0f;
-	vertices[12 + 5] = 0.0f;
+	float angle_t = M_PI - angle;
+	glm::vec2 pos = { r * cos(angle_t), r * sin(angle_t) };
+	float dist = sqrt(l * l - pos.y * pos.y);
+	glm::vec2 pos2 = { pos.x + dist,0.0f };
 
-	indices[0] = 0;
-	indices[1] = 1;
-	indices[2] = 1;
-	indices[3] = 2;
+	int n = wheel_positions;
+	vertices[6 * n + 0] = pos.x;
+	vertices[6 * n + 1] = pos.y;
+	vertices[6 * n + 2] = 0.0f;
+	vertices[6 * n + 3] = 0.0f;
+	vertices[6 * n + 4] = 1.0f;
+	vertices[6 * n + 5] = 0.0f;
+	indices.push_back(n);
+
+	n++;
+	vertices[6 * n + 0] = pos2.x;
+	vertices[6 * n + 1] = pos2.y;
+	vertices[6 * n + 2] = 0.0f;
+	vertices[6 * n + 3] = 0.0f;
+	vertices[6 * n + 4] = 1.0f;
+	vertices[6 * n + 5] = 0.0f;
+	indices.push_back(n);
+
+	n++;
+	vertices[6 * n + 0] = pos2.x;
+	vertices[6 * n + 1] = pos2.y + block_size / 2;
+	vertices[6 * n + 2] = 0.0f;
+	vertices[6 * n + 3] = 1.0f;
+	vertices[6 * n + 4] = 1.0f;
+	vertices[6 * n + 5] = 0.0f;
+
+	n++;
+	vertices[6 * n + 0] = pos2.x;
+	vertices[6 * n + 1] = pos2.y - block_size / 2;
+	vertices[6 * n + 2] = 0.0f;
+	vertices[6 * n + 3] = 1.0f;
+	vertices[6 * n + 4] = 1.0f;
+	vertices[6 * n + 5] = 0.0f;
+
+	n++;
+	vertices[6 * n + 0] = pos2.x + block_size;
+	vertices[6 * n + 1] = pos2.y + block_size / 2;
+	vertices[6 * n + 2] = 0.0f;
+	vertices[6 * n + 3] = 1.0f;
+	vertices[6 * n + 4] = 1.0f;
+	vertices[6 * n + 5] = 0.0f;
+
+	n++;
+	vertices[6 * n + 0] = pos2.x + block_size;
+	vertices[6 * n + 1] = pos2.y - block_size / 2;
+	vertices[6 * n + 2] = 0.0f;
+	vertices[6 * n + 3] = 1.0f;
+	vertices[6 * n + 4] = 1.0f;
+	vertices[6 * n + 5] = 0.0f;
+
+	indices.push_back(n - 3);
+	indices.push_back(n - 2);
+
+	indices.push_back(n - 3);
+	indices.push_back(n - 1);
+
+	indices.push_back(n );
+	indices.push_back(n - 2);
+
+	indices.push_back(n - 1);
+	indices.push_back(n);
 
 	return true;
 }

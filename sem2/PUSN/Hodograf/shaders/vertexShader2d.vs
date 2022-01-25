@@ -10,7 +10,7 @@ uniform mat4 persp;
 
 void main()
 {
-    vec4 pos = persp * view * vec4(aPos,1.0);
+    vec4 pos = persp * view * transform*vec4(aPos,1.0);
     gl_Position = pos;
 
     fColor = vec4(aColor,0.5f);
