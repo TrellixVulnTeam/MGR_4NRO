@@ -2,6 +2,7 @@ from API import Vector3
 from API import Vector2
 from API import Vector4
 from API import Bezier
+from API import Something
 import random
 import time
 import math
@@ -10,7 +11,7 @@ class DuckScript:
     def __init__(self):
         self.gameObject = None
         self.dt = 0.005
-        self.t = 0.0
+        Something.t = 0.0
         self.bezier = Bezier()
         self.lastRand = Vector2(0.0,0.0)
         self.bezier.AddControlPoint(self.lastRand)
@@ -38,21 +39,21 @@ class DuckScript:
         pass
 
     def GetPos(self):
-        return Vector2(self.bezier.GetXPos(self.t),self.bezier.GetYPos(self.t))
+        return Vector3(self.bezier.GetXPos(Something.t), Something.height, self.bezier.GetYPos(Something.t))
 
     def ConvertPos(self, pos):
         scale = 5;
         translate = -2.5
-        return Vector3(scale * pos.x + translate, 0.0, scale*pos.y+ translate)
+        return Vector3(scale * pos.x + translate, pos.y, scale*pos.z+ translate)
 
     def OnCreate(self):
         self.gameObject.SetScale(Vector3(0.01,0.01,0.01))
         pass
 
     def OnUpdate(self):
-        self.t += self.dt
-        if self.t >= 1.0:
-            self.t = 0.0
+        Something.t += self.dt
+        if Something.t >= 1.0:
+            Something.t = 0.0
             self.NewPoint()
 
         self.lastPos = self.pos

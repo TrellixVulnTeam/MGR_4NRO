@@ -1,10 +1,22 @@
 /* TODO (5.01) Include Python Embedding Header */
 #include "GameObject.h"
-
+#include <math.h>
 #include <pybind11/embed.h>
+#include <corecrt_math_defines.h>
 
 namespace py = pybind11;
 using namespace duckApp;
+
+struct Something
+{
+public:
+	static float t;
+	static float GetHeightModifier() {
+		return 0.04f * sin(2.0f * M_PI * t);
+	}
+};
+
+float Something::t = 0.0;
 
 class Bezier
 {
@@ -154,4 +166,8 @@ PYBIND11_EMBEDDED_MODULE(API, _module)
 		.def("SetPosition", &GameObject::SetPosition, "Sets Position")
 		.def("SetScale", &GameObject::SetScale, "Sets Scale")
 		.def("SetNextPosition", &GameObject::SetNextPosition, "Sets next Position");
+
+	py::class_<Something>(_module, "Something")
+		.def_readwrite_static("t", &(Something::t))
+		.def_property_readonly_static("height", [](const py::object&) { return Something::GetHeightModifier(); });
 }
