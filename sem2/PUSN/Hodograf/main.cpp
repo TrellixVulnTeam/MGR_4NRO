@@ -29,6 +29,7 @@ glm::vec2 mousePosOld;
 glm::vec3 lookAt;
 std::shared_ptr<Program> program = {};
 std::vector<glm::ivec3> path = {};
+double lastDiff = 0.01;
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void window_size_callback(GLFWwindow* window, int width, int height);
@@ -72,19 +73,23 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void Simulate()
 {
 	auto time = lastTime + 0.01;
-	//time = glfwGetTime();
+	time = glfwGetTime();
 	auto diff = time - lastTime;
 	program->currentWindow->tool->angle += diff * (double)program->omega;
-	std::cout << diff << std::endl;
 
 	double x = program->currentWindow->tool->pos_now;
-	double xdt = (x - last_x) / diff;
-	double xddt = (xdt - last_xdt) / diff;
+	double xdt = (x - last_x) / lastDiff;
+	double xddt = (xdt - last_xdt) / lastDiff;
+	if (xddt > 8.0)
+	{
+		int a = 0;
+	}
 	program->AddValues(time, x, xdt, xddt);
 
 	lastTime = time;
 	last_x = x;
 	last_xdt = xdt;
+	lastDiff = diff;
 }
 
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
@@ -113,14 +118,19 @@ void RenderGui()
 		firstCall = false;
 	}
 
-	int to_delete = -1;
+	auto& tool = program->currentWindow->tool;
 	ImGui::Begin("Menu");
-	ImGui::Checkbox("simulate", &program->simulating);
-	ImGui::SliderFloat("R", &program->currentWindow->tool->r, 0.01f, 10.0f);
-	ImGui::SliderFloat("L", &program->currentWindow->tool->l, 0.01f, 10.0f);
+	ImGui::Checkbox("Simulate", &program->simulating);
+	ImGui::SliderFloat("R", &tool->r, 0.01f, 10.0f);
+	ImGui::SliderFloat("L", &tool->l, 0.01f, 10.0f);
 	ImGui::SliderFloat("omega", &program->omega, 0.01f, 10.0f);
-	ImGui::SliderFloat("block_size", &program->currentWindow->tool->block_size, 0.01f, 10.0f);
+	ImGui::SliderFloat("block_size", &tool->block_size, 0.01f, 10.0f);
 	ImGui::SliderFloat("history", &program->history, 1.0f, 20.0f);
+
+	if (tool->r <= 0.0) { program->error = "R cannot be negative"; tool->r = 1.0; tool->l = 2.0; }
+	if (tool->l <= tool->r) { program->error = "L cannot be less than R"; tool->l = 2 * tool->r; }
+	if (program->history <= 0.0) { program->error = "history must be positive"; program->history = 100.0; }
+
 	if (ImPlot::BeginPlot("Wykresy 1")) {
 		static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
 
@@ -145,25 +155,26 @@ void RenderGui()
 		ImPlot::EndPlot();
 	}
 
-	if (!program->simulating) {
-		if (program->error.length() > 0)
+	if (program->error.length() > 0)
+	{
+		if (!ImGui::IsPopupOpen("Error"))
+			ImGui::OpenPopup("Error");
+		if (ImGui::BeginPopupModal("Error", NULL))
 		{
-			if (!ImGui::IsPopupOpen("Error"))
-				ImGui::OpenPopup("Error");
-			if (ImGui::BeginPopupModal("Error", NULL))
+			ImGui::Text(program->error.c_str());
+			if (ImGui::Button("Close"))
 			{
-				ImGui::Text(program->error.c_str());
-				if (ImGui::Button("Close"))
-				{
-					ImGui::CloseCurrentPopup();
-					program->error = "";
-				}
-				ImGui::EndPopup();
+				ImGui::CloseCurrentPopup();
+				program->error = "";
 			}
+			ImGui::EndPopup();
 		}
-
+		program->simulating = false;
 	}
+
 	ImGui::SliderFloat("Simulation time", &program->simTime, 1.0f, 10.0f);
+
+
 
 	ImGui::End();
 }
@@ -320,7 +331,7 @@ int main()
 		glfwPollEvents();
 		double frameEnd = glfwGetTime();
 		auto diff = 1000 * (frameEnd - frameStart);
-		int frames = 100;
+		int frames = 80;
 		auto frameLen = 1000.0 / frames;
 		if (frameLen > diff)
 		{
