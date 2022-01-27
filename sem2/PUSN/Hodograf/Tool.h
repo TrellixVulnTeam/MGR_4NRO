@@ -13,6 +13,7 @@ public:
 	float r = 1.0f, l = 2.0f;
 	double angle = M_PI/4, pos_now = 0.0f;
 	float block_size = 0.2f;
+	float eps = 0.0f;
 private:
 	bool virtual Create() override;
 	float r_old = -1.0f, l_old = -1.0f;

@@ -112,7 +112,7 @@ bool Tool::Create()
 
 	double angle_t = M_PI - angle;
 	double r_t = r;
-	double l_t = l;
+	double l_t = l+eps;
 	glm::f64vec2 pos = { r_t * glm::cos(angle_t), r_t * glm::sin(angle_t) };
 	double dist = sqrt(l_t * l_t - pos.y * pos.y);
 	glm::f64vec2 pos2 = { pos.x + dist,0.0f };

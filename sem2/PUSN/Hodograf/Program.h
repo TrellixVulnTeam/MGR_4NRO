@@ -65,5 +65,6 @@ public:
 	ScrollingBuffer _state = {};
 	float omega = 0.1f;
 	float history = 10.0f;
+	float eps_0 = 0.0f;
 };
 

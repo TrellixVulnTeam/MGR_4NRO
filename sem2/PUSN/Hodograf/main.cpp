@@ -21,6 +21,7 @@
 #include <implot.h>
 #include <chrono>
 #include <thread>
+#include <random>
 
 bool firstCall = true;
 bool rotate = false;
@@ -30,6 +31,8 @@ glm::vec3 lookAt;
 std::shared_ptr<Program> program = {};
 std::vector<glm::ivec3> path = {};
 double lastDiff = 0.01;
+std::default_random_engine generator;
+std::normal_distribution<double> d;
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void window_size_callback(GLFWwindow* window, int width, int height);
@@ -76,7 +79,7 @@ void Simulate()
 	time = glfwGetTime();
 	auto diff = time - lastTime;
 	program->currentWindow->tool->angle += diff * (double)program->omega;
-
+	program->currentWindow->tool->eps = d(generator)* program->eps_0;
 	double x = program->currentWindow->tool->pos_now;
 	double xdt = (x - last_x) / lastDiff;
 	double xddt = (xdt - last_xdt) / lastDiff;
@@ -126,10 +129,12 @@ void RenderGui()
 	ImGui::SliderFloat("omega", &program->omega, 0.01f, 10.0f);
 	ImGui::SliderFloat("block_size", &tool->block_size, 0.01f, 10.0f);
 	ImGui::SliderFloat("history", &program->history, 1.0f, 20.0f);
+	ImGui::SliderFloat("eps_0", &program->eps_0, 0.0f, 0.01f, "%.7f");
 
 	if (tool->r <= 0.0) { program->error = "R cannot be negative"; tool->r = 1.0; tool->l = 2.0; }
 	if (tool->l <= tool->r) { program->error = "L cannot be less than R"; tool->l = 2 * tool->r; }
 	if (program->history <= 0.0) { program->error = "history must be positive"; program->history = 100.0; }
+	if (program->eps_0 < 0.0) { program->error = "eps_0 cannot be negative"; program->eps_0 = 0.0; }
 
 	if (ImPlot::BeginPlot("Wykresy 1")) {
 		static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
