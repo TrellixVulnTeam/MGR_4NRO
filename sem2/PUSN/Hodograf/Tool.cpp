@@ -116,7 +116,7 @@ bool Tool::Create()
 	glm::f64vec2 pos = { r_t * cos(angle_t), r_t * sin(angle_t) };
 	double dist = sqrt(l_t * l_t - pos.y * pos.y);
 	glm::f64vec2 pos2 = { pos.x + dist,0.0f };
-	pos_now = pos.x;
+	pos_now = pos2.x-l_t;
 
 	int n = wheel_positions;
 	vertices[6 * n + 0] = pos.x;

@@ -19,12 +19,12 @@
 #include "ImGuiFileDialog.h"
 #include <queue>
 #include <implot.h>
-
-
+#include <chrono>
+#include <thread>
 
 bool firstCall = true;
 bool rotate = false;
-double lastTime, initTime;
+double lastTime;
 glm::vec2 mousePosOld;
 glm::vec3 lookAt;
 std::shared_ptr<Program> program = {};
@@ -71,14 +71,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void Simulate()
 {
-	auto time = lastTime + 0.01;// glfwGetTime() - initTime;
+	auto time = lastTime + 0.01;
+	//time = glfwGetTime();
 	auto diff = time - lastTime;
 	program->currentWindow->tool->angle += diff * (double)program->omega;
-
+	std::cout << diff << std::endl;
 
 	double x = program->currentWindow->tool->pos_now;
-	double xdt = (x - last_x)/diff;
-	double xddt = (xdt-last_xdt)/diff;
+	double xdt = (x - last_x) / diff;
+	double xddt = (xdt - last_xdt) / diff;
 	program->AddValues(time, x, xdt, xddt);
 
 	lastTime = time;
@@ -119,12 +120,12 @@ void RenderGui()
 	ImGui::SliderFloat("L", &program->currentWindow->tool->l, 0.01f, 10.0f);
 	ImGui::SliderFloat("omega", &program->omega, 0.01f, 10.0f);
 	ImGui::SliderFloat("block_size", &program->currentWindow->tool->block_size, 0.01f, 10.0f);
+	ImGui::SliderFloat("history", &program->history, 1.0f, 20.0f);
 	if (ImPlot::BeginPlot("Wykresy 1")) {
-		static float history = 10.0f;
 		static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
 
 		ImPlot::SetupAxes(NULL, NULL, flags, flags);
-		ImPlot::SetupAxisLimits(ImAxis_X1, lastTime - history, lastTime, ImGuiCond_Always);
+		ImPlot::SetupAxisLimits(ImAxis_X1, lastTime - program->history, lastTime, ImGuiCond_Always);
 		ImPlot::SetupAxisLimits(ImAxis_Y1, -1.2, 1.2);
 		ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
 		ImPlot::PlotLine("x(t)", &program->_y.Data[0].x, &program->_y.Data[0].y, program->_y.Data.size(), program->_y.Offset, 2 * sizeof(float));
@@ -239,8 +240,7 @@ int main()
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetKeyCallback(window, key_callback);
-	initTime = glfwGetTime();
-	lastTime = glfwGetTime() - initTime;
+	lastTime = glfwGetTime();
 	/*
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -293,6 +293,7 @@ int main()
 	ImGui::StyleColorsDark();
 	while (!glfwWindowShouldClose(window))
 	{
+		double frameStart = glfwGetTime();
 		if (program->simulating)
 		{
 			Simulate();
@@ -317,8 +318,18 @@ int main()
 		glfwSwapBuffers(window);
 
 		glfwPollEvents();
-	}
+		double frameEnd = glfwGetTime();
+		auto diff = 1000 * (frameEnd - frameStart);
+		int frames = 100;
+		auto frameLen = 1000.0 / frames;
+		if (frameLen > diff)
+		{
+			diff = frameLen - diff;
+			std::chrono::milliseconds timespan((int)diff);
 
+			std::this_thread::sleep_for(timespan);
+		}
+	}
 	ImGui::DestroyContext();
 	ImPlot::DestroyContext();
 	glfwTerminate();
