@@ -74,9 +74,14 @@ bool Tool::Create()
 {
 	bool fCreate = Figure::Create();
 
-	if (l_old == l && r_old == r && angle_old == angle) return false;
+	if (l_old == l && r_old == r
+		&& angle_old == angle
+		&& block_size_old == block_size
+		) return false;
 
-	l_old = l; r_old = r; angle_old = angle;
+	l_old = l; r_old = r; 
+	angle_old = angle;
+	block_size_old = block_size;
 
 	int wheel_positions = 100;
 	int vertices_count = wheel_positions + 2 + 4;
@@ -105,10 +110,13 @@ bool Tool::Create()
 		}
 	}
 
-	float angle_t = M_PI - angle;
-	glm::vec2 pos = { r * cos(angle_t), r * sin(angle_t) };
-	float dist = sqrt(l * l - pos.y * pos.y);
-	glm::vec2 pos2 = { pos.x + dist,0.0f };
+	double angle_t = M_PI - angle;
+	double r_t = r;
+	double l_t = l;
+	glm::f64vec2 pos = { r_t * cos(angle_t), r_t * sin(angle_t) };
+	double dist = sqrt(l_t * l_t - pos.y * pos.y);
+	glm::f64vec2 pos2 = { pos.x + dist,0.0f };
+	pos_now = pos.x;
 
 	int n = wheel_positions;
 	vertices[6 * n + 0] = pos.x;

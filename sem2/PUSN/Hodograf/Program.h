@@ -63,6 +63,6 @@ public:
 	ScrollingBuffer _dy = {};
 	ScrollingBuffer _ddy = {};
 	ScrollingBuffer _state = {};
-	float omega = 0.01f;
+	float omega = 0.1f;
 };
 

@@ -24,15 +24,15 @@
 
 bool firstCall = true;
 bool rotate = false;
+double lastTime, initTime;
 glm::vec2 mousePosOld;
 glm::vec3 lookAt;
 std::shared_ptr<Program> program = {};
 std::vector<glm::ivec3> path = {};
-double lastTime;
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void window_size_callback(GLFWwindow* window, int width, int height);
-double x = 0.0;
+double last_x, last_xdt;
 
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -58,7 +58,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	float camMove = 0.04f;
-	auto pos =program->cam->pos;
+	auto pos = program->cam->pos;
 	if (key == GLFW_KEY_A) pos.x -= camMove;
 	if (key == GLFW_KEY_D) pos.x += camMove;
 	if (key == GLFW_KEY_S) pos.y -= camMove;
@@ -71,7 +71,19 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void Simulate()
 {
-	program->currentWindow->tool->angle += program->omega;
+	auto time = lastTime + 0.01;// glfwGetTime() - initTime;
+	auto diff = time - lastTime;
+	program->currentWindow->tool->angle += diff * (double)program->omega;
+
+
+	double x = program->currentWindow->tool->pos_now;
+	double xdt = (x - last_x)/diff;
+	double xddt = (xdt-last_xdt)/diff;
+	program->AddValues(time, x, xdt, xddt);
+
+	lastTime = time;
+	last_x = x;
+	last_xdt = xdt;
 }
 
 glm::vec3 ArbitraryRotate(glm::vec3 p, float angle, glm::vec3 axis)
@@ -111,17 +123,14 @@ void RenderGui()
 		static float history = 10.0f;
 		static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
 
-		double r = 1.0f;
-		program->AddValues(x, r * cos(x), -r * sin(x), -r * cos(x));
 		ImPlot::SetupAxes(NULL, NULL, flags, flags);
-		ImPlot::SetupAxisLimits(ImAxis_X1, x - history, x, ImGuiCond_Always);
+		ImPlot::SetupAxisLimits(ImAxis_X1, lastTime - history, lastTime, ImGuiCond_Always);
 		ImPlot::SetupAxisLimits(ImAxis_Y1, -1.2, 1.2);
 		ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
 		ImPlot::PlotLine("x(t)", &program->_y.Data[0].x, &program->_y.Data[0].y, program->_y.Data.size(), program->_y.Offset, 2 * sizeof(float));
 		ImPlot::PlotLine("x'(t)", &program->_dy.Data[0].x, &program->_dy.Data[0].y, program->_dy.Data.size(), program->_dy.Offset, 2 * sizeof(float));
 		ImPlot::PlotLine("x''(t)", &program->_ddy.Data[0].x, &program->_ddy.Data[0].y, program->_ddy.Data.size(), program->_ddy.Offset, 2 * sizeof(float));
 		ImPlot::EndPlot();
-		x += 0.01;
 	}
 	if (ImPlot::BeginPlot("Wykresy 2")) {
 		static float history = 10.0f;
@@ -230,6 +239,8 @@ int main()
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetKeyCallback(window, key_callback);
+	initTime = glfwGetTime();
+	lastTime = glfwGetTime() - initTime;
 	/*
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
