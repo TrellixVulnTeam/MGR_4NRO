@@ -131,6 +131,7 @@ void RenderGui()
 	ImGui::SliderFloat("history", &program->history, 1.0f, 20.0f);
 	ImGui::SliderFloat("eps_0", &program->eps_0, 0.0f, 0.01f, "%.7f");
 
+
 	if (tool->r <= 0.0) { program->error = "R cannot be negative"; tool->r = 1.0; tool->l = 2.0; }
 	if (tool->l <= tool->r) { program->error = "L cannot be less than R"; tool->l = 2 * tool->r; }
 	if (program->history <= 0.0) { program->error = "history must be positive"; program->history = 100.0; }
@@ -159,6 +160,13 @@ void RenderGui()
 		ImPlot::PlotLine("x'(x)", &program->_state.Data[0].x, &program->_state.Data[0].y, program->_state.Data.size(), program->_state.Offset, 2 * sizeof(float));
 		ImPlot::EndPlot();
 	}
+	if (ImGui::Button("Clear"))
+	{
+		program->_state.Erase();
+		program->_y.Erase();
+		program->_dy.Erase();
+		program->_ddy.Erase();
+	}
 
 	if (program->error.length() > 0)
 	{
@@ -176,10 +184,6 @@ void RenderGui()
 		}
 		program->simulating = false;
 	}
-
-	ImGui::SliderFloat("Simulation time", &program->simTime, 1.0f, 10.0f);
-
-
 
 	ImGui::End();
 }
