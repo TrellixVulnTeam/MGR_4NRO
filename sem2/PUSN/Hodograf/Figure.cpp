@@ -87,12 +87,12 @@ void Figure::SetScale(float x, float y, float z)
 }
 void Figure::Scale(float change)
 {
-	if (change > 1 && scale[0][0] > 3.0f) return;
-	if (change > 1 && scale[1][1] > 3.0f) return;
-	if (change > 1 && scale[1][1] > 3.0f) return;
-	if (change < 1 && scale[0][0] < 0.3f) return;
-	if (change < 1 && scale[1][1] < 0.3f) return;
-	if (change < 1 && scale[2][2] < 0.3f) return;
+	//if (change > 1 && scale[0][0] > 3.0f) return;
+	//if (change > 1 && scale[1][1] > 3.0f) return;
+	//if (change > 1 && scale[1][1] > 3.0f) return;
+	//if (change < 1 && scale[0][0] < 0.3f) return;
+	//if (change < 1 && scale[1][1] < 0.3f) return;
+	//if (change < 1 && scale[2][2] < 0.3f) return;
 
 	scale[0][0] *= change;
 	scale[1][1] *= change;

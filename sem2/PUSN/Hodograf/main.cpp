@@ -133,7 +133,7 @@ void RenderGui()
 
 
 	if (tool->r <= 0.0) { program->error = "R cannot be negative"; tool->r = 1.0; tool->l = 2.0; }
-	if (tool->l <= tool->r) { program->error = "L cannot be less than R"; tool->l = 2 * tool->r; }
+	if (tool->l < tool->r) { program->error = "L cannot be less than R"; tool->l = 2 * tool->r; }
 	if (program->history <= 0.0) { program->error = "history must be positive"; program->history = 100.0; }
 	if (program->eps_0 < 0.0) { program->error = "eps_0 cannot be negative"; program->eps_0 = 0.0; }
 
